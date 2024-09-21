@@ -1,0 +1,2 @@
+#!/bin/sh
+powershell.exe -ExecutionPolicy RemoteSigned -File '.\BACK_END\.husky\pre-commit.ps1'
