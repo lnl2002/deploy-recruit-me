@@ -124,6 +124,7 @@ export default function PaginationApp({
       radius="full"
       renderItem={renderItem}
       variant="light"
+      {...{} as any}
     />
   );
 }

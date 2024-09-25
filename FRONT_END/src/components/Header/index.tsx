@@ -7,7 +7,6 @@ import { usePathname } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
-import { setCategories } from "@/store/categoryState";
 import { Menu, MenuIcon } from "lucide-react";
 import { SearchBox } from "../SearchBox";
 
