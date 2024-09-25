@@ -12,8 +12,3 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Connected to port ${PORT}`)
 })
-
-const obj = {
-    abc: 1,
-    xyz: 2,
-}
