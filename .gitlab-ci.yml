@@ -5,9 +5,23 @@
 # Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
+# Bao gồm các stages để kiểm tra bảo mật và đồng bộ repo
 stages:
-- test
+  - test
+  - sync
+
+# Job SAST kiểm tra bảo mật với GitLab SAST template
 sast:
   stage: test
-include:
-- template: Security/SAST.gitlab-ci.yml
+  include:
+    - template: Security/SAST.gitlab-ci.yml
+
+# Job đồng bộ hai repo
+sync_repo:
+  stage: sync
+  script:
+    - git remote add second-repo https://github.com/lnl2002/deploy-recruit-me.git
+    - git fetch second-repo
+    - git push second-repo main --force
+  only:
+    - main
