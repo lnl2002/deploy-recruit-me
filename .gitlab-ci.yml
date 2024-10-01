@@ -10,13 +10,13 @@ stages:
   - test
   - sync
 
-# Job SAST kiểm tra bảo mật với GitLab SAST template
+# Include SAST template
+include:
+  - template: Security/SAST.gitlab-ci.yml
+
+# Job SAST kiểm tra bảo mật
 sast:
   stage: test
-  script:
-    - echo "Running SAST analysis"
-  include:
-    - template: Security/SAST.gitlab-ci.yml
 
 # Job đồng bộ hai repo
 sync_repo:
@@ -26,4 +26,4 @@ sync_repo:
     - git fetch second-repo
     - git push second-repo main --force
   only:
-    - main  
+    - main
