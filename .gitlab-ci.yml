@@ -21,6 +21,7 @@ sast:
 sync_repo:
   stage: sync
   script:
+    - git checkout -b main || git checkout main
     - git branch
     # Thêm remote repository GitHub
     - git remote add second-repo https://lnl2002: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@github.com/lnl2002/deploy-recruit-me.git
