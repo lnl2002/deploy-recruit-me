@@ -22,7 +22,7 @@ sast:
 sync_repo:
   stage: sync
   script:
-    - git remote add second-repo https://github.com/lnl2002/deploy-recruit-me.git
+    - git remote add second-repo https://lnl2002:${GITHUB_TOKEN}@github.com/lnl2002/deploy-recruit-me.git
     - git fetch second-repo
     - git push second-repo main --force
   only:
