@@ -82,3 +82,6 @@ types/env.d.ts
 .env.development
 .env.test
 .env.production
+
+tsconfig.tsbuildinfo
+.vercel
