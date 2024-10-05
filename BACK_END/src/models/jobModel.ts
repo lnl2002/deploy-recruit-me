@@ -8,6 +8,7 @@ export interface IJob extends Document {
     numberPerson: number
     unit: mongoose.Types.ObjectId // Tham chiếu tới bảng Units
     career: mongoose.Types.ObjectId // Tham chiếu tới bảng Careers
+    account: mongoose.Types.ObjectId
     address: string
     timestamp: Date
     expiredDate: Date
@@ -45,6 +46,11 @@ const jobSchema: Schema = new Schema(
         career: {
             type: mongoose.Types.ObjectId,
             ref: 'Career',
+            required: false,
+        },
+        account: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Account',
             required: false,
         },
         address: {
