@@ -1,6 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express'
 
-const router = express.Router()
+const router: express.Router = express.Router()
 
 router.get('/users', (req: Request, res: Response) => {
     return res.status(201).json({
