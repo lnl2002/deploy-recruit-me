@@ -4,9 +4,11 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import routes from './routes';
 import { errorHandler, responseMiddleware } from './middlewares/responseMiddleware';
-
+import 'module-alias/register';
 // Load environment variables from .env file
 dotenv.config();
+import './auth'
+
 
 const MONGO_DB_URL = process.env.DB_CONNECTION || "";
 
