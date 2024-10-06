@@ -4,7 +4,8 @@ export interface IJob extends Document {
     title: string
     introduction: string
     description: string
-    salary: string
+    minSalary: number
+    maxSalary: number
     numberPerson: number
     unit: mongoose.Types.ObjectId // Tham chiếu tới bảng Units
     career: mongoose.Types.ObjectId // Tham chiếu tới bảng Careers
@@ -30,8 +31,12 @@ const jobSchema: Schema = new Schema(
             type: String,
             required: false,
         },
-        salary: {
-            type: String,
+        minSalary: {
+            type: Number,
+            required: false,
+        },
+        maxSalary: {
+            type: Number,
             required: false,
         },
         numberPerson: {

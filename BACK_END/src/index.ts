@@ -4,7 +4,6 @@ import mongoose from 'mongoose'
 import cors from 'cors'
 import routes from './routes'
 import { errorHandler, responseMiddleware } from './middlewares/responseMiddleware'
-import jobRouter from './routes/jobRouter'
 
 // Load environment variables from .env file
 dotenv.config()
@@ -28,8 +27,6 @@ app.use(errorHandler)
 app.get('/', (req: Request, res: Response) => {
     res.send('Server is up and running!')
 })
-
-app.use('/jobs', jobRouter)
 
 // Database connection
 const connectDB = async () => {
