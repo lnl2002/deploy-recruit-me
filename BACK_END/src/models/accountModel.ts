@@ -1,16 +1,25 @@
 import mongoose, { Document, Schema } from 'mongoose'
+import { IRole } from './roleModel'
 
 export interface IAccount extends Document {
+    googleId: string
     name: string
     email: string
     password: string
-    role: mongoose.Types.ObjectId
+    role: mongoose.Types.ObjectId | IRole
     unit: mongoose.Types.ObjectId
-    cv: mongoose.Types.ObjectId[]
+    cv: mongoose.Types.ObjectId[],
+    image: string
 }
 
 const accountSchema: Schema = new Schema(
     {
+        googleId: {
+            type: 'string',
+            required: true,
+            unique: true,
+            trim: true
+        },
         email: {
             type: String,
             required: true,
@@ -30,7 +39,6 @@ const accountSchema: Schema = new Schema(
         unit: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Unit',
-            required: true,
         },
         image: {
             type: String,
