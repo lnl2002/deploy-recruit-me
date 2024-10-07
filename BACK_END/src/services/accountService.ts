@@ -1,5 +1,5 @@
 import { Types } from 'mongoose'
-import Account, { IAccount } from '~/models/accountModel'
+import Account, { IAccount } from '../models/accountModel'
 
 const accountService = {
     getAccountById: async (accountId: Types.ObjectId): Promise<IAccount | null> => {

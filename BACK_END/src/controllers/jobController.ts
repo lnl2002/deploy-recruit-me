@@ -1,9 +1,9 @@
 import { Request, Response } from 'express'
 import { Types } from 'mongoose'
 import jobService from '../services/jobService'
-import accountService from '~/services/accountService'
-import unitService from '~/services/unitService'
-import careerService from '~/services/careerService'
+import accountService from '../services/accountService'
+import unitService from '../services/unitService'
+import careerService from '../services/careerService'
 
 const jobController = {
     getJobDetail: async (req: Request, res: Response): Promise<Response> => {

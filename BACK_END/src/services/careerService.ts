@@ -1,5 +1,5 @@
 import { Types } from 'mongoose'
-import Career, { ICareer } from '~/models/careerModel'
+import Career, { ICareer } from '../models/careerModel'
 
 const careerService = {
     getCareerById: async (careerId: Types.ObjectId): Promise<ICareer | null> => {

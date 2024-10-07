@@ -1,5 +1,5 @@
 import { Types } from 'mongoose'
-import Unit, { IUnit } from '~/models/unitModel'
+import Unit, { IUnit } from '../models/unitModel'
 
 const unitService = {
     getUnitById: async (unitId: Types.ObjectId): Promise<IUnit | null> => {
