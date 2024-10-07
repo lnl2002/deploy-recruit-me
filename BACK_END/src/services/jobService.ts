@@ -134,6 +134,14 @@ const jobService = {
             throw new Error('Could not soft delete job')
         }
     },
+    addJob: async (job: Partial<IJob>): Promise<IJob | null> => {
+        try {
+            const newJob = Job.create(job)
+            return newJob
+        } catch (error) {
+            throw new Error('Error creating job', error)
+        }
+    },
 }
 
 export default jobService

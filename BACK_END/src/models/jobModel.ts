@@ -51,12 +51,12 @@ const jobSchema: Schema = new Schema(
         career: {
             type: mongoose.Types.ObjectId,
             ref: 'Career',
-            required: false,
+            required: true,
         },
         account: {
             type: mongoose.Types.ObjectId,
             ref: 'Account',
-            required: false,
+            required: true,
         },
         address: {
             type: String,

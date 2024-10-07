@@ -5,6 +5,9 @@ const jobRouter = express.Router()
 
 jobRouter.get('/', jobController.getJobList)
 jobRouter.get('/:id', jobController.getJobDetail)
+
+jobRouter.post('/', jobController.addJob)
+
 jobRouter.delete('/:id', jobController.deleteJob)
 
 export default jobRouter
