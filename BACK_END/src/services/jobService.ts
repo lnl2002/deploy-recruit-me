@@ -1,110 +1,59 @@
 import { Types } from 'mongoose'
 import Job, { IJob } from '../models/jobModel'
 
-interface JobQuery {
-    limit?: number
-    skip?: number
-    sort_field?: string
-    search?: string
-    order?: 'asc' | 'desc'
-    location?: string
-    unit?: string
-    career?: string
-}
-
 const jobService = {
-    getListJobsByUser: async (query: JobQuery, id: Types.ObjectId): Promise<IJob[] | []> => {
+    getListJobsByUser: async (
+        query: any,
+        filteredQuery: any,
+        accountId: Types.ObjectId,
+    ): Promise<{ jobs: IJob[]; total: number }> => {
         try {
-            const {
-                limit = 10,
-                sort_field = 'createdAt',
-                search = '',
-                order = 'asc',
-                skip = 0,
-                location = '',
-                unit = '',
-                career = '',
-            } = query
+            const { sort_field = 'createdAt', order = 'asc', limit, skip } = query
 
-            const conditions: any = {
-                account: id,
-                isDelete: false,
-                title: { $regex: search, $options: 'i' },
-            }
+            console.log({ account: accountId, ...filteredQuery })
 
-            if (location) {
-                conditions['unit.location'] = location
-            }
+            const total = await Job.countDocuments({ account: accountId, ...filteredQuery })
 
-            if (unit) {
-                conditions.unit = new Types.ObjectId(unit)
-            }
-
-            if (career) {
-                conditions.career = new Types.ObjectId(career)
-            }
-
-            const jobs = await Job.find(conditions)
+            const jobs = await Job.find({ account: accountId, ...filteredQuery })
                 .populate({
                     path: 'unit', // Populate unit trước
                     populate: { path: 'location' }, // Sau đó populate tới location
                 })
                 .populate('career')
                 .populate('account')
+                .populate('interviewer')
                 .sort({ [sort_field]: order === 'asc' ? 1 : -1 })
                 .limit(limit)
                 .skip(skip)
                 .lean()
                 .exec()
 
-            return jobs as IJob[] | []
+            return { jobs, total }
         } catch (error) {
             throw new Error('Could not fetch jobs')
         }
     },
-    getListJobs: async (query: JobQuery): Promise<IJob[] | []> => {
+    getListJobs: async (query: any, filteredQuery: any): Promise<{ jobs: IJob[]; total: number }> => {
         try {
-            const {
-                limit = 10,
-                sort_field = 'createdAt',
-                search = '',
-                order = 'asc',
-                skip = 0,
-                location = '',
-                unit = '',
-                career = '',
-            } = query
-            const conditions: any = {
-                isDelete: false,
-                title: { $regex: search, $options: 'i' },
-            }
+            const { sort_field = 'createdAt', order = 'asc', limit, skip } = query
 
-            if (location) {
-                conditions['unit.location'] = location
-            }
+            const total = await Job.countDocuments(filteredQuery)
 
-            if (unit) {
-                conditions.unit = new Types.ObjectId(unit)
-            }
-
-            if (career) {
-                conditions.career = new Types.ObjectId(career)
-            }
-
-            const jobs = await Job.find(conditions)
+            const jobs = await Job.find(filteredQuery)
                 .populate({
                     path: 'unit', // Populate unit trước
                     populate: { path: 'location' }, // Sau đó populate tới location
                 })
                 .populate('career')
                 .populate('account')
+                .populate('interviewer')
                 .sort({ [sort_field]: order === 'asc' ? 1 : -1 })
                 .limit(limit)
                 .skip(skip)
                 .lean()
                 .exec()
 
-            return jobs as IJob[] | []
+            return { jobs, total }
         } catch (error) {
             throw new Error('Could not fetch jobs')
         }
@@ -118,6 +67,7 @@ const jobService = {
                 })
                 .populate('career')
                 .populate('account')
+                .populate('interviewer')
                 .lean()
                 .exec()
 

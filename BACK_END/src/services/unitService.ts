@@ -3,12 +3,16 @@ import Unit, { IUnit } from '../models/unitModel'
 
 const unitService = {
     getUnitById: async (unitId: Types.ObjectId): Promise<IUnit | null> => {
-        try {
-            const account = await Unit.findById(unitId).populate('location')
-            return account
-        } catch (error) {
-            throw new Error('Could not found unit')
-        }
+        const unit = await Unit.findById(unitId).populate('location')
+        return unit
+    },
+    getListUnit: async (): Promise<IUnit[] | []> => {
+        const listUnit = await Unit.find({}).populate('location')
+        return listUnit
+    },
+    addUnit: async (unit: Partial<IUnit>): Promise<IUnit> => {
+        const newUnit = await Unit.create(unit)
+        return newUnit
     },
 }
 
