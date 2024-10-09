@@ -4,6 +4,7 @@ import Test from './tests'
 import Auth from './auth'
 import cvRouter from './cvRouter'
 import jobRouter from './jobRouter'
+import MeetingRouter from './meetingRoom'
 import roleRouter from './roleRouter'
 import unitRouter from './unitRouter'
 import locationRouter from './locationRouter'
@@ -18,6 +19,7 @@ const routes = (app: Express) => {
     app.use('/api/v1/units', unitRouter)
     app.use('/api/v1/careers', careerRouter)
     app.use('/api/v1/locations', locationRouter)
+    app.use('/api/v1/meeting-room', MeetingRouter)
 }
 
 export default routes
