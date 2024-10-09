@@ -1,31 +1,34 @@
 import express, { NextFunction, Request } from 'express'
 import passport from 'passport'
 import jwt from 'jsonwebtoken'
-import { FRONTEND_URL_ADMIN_HOME, FRONTEND_URL_CANDIDATE_HOME, FRONTEND_URL_HR_MANAGER_HOME, FRONTEND_URL_RECRUITER_HOME } from '../utils/env'
+import { FRONTEND_URL } from '../utils/env'
 const router: express.Router = express.Router()
 
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }))
 
 router.get('/google/callback', passport.authenticate('google', { session: false }), (req: Request, res) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const token = (req as any).user;
+    const user = (req as any).user;
 
-    const decodedToken = jwt.decode(token);
+    const accessToken  = jwt.sign(user, process.env.JWT_SECRET!, { expiresIn: '1h' })
+    const refreshToken  = jwt.sign(user, process.env.JWT_REFRESH_SECRET!, { expiresIn: '90d' })
 
-    switch (decodedToken.role) {
-        case 'CANDIDATE':
-            return res.redirect(FRONTEND_URL_CANDIDATE_HOME);
-        case 'RECRUITER':
-            return res.redirect(FRONTEND_URL_RECRUITER_HOME);
-        case 'HR_MANAGER':
-            return res.redirect(FRONTEND_URL_HR_MANAGER_HOME);
-        case 'ADMIN':
-            return res.redirect(FRONTEND_URL_ADMIN_HOME);
 
-        default:
-            return res.redirect(FRONTEND_URL_CANDIDATE_HOME);
-    }
-
+    res.send(`
+        <html>
+        <body>
+            <script>
+                window.opener.postMessage({
+                    accessToken: '${accessToken}',
+                    refreshToken: '${refreshToken}',
+                    user: '${JSON.stringify(user)}'
+                }, '${FRONTEND_URL}');  // Thay thế bằng URL frontend hợp lệ
+                window.close();  // Đóng popup sau khi gửi message
+            </script>
+            <p>Login successful! You can close this window.</p>
+        </body>
+        </html>
+    `);
 })
 
 router.get('/verify-token', (req, res, next: NextFunction) => {
