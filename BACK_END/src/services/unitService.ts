@@ -10,6 +10,10 @@ const unitService = {
         const listUnit = await Unit.find({}).populate('location')
         return listUnit
     },
+    getListUnitByLocationId: async (locationId: Types.ObjectId): Promise<IUnit[] | []> => {
+        const listUnit = await Unit.find({ location: locationId }).populate('location')
+        return listUnit
+    },
     addUnit: async (unit: Partial<IUnit>): Promise<IUnit> => {
         const newUnit = await Unit.create(unit)
         return newUnit

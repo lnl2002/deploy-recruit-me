@@ -18,7 +18,7 @@ export const TopBanner = (): React.JSX.Element => {
     { title: "COMUNICATION", background: "#FFF", variant: "solid" },
   ];
   return (
-    <div className="relative w-full h-96 sm:h-screen overflow-hidden flex items-center">
+    <div className="relative w-full h-screen sm:min-h-screen overflow-hidden flex items-center">
       <Image
         className=""
         alt="background"

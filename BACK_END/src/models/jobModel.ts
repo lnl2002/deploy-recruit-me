@@ -7,22 +7,24 @@ export interface IJob extends Document {
     minSalary: number
     maxSalary: number
     numberPerson: number
-    unit: mongoose.Types.ObjectId // Tham chiếu tới bảng Units
-    career: mongoose.Types.ObjectId // Tham chiếu tới bảng Careers
+    unit: mongoose.Types.ObjectId
+    career: mongoose.Types.ObjectId
     account: mongoose.Types.ObjectId
     interviewer: mongoose.Types.ObjectId
+    location: mongoose.Types.ObjectId
     address: string
     timestamp: Date
     expiredDate: Date
     isDelete: boolean
     isActive: boolean
+    type: string
 }
 
 const jobSchema: Schema = new Schema(
     {
         title: {
             type: String,
-            required: true, // Bắt buộc phải có tiêu đề công việc
+            required: true,
         },
         introduction: {
             type: String,
@@ -47,6 +49,11 @@ const jobSchema: Schema = new Schema(
         unit: {
             type: mongoose.Types.ObjectId,
             ref: 'Unit',
+            required: true,
+        },
+        location: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Location',
             required: true,
         },
         career: {
@@ -79,6 +86,11 @@ const jobSchema: Schema = new Schema(
         isActive: {
             type: Boolean,
             default: false,
+        },
+        type: {
+            type: String,
+            required: true,
+            enum: ['fulltime', 'parttime', 'hybrid', 'remote', 'remote-fulltime', 'remote-parttime'],
         },
     },
     { timestamps: true },

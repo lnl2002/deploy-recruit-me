@@ -3,6 +3,9 @@ import { TopBanner } from "../../components/TopBanner";
 import { MainInfoCard } from "./MainInfoCard";
 import { useRouter } from "next/navigation";
 import { Images } from "@/images";
+import Introduction from "./Introductions";
+import ListJob from "./ListJob";
+import FooterComponent from "./Footer";
 
 export const Home = (): React.JSX.Element => {
   const router = useRouter();
@@ -10,10 +13,13 @@ export const Home = (): React.JSX.Element => {
   return (
     <div>
       <TopBanner />
+      <Introduction />
+      <ListJob />
+      <FooterComponent />
 
-      <div className="flex justify-center -translate-y-10">
-        {/* <MainInfoCard /> */}
-      </div>
+      {/* <div className="flex justify-center -translate-y-10"> */}
+      {/* <MainInfoCard /> */}
+      {/* </div> */}
     </div>
   );
 };
