@@ -4,6 +4,8 @@ export interface IJob extends Document {
     title: string
     introduction: string
     description: string
+    benefits: string
+    requests: string
     minSalary: number
     maxSalary: number
     numberPerson: number
@@ -33,6 +35,14 @@ const jobSchema: Schema = new Schema(
         description: {
             type: String,
             required: false,
+        },
+        requests: {
+            type: String,
+            required: true,
+        },
+        benefits: {
+            type: String,
+            required: true,
         },
         minSalary: {
             type: Number,

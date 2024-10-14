@@ -59,6 +59,8 @@ const jobController = {
                 title: 'string',
                 introduction: 'string',
                 description: 'string',
+                benefits: 'string',
+                requests: 'string',
                 minSalary: 'number',
                 maxSalary: 'number',
                 numberPerson: 'number',
@@ -162,6 +164,8 @@ const jobController = {
                 title: 'string',
                 introduction: 'string',
                 description: 'string',
+                benefits: 'string',
+                requests: 'string',
                 minSalary: 'number',
                 maxSalary: 'number',
                 numberPerson: 'number',
@@ -245,6 +249,8 @@ const jobController = {
                 title,
                 introduction,
                 description,
+                benefits,
+                requests,
                 minSalary,
                 maxSalary,
                 numberPerson,
@@ -254,6 +260,7 @@ const jobController = {
                 career,
                 address,
                 expiredDate,
+                type,
             } = req.body
 
             if (!title) {
@@ -282,6 +289,18 @@ const jobController = {
 
             if (!expiredDate) {
                 return res.status(400).json({ message: 'Expired date is required.' })
+            }
+
+            if (!benefits) {
+                return res.status(400).json({ message: 'Benefits is required.' })
+            }
+
+            if (!requests) {
+                return res.status(400).json({ message: 'Requests is required.' })
+            }
+
+            if (!type) {
+                return res.status(400).json({ message: 'Type is required.' })
             }
 
             const expirationDate = new Date(expiredDate)
