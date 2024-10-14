@@ -1,23 +1,9 @@
+import careerApi, { TCareer } from "@/api/careerApi";
+import locationApi, { TLocation } from "@/api/locationApi";
+import unitApi, { TUnit } from "@/api/unitApi";
 import { Input, Select, SelectItem } from "@nextui-org/react";
 import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
-
-export type TLocation = { _id: string; city?: string };
-
-export type TUnit = {
-  _id: string;
-  name: string;
-  image?: string;
-  introduction?: string;
-  locations: string[];
-};
-
-export type TCareer = {
-  _id: string;
-  name: string;
-  image: string;
-  introduction: string;
-};
 
 type FilterJobProps = {
   setSearchTitle: (title: string) => void;
@@ -36,55 +22,11 @@ const FilterJob: React.FC<FilterJobProps> = ({
   const [locationList, setLocationList] = useState<TLocation[]>([]);
   const [careerList, setCareerList] = useState<TCareer[]>([]);
 
-  async function getUnitList(): Promise<{ units: TUnit[] }> {
-    try {
-      const res = await fetch("http://localhost:9999/api/v1/units");
-      const data = await res.json();
-      if (data.status === 200) {
-        return { units: data.data };
-      } else {
-        return { units: [] };
-      }
-    } catch (error) {
-      return { units: [] };
-    }
-  }
-
-  async function getLocationList(): Promise<{ locations: TLocation[] }> {
-    try {
-      const res = await fetch("http://localhost:9999/api/v1/locations");
-      const data = await res.json();
-
-      if (data.status === 200) {
-        return { locations: data.data };
-      } else {
-        return { locations: [] };
-      }
-    } catch (error) {
-      return { locations: [] };
-    }
-  }
-
-  async function getCareerList(): Promise<{ careers: TCareer[] }> {
-    try {
-      const res = await fetch("http://localhost:9999/api/v1/careers");
-      const data = await res.json();
-
-      if (data.status === 200) {
-        return { careers: data.data };
-      } else {
-        return { careers: [] };
-      }
-    } catch (error) {
-      return { careers: [] };
-    }
-  }
-
   useEffect(() => {
     (async () => {
-      const { units } = await getUnitList();
-      const { locations } = await getLocationList();
-      const { careers } = await getCareerList();
+      const { units } = await unitApi.getUnitList();
+      const { locations } = await locationApi.getLocationList();
+      const { careers } = await careerApi.getCareerList();
       setUnitList(units);
       setLocationList(locations);
       setCareerList(careers);

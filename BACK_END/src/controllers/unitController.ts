@@ -47,7 +47,7 @@ const unitController = {
                 name: name,
                 image: image,
                 introduction: introduction,
-                location: location,
+                locations: location,
             })
             return res.status(200).json(listUnit)
         } catch (error: unknown) {

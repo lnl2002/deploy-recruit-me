@@ -1,4 +1,4 @@
-import { TJob } from "@/screens/home/ListJob";
+import { TJob } from "@/api/jobApi";
 import { Image } from "@nextui-org/react";
 import { Dot } from "lucide-react";
 

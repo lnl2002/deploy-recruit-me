@@ -1,9 +1,8 @@
 import { Images } from "@/images";
 import formatSalary from "@/utils/formatSalary";
 import { Chip } from "@nextui-org/react";
-import { Clock4, Coins, Heart, MapPin } from "lucide-react";
+import { Clock4, Coins, MapPin } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 type JobProps = {

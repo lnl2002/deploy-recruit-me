@@ -2,67 +2,7 @@ import { useEffect, useState } from "react";
 import FilterJob from "./components/FilterJob";
 import HeaderListJob from "./components/HeaderListJob";
 import ListJobView from "./components/ListJob";
-
-export type TJob = {
-  _id: string;
-  title: string;
-  minSalary: number;
-  maxSalary: number;
-  numberPerson: number;
-  unit: {
-    _id: string;
-    name: string;
-    banner: string;
-    image: string;
-    location: {
-      _id: string;
-      city: string;
-      __v: number;
-    };
-    __v: number;
-  };
-  career: {
-    _id: string;
-    name: string;
-    __v: number;
-  };
-  account: {
-    _id: string;
-    googleId: string;
-    email: string;
-    name: string;
-    role: string;
-    image: string;
-    cv: any[]; // Assuming cv is an array, if it's an array of specific objects, you can specify the type accordingly
-    createdAt: string;
-    updatedAt: string;
-    __v: number;
-  };
-  interviewer: {
-    _id: string;
-    googleId: string;
-    email: string;
-    name: string;
-    role: string;
-    image: string;
-    cv: any[]; // Same assumption as above
-    createdAt: string;
-    updatedAt: string;
-    __v: number;
-  };
-  location: {
-    _id: string;
-    city: string;
-    __v: number;
-  };
-  expiredDate: string; // ISO date string
-  type: string;
-  isDelete: boolean;
-  isActive: boolean;
-  createdAt: string; // ISO date string
-  updatedAt: string; // ISO date string
-  __v: number;
-};
+import jobApi, { TJob } from "@/api/jobApi";
 
 const ListJob = (): React.JSX.Element => {
   const [limit] = useState(10);
@@ -75,29 +15,9 @@ const ListJob = (): React.JSX.Element => {
   const [searchTitle, setSearchTitle] = useState<string>("");
   const [params, setParams] = useState("");
 
-  async function getJobList(params: string) {
-    let newParams = "?expiredDate=1&sort_by=createdAt&order=1" + params;
-
-    // if (!params.includes("limit") || !params.includes("skip")) {
-    //   newParams += "&limit=10&skip=0";
-    // }
-
-    try {
-      const res = await fetch("http://localhost:9999/api/v1/jobs" + newParams);
-      const data = await res.json();
-      if (data.status === 200) {
-        return { jobs: data.data.jobs, total: data.data.total };
-      } else {
-        return { jobs: [], total: 0 };
-      }
-    } catch (error) {
-      return { jobs: [], total: 0 };
-    }
-  }
-
   useEffect(() => {
     (async () => {
-      const { jobs, total } = (await getJobList(params)) as {
+      const { jobs, total } = (await jobApi.getJobList(params)) as {
         jobs: TJob[];
         total: number;
       };

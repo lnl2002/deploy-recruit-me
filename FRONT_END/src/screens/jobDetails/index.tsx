@@ -1,7 +1,7 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { TJob } from "../home/ListJob";
 import { Image } from "@nextui-org/react";
+import { TJob } from "@/api/jobApi";
 import Header from "./components/Header";
 import InformationJob from "./components/InformationJob.tsx";
 

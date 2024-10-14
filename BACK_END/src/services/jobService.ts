@@ -17,7 +17,7 @@ const jobService = {
             const jobs = await Job.find({ account: accountId, ...filteredQuery })
                 .populate({
                     path: 'unit', // Populate unit trước
-                    populate: { path: 'location' }, // Sau đó populate tới location
+                    populate: { path: 'locations' }, // Sau đó populate tới location
                 })
                 .populate('career')
                 .populate('account')
@@ -35,37 +35,33 @@ const jobService = {
         }
     },
     getListJobs: async (query: any, filteredQuery: any): Promise<{ jobs: IJob[]; total: number }> => {
-        try {
-            const { sort_field = 'createdAt', order = 'asc', limit, skip } = query
+        const { sort_field = 'createdAt', order = 'asc', limit, skip } = query
 
-            const total = await Job.countDocuments(filteredQuery)
+        const total = await Job.countDocuments(filteredQuery)
 
-            const jobs = await Job.find(filteredQuery)
-                .populate({
-                    path: 'unit', // Populate unit trước
-                    populate: { path: 'location' }, // Sau đó populate tới location
-                })
-                .populate('career')
-                .populate('account')
-                .populate('interviewer')
-                .populate('location')
-                .sort({ [sort_field]: order === 'asc' ? 1 : -1 })
-                .limit(limit)
-                .skip(skip)
-                .lean()
-                .exec()
+        const jobs = await Job.find(filteredQuery)
+            .populate({
+                path: 'unit', // Populate unit trước
+                populate: { path: 'locations' }, // Sau đó populate tới location
+            })
+            .populate('career')
+            .populate('account')
+            .populate('interviewer')
+            .populate('location')
+            .sort({ [sort_field]: order === 'asc' ? 1 : -1 })
+            .limit(limit)
+            .skip(skip)
+            .lean()
+            .exec()
 
-            return { jobs, total }
-        } catch (error) {
-            throw new Error('Could not fetch jobs')
-        }
+        return { jobs, total }
     },
     getJobById: async (jobId: Types.ObjectId): Promise<IJob | null> => {
         try {
             const job = await Job.findById(jobId)
                 .populate({
                     path: 'unit', // Populate unit trước
-                    populate: { path: 'location' }, // Sau đó populate tới location
+                    populate: { path: 'locations' }, // Sau đó populate tới location
                 })
                 .populate('career')
                 .populate('account')
