@@ -33,8 +33,6 @@ const FilterJob: React.FC<FilterJobProps> = ({
     })();
   }, []);
 
-  console.log({ unitList, locationList, careerList });
-
   // Handler for when the user selects a unit
   const handleSelectUnit = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const unitId = event.target.value;
