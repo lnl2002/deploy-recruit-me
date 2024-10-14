@@ -8,6 +8,7 @@ export const AboutUs = (): React.JSX.Element => {
   return (
     <div>
       <TopBanner
+        {...{} as any}
         src={Images.Banner1}
         h1="FPT education recruit"
         h2="Connecting Talent, Creating Futures"
