@@ -1,6 +1,5 @@
 import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
-import jwt from 'jsonwebtoken'
 import Account, { IAccount } from './models/accountModel'
 import Role, { IRole } from './models/roleModel'
 
@@ -13,14 +12,11 @@ passport.use(
         },
         async (accessToken, refreshToken, profile, done) => {
             try {
-                let user: IAccount = await Account.findOne({ googleId: profile.id }).populate('role');
-                console.log('user', user);
+                let user: IAccount = await Account.findOne({ email: profile?.emails[0]?.value || '' }).populate('role');
 
 
                 if (!user) {
                     const defaultRole = await Role.findOne({ roleName: 'CANDIDATE' })
-
-                    console.log('defaultRole', profile);
 
                     // Nếu người dùng chưa tồn tại, tạo mới với role mặc định là 'CANDIDATE'
                     user = await Account.create({
@@ -35,14 +31,13 @@ passport.use(
                     user.role = defaultRole as any;
                 }
                 const tokenPayload = {
-                    googleId: user.googleId,
                     displayName: user.name,
                     email: user.email,
                     role: (user.role as IRole)?.roleName || '',
+                    image: user.image
                 }
 
-                const token = jwt.sign(tokenPayload, process.env.JWT_SECRET!, { expiresIn: '1h' })
-                done(null, token)
+                done(null, tokenPayload)
             } catch (error) {
                 done(error, null)
             }
