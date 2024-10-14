@@ -12,6 +12,8 @@ export type TJob = {
   unit: {
     _id: string;
     name: string;
+    banner: string;
+    image: string;
     location: {
       _id: string;
       city: string;
@@ -46,6 +48,11 @@ export type TJob = {
     cv: any[]; // Same assumption as above
     createdAt: string;
     updatedAt: string;
+    __v: number;
+  };
+  location: {
+    _id: string;
+    city: string;
     __v: number;
   };
   expiredDate: string; // ISO date string

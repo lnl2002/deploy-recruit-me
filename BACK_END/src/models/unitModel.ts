@@ -5,7 +5,7 @@ export interface IUnit extends Document {
     image: string
     introduction: string
     banner: string
-    location: mongoose.Types.ObjectId[]
+    locations: mongoose.Types.ObjectId[]
 }
 
 const unitSchema: Schema = new Schema({
@@ -25,7 +25,7 @@ const unitSchema: Schema = new Schema({
         type: String,
         required: true,
     },
-    location: [
+    locations: [
         {
             type: mongoose.Types.ObjectId,
             ref: 'Location',

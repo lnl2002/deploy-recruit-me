@@ -9,7 +9,7 @@ export type TUnit = {
   name: string;
   image?: string;
   introduction?: string;
-  location: string;
+  locations: string[];
 };
 
 export type TCareer = {

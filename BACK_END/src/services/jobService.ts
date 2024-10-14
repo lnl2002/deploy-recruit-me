@@ -22,6 +22,7 @@ const jobService = {
                 .populate('career')
                 .populate('account')
                 .populate('interviewer')
+                .populate('location')
                 .sort({ [sort_field]: order === 'asc' ? 1 : -1 })
                 .limit(limit)
                 .skip(skip)
@@ -47,6 +48,7 @@ const jobService = {
                 .populate('career')
                 .populate('account')
                 .populate('interviewer')
+                .populate('location')
                 .sort({ [sort_field]: order === 'asc' ? 1 : -1 })
                 .limit(limit)
                 .skip(skip)
@@ -68,6 +70,7 @@ const jobService = {
                 .populate('career')
                 .populate('account')
                 .populate('interviewer')
+                .populate('location')
                 .lean()
                 .exec()
 
