@@ -1,10 +1,13 @@
 import { BACKEND_URL } from "@/utils/env";
 import axios from "axios";
+import { TLocation } from "../locationApi";
+import { TUnit } from "../unitApi";
+import { TCareer } from "../careerApi";
 
 const jobApi = {
   getJobList: async (
     params: string
-  ): Promise<{ jobs: any[]; total: number }> => {
+  ): Promise<{ jobs: TJob[]; total: number }> => {
     let newParams = "?expiredDate=1&sort_by=createdAt&order=1" + params;
 
     try {
@@ -20,6 +23,20 @@ const jobApi = {
       return { jobs: [], total: 0 };
     }
   },
+
+  getJobById: async (id: string): Promise<{ job: Partial<TJob> }> => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/v1/jobs/${id}`);
+
+      if (res.status === 200) {
+        return { job: res.data.data };
+      } else {
+        return { job: {} };
+      }
+    } catch (error) {
+      return { job: {} };
+    }
+  },
 };
 
 export default jobApi;
@@ -30,23 +47,8 @@ export type TJob = {
   minSalary: number;
   maxSalary: number;
   numberPerson: number;
-  unit: {
-    _id: string;
-    name: string;
-    banner: string;
-    image: string;
-    location: {
-      _id: string;
-      city: string;
-      __v: number;
-    };
-    __v: number;
-  };
-  career: {
-    _id: string;
-    name: string;
-    __v: number;
-  };
+  unit: TUnit;
+  career: TCareer;
   account: {
     _id: string;
     googleId: string;
@@ -71,11 +73,7 @@ export type TJob = {
     updatedAt: string;
     __v: number;
   };
-  location: {
-    _id: string;
-    city: string;
-    __v: number;
-  };
+  location: TLocation;
   expiredDate: string; // ISO date string
   type: string;
   isDelete: boolean;
