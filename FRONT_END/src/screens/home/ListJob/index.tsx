@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import FilterJob from "./components/FilterJob";
 import HeaderListJob from "./components/HeaderListJob";
 import ListJobView from "./components/ListJob";
-import { Pagination } from "@nextui-org/react";
 
 export type TJob = {
   _id: string;

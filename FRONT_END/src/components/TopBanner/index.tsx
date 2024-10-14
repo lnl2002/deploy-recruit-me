@@ -17,6 +17,7 @@ export const TopBanner = (): React.JSX.Element => {
     { title: "GRAPHIC DESIGN", background: "#FFF", variant: "bordered" },
     { title: "COMUNICATION", background: "#FFF", variant: "solid" },
   ];
+
   return (
     <div className="relative w-full h-screen sm:min-h-screen overflow-hidden flex items-center">
       <Image
@@ -28,13 +29,6 @@ export const TopBanner = (): React.JSX.Element => {
         objectFit="cover"
         fill
       />
-      {/* <div
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(0,0,0,0.7455357142857143) 100%, rgba(255,255,255,0.1516981792717087) 100%);",
-        }}
-        className="w-full h-full absolute bg-custom-gradient"
-      ></div> */}
       <div className="absolute flex top-0 bottom-0 left-0 right-0">
         <div className="w-3/6 flex flex-col justify-center items-center">
           <div className="flex flex-col justify-center h-full w-9/12 gap-5">

@@ -3,9 +3,11 @@ import formatSalary from "@/utils/formatSalary";
 import { Chip } from "@nextui-org/react";
 import { Clock4, Coins, Heart, MapPin } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 type JobProps = {
+  id: string;
   title: string;
   location: string;
   unit: string;
@@ -13,9 +15,11 @@ type JobProps = {
   maxSalary: number;
   expiredDate: string;
   type: string;
+  handleNavigate: (id: string) => void;
 };
 
 const Job: React.FC<JobProps> = ({
+  id,
   title,
   location,
   unit,
@@ -23,6 +27,7 @@ const Job: React.FC<JobProps> = ({
   maxSalary,
   expiredDate,
   type,
+  handleNavigate,
 }): React.JSX.Element => {
   const [dueDate, setDueDate] = useState<number>(0);
   const [rankSalary, setRankSalary] = useState<string>("Negotiable");
@@ -57,7 +62,10 @@ const Job: React.FC<JobProps> = ({
   }, [minSalary, maxSalary]);
 
   return (
-    <div className="flex flex-col p-4 rounded-xl border gap-4 shadow-md hover:scale-105 cursor-pointer">
+    <div
+      onClick={() => handleNavigate(id)}
+      className="flex flex-col p-4 rounded-xl border gap-4 shadow-md hover:scale-105 cursor-pointer"
+    >
       <div className="flex justify-between">
         <div className="flex gap-3">
           <Image
@@ -72,7 +80,7 @@ const Job: React.FC<JobProps> = ({
             <span className="text-sm text-textSecondary">{unit}</span>
           </div>
         </div>
-        <Heart />
+        {/* <Heart /> */}
       </div>
       <div className="flex flex-row justify-between">
         <div className="flex flex-row gap-3">

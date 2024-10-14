@@ -11,7 +11,7 @@ export const Home = (): React.JSX.Element => {
   const router = useRouter();
 
   return (
-    <div>
+    <>
       <TopBanner />
       <Introduction />
       <ListJob />
@@ -20,6 +20,6 @@ export const Home = (): React.JSX.Element => {
       {/* <div className="flex justify-center -translate-y-10"> */}
       {/* <MainInfoCard /> */}
       {/* </div> */}
-    </div>
+    </>
   );
 };
