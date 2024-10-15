@@ -20,7 +20,7 @@ passport.use(
                 }
                 const sanitizedEmail = String(email).trim()
 
-                let user: IAccount = await Account.findOne({ sanitizedEmail }).populate('role');
+                let user: IAccount = await Account.findOne({ email: sanitizedEmail });
 
 
                 if (!user) {
