@@ -28,7 +28,7 @@ const locationController = {
             }
 
             const location = await locationService.getLocationById(new Types.ObjectId(id))
-            return res.status(201).json(location)
+            return res.status(200).json(location)
         } catch (error: unknown) {
             next(error)
         }
@@ -36,7 +36,7 @@ const locationController = {
     getListLocation: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
             const listLocation = await locationService.getListLocation()
-            return res.status(201).json(listLocation)
+            return res.status(200).json(listLocation)
         } catch (error: unknown) {
             next(error)
         }

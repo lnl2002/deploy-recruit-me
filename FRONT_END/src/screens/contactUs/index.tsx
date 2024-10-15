@@ -47,11 +47,10 @@ export const ContactUs = (): React.JSX.Element => {
   return (
     <div>
       <TopBanner
-        {...{} as any}
-        src={Images.Banner1}
-        h1="FPT education recruit"
-        h2="Connecting Talent, Creating Futures"
-        description="Our mission is to bridge the gap between opportunity and talent, fostering an environment where both employers and job seekers can thrive. We are committed to creating meaningful connections that empower individuals to achieve their career aspirations and help businesses grow with the right talent."
+      // src={Images.Banner1}
+      // h1="FPT education recruit"
+      // h2="Connecting Talent, Creating Futures"
+      // description="Our mission is to bridge the gap between opportunity and talent, fostering an environment where both employers and job seekers can thrive. We are committed to creating meaningful connections that empower individuals to achieve their career aspirations and help businesses grow with the right talent."
       />
       <div className="flex justify-center py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 bg-themeWhite rounded-3xl overflow-hidden shadow-lg w-full max-w-6xl">

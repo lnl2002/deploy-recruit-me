@@ -5,7 +5,7 @@ import accountService from '../services/accountService'
 import unitService from '../services/unitService'
 import careerService from '../services/careerService'
 import { IRole } from '../models/roleModel'
-import { IJob } from '~/models/jobModel'
+import { IJob } from '../models/jobModel'
 
 const jobController = {
     getJobDetail: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -29,7 +29,8 @@ const jobController = {
     },
     getJobList: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { skip, limit, title, sort_by, order } = req.query
+            const { skip, limit, title, sort_by, order, expiredDate } = req.query
+
             const pageLimit = parseInt(limit as string, 10) || 10
             const pageSkip = parseInt(skip as string, 10) || 0
 
@@ -54,29 +55,33 @@ const jobController = {
                 query.order = order as 'asc' | 'desc'
             }
 
-            const fieldTypes: { [key in keyof IJob]?: 'string' | 'number' | 'boolean' | 'date' } = {
+            const fieldTypes: { [key in keyof Partial<IJob>]?: 'string' | 'number' | 'boolean' | 'date' } = {
                 title: 'string',
                 introduction: 'string',
                 description: 'string',
+                benefits: 'string',
+                requests: 'string',
                 minSalary: 'number',
                 maxSalary: 'number',
                 numberPerson: 'number',
-                unit: 'string', // ObjectId sẽ được truyền dưới dạng chuỗi
+                unit: 'string',
                 career: 'string',
                 account: 'string',
+                location: 'string',
                 interviewer: 'string',
                 address: 'string',
                 timestamp: 'date',
                 expiredDate: 'date',
                 isDelete: 'boolean',
                 isActive: 'boolean',
+                type: 'string',
             }
 
             // Lọc và xác thực các trường hợp hợp lệ
             const filteredQuery = Object.keys(query)
                 .filter((key) => key in fieldTypes) // Chỉ giữ lại các trường hợp có trong fieldTypes
                 .reduce((obj, key) => {
-                    const expectedType = fieldTypes[key as keyof IJob]
+                    const expectedType = fieldTypes[key as keyof Partial<IJob>]
                     let value = query[key]
 
                     // Xử lý theo loại dữ liệu mong muốn
@@ -84,7 +89,7 @@ const jobController = {
                         value = parseInt(value, 10)
                         if (isNaN(value)) return obj // Bỏ qua nếu không phải số hợp lệ
                     } else if (expectedType === 'boolean') {
-                        value = value === 'true' || value === true ? true : false
+                        value = Boolean(value === 'true' || value === true)
                     } else if (expectedType === 'date') {
                         value = new Date(value)
                         if (isNaN(value.getTime())) return obj // Bỏ qua nếu không phải ngày hợp lệ
@@ -96,6 +101,12 @@ const jobController = {
                     obj[key] = value
                     return obj
                 }, {} as any)
+
+            if (expiredDate) {
+                const currentDate = new Date()
+                if (expiredDate == '1') filteredQuery.expiredDate = { $gte: currentDate }
+                if (expiredDate == '-1') filteredQuery.expiredDate = { $lt: currentDate }
+            }
 
             if (title) {
                 filteredQuery.title = { $regex: title, $options: 'i' }
@@ -110,7 +121,7 @@ const jobController = {
     },
     getJobListByUser: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { skip, limit, title, sort_by, order } = req.query
+            const { skip, limit, title, sort_by, order, expiredDate } = req.query
 
             const { id } = req.params
 
@@ -153,10 +164,13 @@ const jobController = {
                 title: 'string',
                 introduction: 'string',
                 description: 'string',
+                benefits: 'string',
+                requests: 'string',
                 minSalary: 'number',
                 maxSalary: 'number',
                 numberPerson: 'number',
-                unit: 'string', // ObjectId sẽ được truyền dưới dạng chuỗi
+                unit: 'string',
+                location: 'string',
                 career: 'string',
                 account: 'string',
                 interviewer: 'string',
@@ -165,6 +179,7 @@ const jobController = {
                 expiredDate: 'date',
                 isDelete: 'boolean',
                 isActive: 'boolean',
+                type: 'string',
             }
 
             // Lọc và xác thực các trường hợp hợp lệ
@@ -179,7 +194,7 @@ const jobController = {
                         value = parseInt(value, 10)
                         if (isNaN(value)) return obj // Bỏ qua nếu không phải số hợp lệ
                     } else if (expectedType === 'boolean') {
-                        value = value === 'true' || value === true ? true : false
+                        value = Boolean(value === 'true' || value === true)
                     } else if (expectedType === 'date') {
                         value = new Date(value)
                         if (isNaN(value.getTime())) return obj // Bỏ qua nếu không phải ngày hợp lệ
@@ -191,6 +206,12 @@ const jobController = {
                     obj[key] = value
                     return obj
                 }, {} as any)
+
+            if (expiredDate) {
+                const currentDate = new Date()
+                if (expiredDate == '1') filteredQuery.expiredDate = { $gte: currentDate }
+                if (expiredDate == '-1') filteredQuery.expiredDate = { $lt: currentDate }
+            }
 
             if (title) {
                 filteredQuery.title = { $regex: title, $options: 'i' }
@@ -228,6 +249,8 @@ const jobController = {
                 title,
                 introduction,
                 description,
+                benefits,
+                requests,
                 minSalary,
                 maxSalary,
                 numberPerson,
@@ -237,6 +260,7 @@ const jobController = {
                 career,
                 address,
                 expiredDate,
+                type,
             } = req.body
 
             if (!title) {
@@ -265,6 +289,18 @@ const jobController = {
 
             if (!expiredDate) {
                 return res.status(400).json({ message: 'Expired date is required.' })
+            }
+
+            if (!benefits) {
+                return res.status(400).json({ message: 'Benefits is required.' })
+            }
+
+            if (!requests) {
+                return res.status(400).json({ message: 'Requests is required.' })
+            }
+
+            if (!type) {
+                return res.status(400).json({ message: 'Type is required.' })
             }
 
             const expirationDate = new Date(expiredDate)
