@@ -1,12 +1,18 @@
 import mongoose from 'mongoose'
-import MeetingRoom, { IMeetingApproveStatus } from '../models/meetingRoomModel'
+import MeetingRoom, { IMeetingApproveStatus, IMeetingRoom } from '../models/meetingRoomModel'
 import Account from '../models/accountModel'
-import { IRole } from '~/models/roleModel'
+import { IRole } from '../models/roleModel'
 
 interface UpdateMeetingStatusInput {
     meetingRoomId: mongoose.Types.ObjectId
     participantId: mongoose.Types.ObjectId
     status: IMeetingApproveStatus
+}
+
+interface InterviewScheduleParams {
+    interviewerId: string
+    startTime: Date
+    endTime: Date
 }
 
 const meetingService = {
@@ -19,8 +25,8 @@ const meetingService = {
         }
 
         // Check user tồn tại
-        const user = await Account.findById(participantId).populate('role');
-        if(!user){
+        const user = await Account.findById(participantId).populate('role')
+        if (!user) {
             throw new Error('User not found')
         }
 
@@ -33,7 +39,6 @@ const meetingService = {
 
         participant.status = status
 
-
         if (status === IMeetingApproveStatus.REJECTED && (user.role as IRole).roleName === 'CANDIDATE') {
             meetingRoom.rejectCount += 1
 
@@ -43,6 +48,23 @@ const meetingService = {
         }
 
         await meetingRoom.save()
+    },
+    getInterviewSchedules: async ({
+        interviewerId,
+        startTime,
+        endTime,
+    }: InterviewScheduleParams): Promise<IMeetingRoom[]> => {
+        const schedules = await MeetingRoom.find({
+            participants: {
+                $elemMatch: { participant: interviewerId },
+            },
+            timeStart: {
+                $gte: startTime,
+                $lte: endTime,
+            },
+        })
+
+        return schedules
     },
 }
 

@@ -49,6 +49,11 @@ const meetingRoomSchema: Schema = new Schema(
             type: Number,
             default: 0,
         },
+        isActive: {
+            type: Boolean,
+            default: false,
+            required: true,
+        }
     },
     { timestamps: true },
 )
