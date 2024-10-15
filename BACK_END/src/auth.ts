@@ -2,6 +2,7 @@ import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import Account, { IAccount } from './models/accountModel'
 import Role, { IRole } from './models/roleModel'
+import validator from "validator"
 
 passport.use(
     new GoogleStrategy(
@@ -12,7 +13,13 @@ passport.use(
         },
         async (accessToken, refreshToken, profile, done) => {
             try {
-                let user: IAccount = await Account.findOne({ email: profile?.emails[0]?.value || '' }).populate('role');
+                const email = profile?.emails[0]?.value || '';
+
+                if (!email || !validator.isEmail(email)) {
+                    throw new Error('Email không hợp lệ')
+                }
+
+                let user: IAccount = await Account.findOne({ email }).populate('role');
 
 
                 if (!user) {
