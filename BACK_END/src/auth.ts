@@ -2,7 +2,7 @@ import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import Account, { IAccount } from './models/accountModel'
 import Role, { IRole } from './models/roleModel'
-import DOMPurify from 'dompurify' // Import DOMPurify
+import validator from 'validator'
 
 passport.use(
     new GoogleStrategy(
@@ -13,35 +13,30 @@ passport.use(
         },
         async (accessToken, refreshToken, profile, done) => {
             try {
-                let email = profile?.emails[0]?.value || ''
+                const email = profile?.emails[0]?.value || ''
 
-                email = String(email).trim();
+                if (!email || !validator.isEmail(email)) {
+                    throw new Error('Invalid email')
+                }
+                const sanitizedEmail = String(email).trim()
 
-                let user: IAccount = await Account.findOne({
-                    email: email
-                }).populate('role')
+                let user: IAccount = await Account.findOne({ email: sanitizedEmail }).setOptions({sanitizeFilter: true})
 
                 if (!user) {
                     const defaultRole = await Role.findOne({ roleName: 'CANDIDATE' })
 
-                    // Sanitize dữ liệu từ Google Profile
-                    const sanitizedName = DOMPurify.sanitize(profile.displayName)
-                    const sanitizedEmail = DOMPurify.sanitize(profile.emails[0].value)
-                    const sanitizedImage = DOMPurify.sanitize(profile?.photos[0]?.value || '')
-
-                    // Tạo người dùng mới với dữ liệu đã được sanitize
+                    // Nếu người dùng chưa tồn tại, tạo mới với role mặc định là 'CANDIDATE'
                     user = await Account.create({
                         googleId: profile.id,
-                        name: sanitizedName,
+                        name: profile.displayName,
                         email: sanitizedEmail,
                         role: defaultRole._id,
-                        image: sanitizedImage,
+                        image: profile?.photos[0]?.value || '',
                     })
 
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     user.role = defaultRole as any
                 }
-
                 const tokenPayload = {
                     displayName: user.name,
                     email: user.email,
