@@ -20,7 +20,7 @@ passport.use(
                 }
                 const sanitizedEmail = String(email).trim()
 
-                let user: IAccount = await Account.findOne({ email: sanitizedEmail }).setOptions({sanitizeFilter: true})
+                let user: IAccount = await Account.findOne({ email: sanitizedEmail }).setOptions({sanitizeFilter: true}).populate('role')
 
                 if (!user) {
                     const defaultRole = await Role.findOne({ roleName: 'CANDIDATE' })
