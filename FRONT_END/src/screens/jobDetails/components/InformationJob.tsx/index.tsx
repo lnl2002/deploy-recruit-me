@@ -72,6 +72,7 @@ const InformationJob: React.FC<InformationJobProps> = ({
               address={job.address || ""}
               expiredDate={job.expiredDate || ""}
               career={job.career?.name || ""}
+              type={job.type || ""}
               handleClick={handleApply}
             />
           </div>

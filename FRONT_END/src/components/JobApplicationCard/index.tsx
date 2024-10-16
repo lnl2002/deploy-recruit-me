@@ -16,6 +16,7 @@ type JobApplicationCardProps = {
   expiredDate: string;
   numberPerson: number;
   career: string;
+  type: string;
   handleClick: () => void;
 };
 
@@ -26,6 +27,7 @@ const JobApplicationCard: React.FC<JobApplicationCardProps> = ({
   expiredDate,
   numberPerson,
   career,
+  type,
   handleClick,
 }): React.JSX.Element => {
   const [rankSalary, setRankSalary] = useState<string>("Negotiable");
@@ -61,7 +63,7 @@ const JobApplicationCard: React.FC<JobApplicationCardProps> = ({
             <Clock4 size={18} color="#000" />
           </div>
           <div>
-            <p className="text-sm text-themeDark font-bold">Full time</p>
+            <p className="text-sm text-themeDark font-bold">{type}</p>
             <p className="text-xs text-backgroundDecor500">Job type</p>
           </div>
         </div>
