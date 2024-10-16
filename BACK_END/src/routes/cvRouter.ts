@@ -1,7 +1,7 @@
-import express from 'express'
+import express, { Router } from 'express'
 import cvController from '../controllers/cvController'
 
-const cvRouter = express.Router()
+const cvRouter: Router = express.Router()
 
 cvRouter.get('/', cvController.getListCV)
 

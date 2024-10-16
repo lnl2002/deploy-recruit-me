@@ -1,7 +1,7 @@
-import express from 'express'
+import express, { Router } from 'express'
 import roleController from '../controllers/roleController'
 
-const roleRouter = express.Router()
+const roleRouter: Router = express.Router()
 
 roleRouter.get('/', roleController.getListRole)
 roleRouter.get('/:id', roleController.getRoleById)

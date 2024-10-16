@@ -1,7 +1,7 @@
-import express from 'express'
+import express, { Router } from 'express'
 import unitController from '../controllers/unitController'
 
-const unitRouter = express.Router()
+const unitRouter: Router = express.Router()
 
 unitRouter.get('/', unitController.getUnitList)
 unitRouter.get('/:id', unitController.getUnitById)

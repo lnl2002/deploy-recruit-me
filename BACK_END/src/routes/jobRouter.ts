@@ -1,7 +1,7 @@
-import express from 'express'
+import express, { Router } from 'express'
 import jobController from '../controllers/jobController'
 
-const jobRouter = express.Router()
+const jobRouter: Router = express.Router()
 
 jobRouter.get('/', jobController.getJobList)
 jobRouter.get('/user/:id', jobController.getJobListByUser)
