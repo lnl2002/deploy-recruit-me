@@ -29,6 +29,16 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Server is up and running!')
 })
 
+// Route để kiểm tra kết nối
+app.get('/check-connection', async (req, res) => {
+    try {
+        await mongoose.connection.db.admin().ping()
+        res.status(200).send('Connected to MongoDB Atlas')
+    } catch (error) {
+        res.status(500).send(error)
+    }
+})
+
 // Database connection
 const connectDB = async () => {
     try {
