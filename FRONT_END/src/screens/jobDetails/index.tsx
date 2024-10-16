@@ -1,8 +1,11 @@
-import { useSearchParams } from "next/navigation";
+"use client";
+
 import { useEffect, useState } from "react";
-import { Image } from "@nextui-org/react";
-import jobApi, { TJob } from "@/api/jobApi";
+
+import { useSearchParams } from "next/navigation";
+
 import Header from "./components/Header";
+import jobApi, { TJob } from "@/api/jobApi";
 import InformationJob from "./components/InformationJob.tsx";
 
 const JobDetails = (): React.JSX.Element => {

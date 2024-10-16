@@ -44,9 +44,13 @@ export default jobApi;
 export type TJob = {
   _id: string;
   title: string;
+  description: string;
   minSalary: number;
   maxSalary: number;
   numberPerson: number;
+  requests: string;
+  benefits: string;
+  address: string;
   unit: TUnit;
   career: TCareer;
   account: {

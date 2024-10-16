@@ -33,7 +33,7 @@ export const Header = (): React.JSX.Element => {
   return (
     <div className="relative z-10 justify-center grid grid-cols-2 h-16 bg-themeWhite items-center sm:flex sm:justify-between">
       <div className="flex flex-1 items-center sm:justify-around bg-[#0000]">
-        <div className="flex gap-3">
+        <Link href={"/"} className="flex gap-3">
           <button
             className="sm:hidden ml-3 text-themeDark"
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}
@@ -46,7 +46,7 @@ export const Header = (): React.JSX.Element => {
               RecruitMe
             </span>
           </div>
-        </div>
+        </Link>
         <div className="hidden sm:flex">
           {navLinks.map((item, index: number) => (
             <HeaderLink

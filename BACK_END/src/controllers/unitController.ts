@@ -28,28 +28,35 @@ const unitController = {
     },
     addUnit: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { name, image, introduction, location } = req.body
+            const { name, image, introduction, locations } = req.body
 
             if (!name) {
                 return res.status(400).json({ message: 'Name is required' })
             }
 
-            if (!Types.ObjectId.isValid(location)) {
-                return res.status(400).json({ message: 'Invalid location ID format' })
+            if (!Array.isArray(locations) || locations.length === 0) {
+                return res.status(400).json({ message: 'Locations must be a non-empty array' })
             }
 
-            const locationResult = await locationService.getLocationById(new Types.ObjectId(location))
-            if (!locationResult) {
-                return res.status(404).json({ message: 'Location not found' })
+            for (const location of locations) {
+                if (!Types.ObjectId.isValid(location)) {
+                    return res.status(400).json({ message: `Invalid location ID format: ${location}` })
+                }
+
+                const locationResult = await locationService.getLocationById(location)
+                if (!locationResult) {
+                    return res.status(404).json({ message: `Location not found: ${location}` })
+                }
             }
 
             const listUnit = await unitService.addUnit({
                 name: name,
                 image: image,
                 introduction: introduction,
-                locations: location,
+                locations: locations,
             })
-            return res.status(200).json(listUnit)
+
+            return res.status(201).json(listUnit)
         } catch (error: unknown) {
             next(error)
         }
