@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import MeetingRoom, { IMeetingApproveStatus, IMeetingRoom } from '../models/meetingRoomModel'
+import MeetingRoom, { IMeetingApproveStatus, IMeetingRoom, IParticipantStatus } from '../models/meetingRoomModel'
 import Account from '../models/accountModel'
 import { IRole } from '../models/roleModel'
 
@@ -65,6 +65,24 @@ const meetingService = {
         })
 
         return schedules
+    },
+    createMeetingRoom: async ({
+        url,
+        participants,
+        timeStart,
+    }: {
+        url: string,
+        participants: IParticipantStatus[],
+        timeStart: Date
+    }): Promise<IMeetingRoom> => {
+        const newMeetingRoom = new MeetingRoom({
+            url,
+            participants,
+            timeStart,
+            rejectCount: 0,
+            isActive: false,
+        });
+        return await newMeetingRoom.save();
     },
 }
 
