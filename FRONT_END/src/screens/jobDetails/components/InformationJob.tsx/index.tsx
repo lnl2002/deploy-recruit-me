@@ -1,6 +1,9 @@
-import { TJob } from "@/api/jobApi";
-import { Image } from "@nextui-org/react";
 import { Dot } from "lucide-react";
+import { Image } from "@nextui-org/react";
+
+import { TJob } from "@/api/jobApi";
+import JobAppicationCard from "@/components/JobApplicationCard";
+import JobSection from "@/components/JobSection";
 
 type InformationJobProps = {
   job: Partial<TJob>;
@@ -9,11 +12,15 @@ type InformationJobProps = {
 const InformationJob: React.FC<InformationJobProps> = ({
   job,
 }): React.JSX.Element => {
+  const handleApply = () => {
+    console.log("aplly");
+  };
+
   if (!job?._id) return <div></div>;
 
   return (
     <div className="flex justify-center">
-      <div className="flex flex-col w-11/12 -mt-20">
+      <div className="flex flex-col w-9/12 -mt-20">
         <Image
           src={job.unit?.image}
           alt=""
@@ -32,9 +39,43 @@ const InformationJob: React.FC<InformationJobProps> = ({
             </span>
           </div>
         </div>
-        <div className="grid grid-flow-col grid-cols-3">
-          <div className="col-span-2"></div>
-          <div className="col-span-1"></div>
+        <div className="grid grid-flow-col grid-cols-3 mt-6">
+          <div className="col-span-2">
+            <p className="text-themeDark text-lg font-bold">Unit Information</p>
+            <div className="mt-4 flex flex-col gap-8">
+              <JobSection
+                title={job.unit?.name || ""}
+                content={job.unit?.introduction || ""}
+              />
+
+              {job.description && (
+                <JobSection
+                  title={"Job Description:"}
+                  content={job.description || ""}
+                />
+              )}
+
+              {job.requests && (
+                <JobSection title={"Requests:"} content={job.requests || ""} />
+              )}
+
+              {job.benefits && (
+                <JobSection title={"Benefits:"} content={job.benefits || ""} />
+              )}
+            </div>
+          </div>
+          <div className="col-span-1 px-8">
+            <JobAppicationCard
+              minSalary={job.minSalary || 0}
+              maxSalary={job.maxSalary || 0}
+              numberPerson={job.numberPerson || 0}
+              address={job.address || ""}
+              expiredDate={job.expiredDate || ""}
+              career={job.career?.name || ""}
+              type={job.type || ""}
+              handleClick={handleApply}
+            />
+          </div>
         </div>
       </div>
     </div>

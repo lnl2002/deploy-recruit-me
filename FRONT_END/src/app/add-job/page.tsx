@@ -1,14 +1,12 @@
-"use client";
-
 import React from "react";
 import { MainLayout } from "@/components";
-import JobDetails from "@/screens/jobDetails";
+import { AddJob } from "@/screens";
 
-export default function JobDetailsPage() {
+export default function AddJobPage() {
   return (
     <main>
       <MainLayout>
-        <JobDetails />
+        <AddJob />
       </MainLayout>
     </main>
   );
