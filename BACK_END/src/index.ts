@@ -28,33 +28,43 @@ const connectDB = async () => {
 
 // Start the server
 const PORT = process.env.PORT || 5000
-app.listen(PORT, async () => {
-    console.log(`RecruitMe is running on port ${PORT}`)
-    await connectDB() // Connect to the database when the server starts
-    // Middleware for parsing JSON requests
-    app.use(express.json())
-    app.use(cors())
 
-    //api endpoint
-    app.use(responseMiddleware)
-    routes(app)
-    app.use(errorHandler)
+async function main() {
+    try {
+        await connectDB()
+        app.use(express.json())
+        app.use(cors())
 
-    // Basic route for testing
-    app.get('/', (req: Request, res: Response) => {
-        res.send('Server is up and running!')
-    })
+        //api endpoint
+        app.use(responseMiddleware)
+        routes(app)
+        app.use(errorHandler)
 
-    // Route để kiểm tra kết nối
-    app.get('/check-connection', async (req, res) => {
-        try {
-            await mongoose.connect(MONGO_DB_URL)
-            const dbState = mongoose.connection.readyState
-            res.status(200).json(dbState)
-        } catch (error) {
-            res.status(500).send({
-                error: error.toString(),
-            })
-        }
-    })
-})
+        // Basic route for testing
+        app.get('/', (req: Request, res: Response) => {
+            res.send('Server is up and running!')
+        })
+
+        // Route để kiểm tra kết nối
+        app.get('/check-connection', async (req, res) => {
+            try {
+                await mongoose.connect(MONGO_DB_URL)
+                const dbState = mongoose.connection.readyState
+                res.status(200).json(dbState)
+            } catch (error) {
+                res.status(500).send({
+                    error: error.toString(),
+                    MONGO_DB_URL: MONGO_DB_URL || '',
+                })
+            }
+        })
+
+        app.listen(PORT, () => {
+            console.log(`RecruitMe is running on port ${PORT}`)
+        })
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+main()
