@@ -32,8 +32,9 @@ app.get('/', (req: Request, res: Response) => {
 // Route để kiểm tra kết nối
 app.get('/check-connection', async (req, res) => {
     try {
+        await mongoose.connect(MONGO_DB_URL)
         const dbState = mongoose.connection.readyState;
-        res.status(200).send(dbState)
+        res.status(200).json(dbState)
     } catch (error) {
         res.status(500).send({
             error: error.toString(),
