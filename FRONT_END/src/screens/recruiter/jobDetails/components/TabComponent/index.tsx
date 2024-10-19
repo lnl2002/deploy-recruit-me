@@ -83,9 +83,9 @@ const TabComponent: React.FC<TabComponentProps> = ({
             />
           </DropdownTrigger>
           <DropdownMenu aria-label="Static Actions">
-            <DropdownItem className="text-themeDark">Edit Job</DropdownItem>
+            <DropdownItem className="text-themeDark">Edit</DropdownItem>
             <DropdownItem key="delete" className="text-danger" color="danger">
-              Delete Job
+              Delete
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>

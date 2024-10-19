@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Dot } from "lucide-react";
 import InformationJob from "./components/InformationJob";
 import TabComponent from "./components/TabComponent";
+import ApplicationList from "./components/ApplicationList";
 
 export const JobDetails = (): React.JSX.Element => {
   const searchParams = useSearchParams();
@@ -53,6 +54,7 @@ export const JobDetails = (): React.JSX.Element => {
             tabSelected={tabSelected}
           />
           {tabSelected === "overview" && <InformationJob job={job} />}
+          {tabSelected === "applicants-list" && <ApplicationList/>}
         </div>
       </div>
     </>
