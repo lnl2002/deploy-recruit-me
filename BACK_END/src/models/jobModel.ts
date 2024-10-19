@@ -1,4 +1,8 @@
 import mongoose, { Document, Schema } from 'mongoose'
+import { IUnit } from './unitModel'
+import { ICareer } from './careerModel'
+import { IAccount } from './accountModel'
+import { ILocation } from './locationModel'
 
 export interface IJob extends Document {
     title: string
@@ -9,11 +13,11 @@ export interface IJob extends Document {
     minSalary: number
     maxSalary: number
     numberPerson: number
-    unit: mongoose.Types.ObjectId
-    career: mongoose.Types.ObjectId
-    account: mongoose.Types.ObjectId
-    interviewer: mongoose.Types.ObjectId
-    location: mongoose.Types.ObjectId
+    unit: mongoose.Types.ObjectId | IUnit
+    career: mongoose.Types.ObjectId | ICareer
+    account: mongoose.Types.ObjectId | IAccount
+    interviewer: mongoose.Types.ObjectId | IAccount
+    location: mongoose.Types.ObjectId | ILocation
     address: string
     timestamp: Date
     expiredDate: Date

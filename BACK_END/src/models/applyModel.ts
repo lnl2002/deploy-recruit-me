@@ -1,10 +1,14 @@
 import mongoose, { Document, Schema } from 'mongoose'
+import { ICV } from './cvModel'
+import { IJob } from './jobModel'
+import { ICVStatus } from './cvStatusModel'
+import { IAccount } from './accountModel'
 
 export interface IApply extends Document {
-    cv: mongoose.Types.ObjectId
-    job: mongoose.Types.ObjectId
-    status: mongoose.Types.ObjectId
-    assigns: mongoose.Types.ObjectId[]
+    cv: mongoose.Types.ObjectId | ICV
+    job: mongoose.Types.ObjectId | IJob
+    status: mongoose.Types.ObjectId | ICVStatus
+    assigns: mongoose.Types.ObjectId[] | IAccount[]
 }
 
 const applySchema: Schema = new Schema(
