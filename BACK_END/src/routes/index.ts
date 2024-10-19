@@ -4,6 +4,7 @@ import Test from './tests'
 import Auth from './auth'
 import cvRouter from './cvRouter'
 import jobRouter from './jobRouter'
+import applyRouter from './applyRouter'
 import MeetingRouter from './meetingRoom'
 import ApplyRouter from './apply'
 import swaggerSpec from '../swagger';
@@ -18,6 +19,7 @@ const routes = (app: Express) => {
     app.use('/api/v1/auth', Auth)
     app.use('/api/v1/cvs', cvRouter)
     app.use('/api/v1/jobs', jobRouter)
+    app.use('/api/v1/apply', applyRouter)
     app.use('/api/v1/roles', roleRouter)
     app.use('/api/v1/units', unitRouter)
     app.use('/api/v1/careers', careerRouter)
