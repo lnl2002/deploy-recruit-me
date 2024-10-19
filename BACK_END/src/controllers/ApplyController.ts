@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import Apply, { IApply } from "~/models/applyModel";
+import Apply, { IApply } from "../models/applyModel";
 
-export const ApplyController = {
+const ApplyController = {
   // Create a new application
   applyToJob: async (req: Request, res: Response): Promise<void> => {
     try {
@@ -77,3 +77,5 @@ export const ApplyController = {
     }
   },
 };
+
+export default ApplyController

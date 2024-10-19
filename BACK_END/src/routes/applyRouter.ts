@@ -1,13 +1,15 @@
 import express from 'express';
-import { ApplyController } from '~/controllers';
+import ApplyController from '../controllers/ApplyController';
 
-const router = express.Router();
+const applyRouter = express.Router();
 
-router.get('/cvs/:jobId', ApplyController.getAllCVsByJobId);
-router.get('/:id', ApplyController.getApplicationById);
+applyRouter.get('/cvs/:jobId', ApplyController.getAllCVsByJobId);
+applyRouter.get('/:id', ApplyController.getApplicationById);
 
-router.post('/apply', ApplyController.applyToJob);
+applyRouter.post('/apply-job', ApplyController.applyToJob);
 
-router.put('/status/:id', ApplyController.changeStatus);
+applyRouter.put('/status/:id', ApplyController.changeStatus);
 
-router.delete('/:id', ApplyController.deleteApplication);
+applyRouter.delete('/:id', ApplyController.deleteApplication);
+
+export default applyRouter;
