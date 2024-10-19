@@ -75,6 +75,7 @@ const jobController = {
                 isDelete: 'boolean',
                 isActive: 'boolean',
                 type: 'string',
+                status: 'string',
             }
 
             // Lọc và xác thực các trường hợp hợp lệ
@@ -110,6 +111,11 @@ const jobController = {
 
             if (title) {
                 filteredQuery.title = { $regex: title, $options: 'i' }
+            }
+
+            if (filteredQuery.status?.includes(',')) {
+                const multiStatus = filteredQuery.status.split(',')
+                filteredQuery.status = { $in: multiStatus }
             }
 
             const jobs = await jobService.getListJobs(query, filteredQuery)
@@ -180,6 +186,7 @@ const jobController = {
                 isDelete: 'boolean',
                 isActive: 'boolean',
                 type: 'string',
+                status: 'string',
             }
 
             // Lọc và xác thực các trường hợp hợp lệ
@@ -215,6 +222,11 @@ const jobController = {
 
             if (title) {
                 filteredQuery.title = { $regex: title, $options: 'i' }
+            }
+
+            if (filteredQuery.status?.includes(',')) {
+                const multiStatus = filteredQuery.status.split(',')
+                filteredQuery.status = { $in: multiStatus }
             }
 
             const jobs = await jobService.getListJobsByUser(query, filteredQuery, new Types.ObjectId(id))
@@ -364,6 +376,7 @@ const jobController = {
                 expiredDate: new Date(expiredDate),
                 isActive: false,
                 isDelete: false,
+                status: 'not-started',
             })
             return res.json(newJob)
         } catch (error: unknown) {

@@ -8,7 +8,7 @@ export interface IAccount extends Document {
     password: string
     role: mongoose.Types.ObjectId | IRole
     unit: mongoose.Types.ObjectId
-    cv: mongoose.Types.ObjectId[],
+    cvs: mongoose.Types.ObjectId[]
     image: string
 }
 
@@ -18,7 +18,7 @@ const accountSchema: Schema = new Schema(
             type: 'string',
             required: true,
             unique: true,
-            trim: true
+            trim: true,
         },
         email: {
             type: String,
@@ -44,7 +44,7 @@ const accountSchema: Schema = new Schema(
             type: String,
             required: false,
         },
-        cv: [
+        cvs: [
             {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'CV',

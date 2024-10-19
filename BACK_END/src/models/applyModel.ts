@@ -24,6 +24,13 @@ const applySchema: Schema = new Schema(
             ref: 'CVStatus',
             required: true,
         },
+        statusUpdatedBy: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Account',
+            },
+        ],
+        statusUpdatedAt: { type: Date },
         assigns: [
             {
                 type: mongoose.Schema.Types.ObjectId,
