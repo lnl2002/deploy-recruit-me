@@ -12,23 +12,44 @@ import { SearchBox } from "../SearchBox";
 import { Images } from "@/images";
 import {
   Avatar,
+  Button,
   Dropdown,
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
 } from "@nextui-org/react";
+import { logout } from "@/store/userState";
 
 const navLinks = [
-  { id: 1, name: "Home", path: "/", expandable: false },
-  { id: 2, name: "My Application", path: "/contact-us", expandable: false },
-  { id: 3, name: "About Us", path: "/about-us", expandable: false },
+  { id: 1, name: "Home", path: "/", expandable: false, loginRequired: false },
+  {
+    id: 2,
+    name: "My Application",
+    path: "/contact-us",
+    expandable: false,
+    loginRequired: true,
+  },
+  {
+    id: 3,
+    name: "About Us",
+    path: "/about-us",
+    expandable: false,
+    loginRequired: false,
+  },
 ];
 
 export const Header = (): React.JSX.Element => {
+  const dispatch = useAppDispatch();
   const pathname = usePathname();
   const router = useRouter();
   const isActive = (path: string) => path === pathname;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const { userInfo, isLoggedIn } = useAppSelector((state) => state.user);
+
+  const handleLogout = () => {
+    dispatch(logout()); // Dispatch để đăng xuất người dùng
+  };
 
   return (
     <div className="relative z-10 justify-center grid grid-cols-2 h-16 bg-themeWhite items-center sm:flex sm:justify-between">
@@ -55,6 +76,8 @@ export const Header = (): React.JSX.Element => {
               isCurrent={isActive(item.path)}
               href={item.path}
               expandable={item.expandable}
+              isLoggedIn={isLoggedIn || false}
+              loginRequired={item.loginRequired}
             />
           ))}
         </div>
@@ -67,40 +90,60 @@ export const Header = (): React.JSX.Element => {
           /> 
         </div>*/}
         <div className="flex items-center gap-3">
-          <Dropdown placement="bottom-end">
-            <DropdownTrigger>
-              <Avatar
-                isBordered
-                as="button"
-                className="transition-transform"
-                color="secondary"
-                name="Jason Hughes"
-                size="sm"
-                src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-              />
-            </DropdownTrigger>
-            <DropdownMenu
-              className="text-themeDark"
-              aria-label="Profile Actions"
-              variant="flat"
-            >
-              <DropdownItem key="profile" className="h-14 gap-2">
-                <p className="font-semibold">Signed in as</p>
-                <p className="font-semibold">zoey@example.com</p>
-              </DropdownItem>
-              <DropdownItem key="settings">My Settings</DropdownItem>
-              <DropdownItem key="team_settings">Team Settings</DropdownItem>
-              <DropdownItem key="analytics">Analytics</DropdownItem>
-              <DropdownItem key="system">System</DropdownItem>
-              <DropdownItem key="configurations">Configurations</DropdownItem>
-              <DropdownItem key="help_and_feedback">
-                Help & Feedback
-              </DropdownItem>
-              <DropdownItem key="logout" color="danger">
-                Log Out
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+          {isLoggedIn ? (
+            <Dropdown placement="bottom-end">
+              <DropdownTrigger>
+                <Avatar
+                  isBordered
+                  as="button"
+                  className="transition-transform"
+                  color="secondary"
+                  name={userInfo?.displayName || ''}
+                  size="sm"
+                  src={userInfo?.image || ''}
+                />
+              </DropdownTrigger>
+              <DropdownMenu
+                className="text-themeDark"
+                aria-label="Profile Actions"
+                variant="flat"
+              >
+                <DropdownItem key="profile" className="h-10 gap-2">
+                  <p className="font-semibold">{userInfo?.displayName || ''}</p>
+                </DropdownItem>
+                <DropdownItem key="settings">My Settings</DropdownItem>
+                <DropdownItem key="team_settings">Team Settings</DropdownItem>
+                <DropdownItem key="analytics">Analytics</DropdownItem>
+                <DropdownItem key="system">System</DropdownItem>
+                <DropdownItem key="configurations">Configurations</DropdownItem>
+                <DropdownItem key="help_and_feedback">
+                  Help & Feedback
+                </DropdownItem>
+                <DropdownItem
+                  key="logout"
+                  color="danger"
+                  onClick={() => handleLogout()}
+                >
+                  Log Out
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          ) : (
+            <div className="flex gap-3">
+              <Button
+                className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
+                onClick={() => router.push("/login")}
+              >
+                Login
+              </Button>
+              <Button
+                className="bg-themeOrange text-[#fff]"
+                onClick={() => router.push("/register")}
+              >
+                Register
+              </Button>
+            </div>
+          )}
         </div>
       </div>
       {/* <div className="flex items-center">
@@ -121,6 +164,8 @@ export const Header = (): React.JSX.Element => {
                 href={item.path}
                 expandable={item.expandable}
                 isMobileMenuOpen={isMobileMenuOpen}
+                loginRequired={item.loginRequired}
+                isLoggedIn={isLoggedIn}
               />
             ))}
           </div>
@@ -136,32 +181,40 @@ const HeaderLink = ({
   isCurrent,
   expandable = false,
   isMobileMenuOpen = false,
+  isLoggedIn = false,
+  loginRequired = false,
 }: {
   href: string;
   title: string;
   isCurrent?: boolean;
   expandable?: boolean;
   isMobileMenuOpen?: boolean;
+  isLoggedIn: boolean;
+  loginRequired: boolean;
 }) => {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
   return (
     <div className="relative flex items-center">
-      <Link
-        className={twMerge(
-          "m-5 text-textSecondary flex items-center text-sm",
-          isCurrent
-            ? "border px-3 py-1 rounded-full border-themeOrange text-themeOrange"
-            : "text-blurEffect"
-        )}
-        href={href}
-      >
-        <p className="font-bold">{title}</p>
-        {expandable && !isMobileMenuOpen && (
-          <Image alt="chevron down" src={Icons.ChevronDown} />
-        )}
-      </Link>
+      {loginRequired && !isLoggedIn ? (
+        <></>
+      ) : (
+        <Link
+          className={twMerge(
+            "m-5 text-textSecondary flex items-center text-sm",
+            isCurrent
+              ? "border px-3 py-1 rounded-full border-themeOrange text-themeOrange"
+              : "text-blurEffect"
+          )}
+          href={href}
+        >
+          <p className="font-bold">{title}</p>
+          {expandable && !isMobileMenuOpen && (
+            <Image alt="chevron down" src={Icons.ChevronDown} />
+          )}
+        </Link>
+      )}
     </div>
   );
 };

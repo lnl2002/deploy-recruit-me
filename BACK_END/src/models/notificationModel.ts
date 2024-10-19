@@ -1,7 +1,8 @@
 import mongoose, { Document, Schema } from 'mongoose'
+import { IAccount } from './accountModel'
 
 export interface INotification extends Document {
-    receiver: mongoose.Types.ObjectId
+    receiver: mongoose.Types.ObjectId | IAccount
     content: string
     url: string
     timestamp: Date

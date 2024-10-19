@@ -1,11 +1,12 @@
 import mongoose, { Document, Schema } from 'mongoose'
+import { ILocation } from './locationModel'
 
 export interface IUnit extends Document {
     name: string
     image: string
     introduction: string
     banner: string
-    locations: mongoose.Types.ObjectId[]
+    locations: mongoose.Types.ObjectId[] | ILocation[]
 }
 
 const unitSchema: Schema = new Schema({

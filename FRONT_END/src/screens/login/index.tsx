@@ -3,9 +3,12 @@ import React from 'react';
 import { Button } from '@nextui-org/react';
 import { BACKEND_URL, FRONTEND_URL_ADMIN_HOME, FRONTEND_URL_CANDIDATE_HOME, FRONTEND_URL_HR_MANAGER_HOME, FRONTEND_URL_RECRUITER_HOME } from '@/utils/env';
 import { useRouter } from 'next/navigation';
+import { useAppDispatch } from '@/store/store';
+import { login } from '@/store/userState';
 
 const Login: React.FC = () => {
     const router = useRouter();
+    const dispatch = useAppDispatch();
 
     const handleGoogleLogin = () => {
         const popup = window.open(
@@ -24,7 +27,8 @@ const Login: React.FC = () => {
 
             localStorage.setItem('access_token', accessToken);
             localStorage.setItem('refresh_token', refreshToken);
-            localStorage.setItem('user', user);
+            // localStorage.setItem('user', user);
+            dispatch(login(JSON.parse(user)))
             
             const userInfo = JSON.parse(user);
 

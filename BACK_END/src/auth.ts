@@ -38,6 +38,7 @@ passport.use(
                     user.role = defaultRole as any
                 }
                 const tokenPayload = {
+                    _id: user._id,
                     displayName: user.name,
                     email: user.email,
                     role: (user.role as IRole)?.roleName || '',
