@@ -17,7 +17,6 @@ type JobApplicationCardProps = {
   numberPerson: number;
   career: string;
   type: string;
-  handleClick: () => void;
 };
 
 const JobApplicationCard: React.FC<JobApplicationCardProps> = ({
@@ -28,7 +27,6 @@ const JobApplicationCard: React.FC<JobApplicationCardProps> = ({
   numberPerson,
   career,
   type,
-  handleClick,
 }): React.JSX.Element => {
   const [rankSalary, setRankSalary] = useState<string>("Negotiable");
 
@@ -42,7 +40,7 @@ const JobApplicationCard: React.FC<JobApplicationCardProps> = ({
   }, [minSalary, maxSalary]);
 
   return (
-    <div className="p-6 bg-white rounded-2xl shadow-xl border">
+    <div className="">
       <div className="flex items-start gap-4 mb-4">
         <div>
           <MapPin size={22} color="#000" />
@@ -103,15 +101,6 @@ const JobApplicationCard: React.FC<JobApplicationCardProps> = ({
             <p className="text-xs text-backgroundDecor500">Expiry date</p>
           </div>
         </div>
-      </div>
-
-      <div className="mt-10">
-        <Button
-          onPress={handleClick}
-          className="w-full py-2 bg-themeOrange text-themeWhite rounded-full hover:bg-themeOrange"
-        >
-          Apply Now
-        </Button>
       </div>
     </div>
   );
