@@ -32,6 +32,7 @@ const Job: React.FC<JobProps> = ({
   const [rankSalary, setRankSalary] = useState<string>("Negotiable");
 
   useEffect(() => {
+    console.log(expiredDate);
     const calculateDaysDifference = () => {
       const targetDate = new Date(expiredDate);
       const currentDate = new Date();

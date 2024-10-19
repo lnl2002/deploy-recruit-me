@@ -63,7 +63,9 @@ const JobApplicationCard: React.FC<JobApplicationCardProps> = ({
             <Clock4 size={18} color="#000" />
           </div>
           <div>
-            <p className="text-sm text-themeDark font-bold">{type}</p>
+            <p className="text-sm text-themeDark font-bold">
+              {type[0].toUpperCase() + type.slice(1)}
+            </p>
             <p className="text-xs text-backgroundDecor500">Job type</p>
           </div>
         </div>
@@ -96,7 +98,7 @@ const JobApplicationCard: React.FC<JobApplicationCardProps> = ({
           </div>
           <div>
             <p className="text-sm text-themeDark font-bold">
-              {new Date(expiredDate).getTime()}
+              {new Date(expiredDate).toLocaleDateString().split("T")}
             </p>
             <p className="text-xs text-backgroundDecor500">Expiry date</p>
           </div>

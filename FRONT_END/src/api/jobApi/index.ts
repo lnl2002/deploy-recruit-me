@@ -24,6 +24,28 @@ const jobApi = {
     }
   },
 
+  getJobListOwn: async (
+    params: string,
+    id: string
+  ): Promise<{ jobs: TJob[]; total: number }> => {
+    let newParams = "?expiredDate=1&sort_by=createdAt&order=1" + params;
+    console.log(newParams);
+    try {
+      const res = await axios.get(
+        `${BACKEND_URL}/api/v1/jobs/user/${id}${newParams}`
+      );
+
+      if (res.status === 200) {
+        return { jobs: res.data.data.jobs, total: res.data.data.total };
+      } else {
+        return { jobs: [], total: 0 };
+      }
+    } catch (error) {
+      console.error("Error fetching job list:", error);
+      return { jobs: [], total: 0 };
+    }
+  },
+
   getJobById: async (id: string): Promise<{ job: Partial<TJob> }> => {
     try {
       const res = await axios.get(`${BACKEND_URL}/api/v1/jobs/${id}`);
@@ -40,6 +62,17 @@ const jobApi = {
 };
 
 export default jobApi;
+
+type TApply = {
+  _id?: string;
+  cv?: string;
+  job?: string;
+  status?: string;
+  statusUpdatedBy?: string;
+  statusUpdatedAt?: string;
+  updatedAt?: string;
+  assigns?: string[];
+};
 
 export type TJob = {
   _id: string;
@@ -84,5 +117,6 @@ export type TJob = {
   isActive: boolean;
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
+  applies: Partial<TApply>[];
   __v: number;
 };

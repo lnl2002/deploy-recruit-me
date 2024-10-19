@@ -1,7 +1,7 @@
 const formatSalary = (amount: number): string => {
-  const formattedAmountEUR = amount.toLocaleString("en-US", {
+  const formattedAmountEUR = amount.toLocaleString("vi-VN", {
     style: "currency",
-    currency: "USD",
+    currency: "VND",
   });
   return formattedAmountEUR;
 };

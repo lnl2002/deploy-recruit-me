@@ -52,7 +52,7 @@ export const Header = (): React.JSX.Element => {
   };
 
   return (
-    <div className="relative z-10 justify-center grid grid-cols-2 h-16 bg-themeWhite items-center sm:flex sm:justify-between">
+    <div className="relative z-10 justify-center grid grid-cols-2 h-16 bg-[transparent] items-center sm:flex sm:justify-between">
       <div className="flex flex-1 items-center sm:justify-around bg-[#0000]">
         <Link href={"/"} className="flex gap-3">
           <button

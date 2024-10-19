@@ -24,6 +24,7 @@ export interface IJob extends Document {
     isDelete: boolean
     isActive: boolean
     type: string
+    status: string
 }
 
 const jobSchema: Schema = new Schema(
@@ -105,6 +106,11 @@ const jobSchema: Schema = new Schema(
             type: String,
             required: true,
             enum: ['fulltime', 'parttime', 'hybrid', 'remote', 'remote-fulltime', 'remote-parttime'],
+        },
+        status: {
+            type: String,
+            required: true,
+            enum: ['pending', 'approved', 'published', 'expired', 'reopened', 'rejected'],
         },
     },
     { timestamps: true },

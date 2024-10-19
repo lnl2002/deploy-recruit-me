@@ -15,7 +15,7 @@ export const requireRole = (roles: string[]) => {
             }
             next()
         } catch (error) {
-            console.log('error auth middleware', error);
+            console.log('error auth middleware', error)
             return res.status(401).json({ message: 'Invalid token' })
         }
     }
