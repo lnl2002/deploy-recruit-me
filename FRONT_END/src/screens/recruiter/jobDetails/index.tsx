@@ -1,19 +1,16 @@
-"use client";
-
 import { useEffect, useState } from "react";
-
-import { useSearchParams } from "next/navigation";
-
-import Header from "./components/Header";
 import jobApi, { TJob } from "@/api/jobApi";
-import InformationJob from "./components/InformationJob";
+import { Image, Tab, Tabs } from "@nextui-org/react";
+import { useSearchParams } from "next/navigation";
 import { Dot } from "lucide-react";
-import { Image } from "@nextui-org/react";
+import InformationJob from "./components/InformationJob";
+import TabComponent from "./components/TabComponent";
 
-const JobDetails = (): React.JSX.Element => {
+export const JobDetails = (): React.JSX.Element => {
   const searchParams = useSearchParams();
   const jobId = searchParams.get("id");
   const [job, setJob] = useState<Partial<TJob>>({});
+  const [tabSelected, setTabSelected] = useState<string>("overview");
 
   useEffect(() => {
     (async () => {
@@ -22,11 +19,15 @@ const JobDetails = (): React.JSX.Element => {
     })();
   }, [jobId]);
 
+  const handleTabChange = (tab: string) => {
+    setTabSelected(tab);
+  };
+
   return (
     <>
-      <Header bannerUrl={job.unit?.banner} imageUrl={job.unit?.image} />
+      <Image src={job.unit?.banner} alt="" radius="none" />
       <div className="flex justify-center">
-        <div className="flex flex-col w-9/12 -mt-20 gap-4">
+        <div className="flex flex-col w-9/12 -mt-16 gap-4">
           <div className="flex flex-col gap-3">
             <Image
               src={job.unit?.image}
@@ -47,12 +48,13 @@ const JobDetails = (): React.JSX.Element => {
               )}
             </div>
           </div>
-
-          <InformationJob job={job} />
+          <TabComponent
+            handleTabChange={handleTabChange}
+            tabSelected={tabSelected}
+          />
+          {tabSelected === "overview" && <InformationJob job={job} />}
         </div>
       </div>
     </>
   );
 };
-
-export default JobDetails;
