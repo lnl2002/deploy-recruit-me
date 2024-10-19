@@ -1,7 +1,8 @@
 import mongoose, { Document, Schema } from 'mongoose'
+import { IAccount } from './accountModel'
 
 export interface IParticipantStatus {
-    participant: mongoose.Types.ObjectId
+    participant: mongoose.Types.ObjectId | IAccount
     status: IMeetingApproveStatus
 }
 

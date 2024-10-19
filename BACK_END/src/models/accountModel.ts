@@ -1,5 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose'
 import { IRole } from './roleModel'
+import { IUnit } from './unitModel'
+import { ICV } from './cvModel'
 
 export interface IAccount extends Document {
     googleId: string
@@ -7,8 +9,8 @@ export interface IAccount extends Document {
     email: string
     password: string
     role: mongoose.Types.ObjectId | IRole
-    unit: mongoose.Types.ObjectId
-    cv: mongoose.Types.ObjectId[],
+    unit: mongoose.Types.ObjectId | IUnit
+    cv: mongoose.Types.ObjectId[] | ICV[],
     image: string
 }
 
