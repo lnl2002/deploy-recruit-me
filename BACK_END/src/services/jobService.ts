@@ -156,6 +156,7 @@ const jobService = {
                     title: { $first: '$title' },
                     introduction: { $first: '$introduction' },
                     description: { $first: '$description' },
+                    expiredDate: { $first: '$expiredDate' },
                     minSalary: { $first: '$minSalary' },
                     maxSalary: { $first: '$maxSalary' },
                     numberPerson: { $first: '$numberPerson' },
