@@ -1,8 +1,8 @@
 import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
-import jwt from 'jsonwebtoken'
 import Account, { IAccount } from './models/accountModel'
 import Role, { IRole } from './models/roleModel'
+import validator from 'validator'
 
 passport.use(
     new GoogleStrategy(
@@ -13,36 +13,39 @@ passport.use(
         },
         async (accessToken, refreshToken, profile, done) => {
             try {
-                let user: IAccount = await Account.findOne({ googleId: profile.id }).populate('role');
-                console.log('user', user);
+                const email = profile?.emails[0]?.value || ''
 
+                if (!email || !validator.isEmail(email)) {
+                    throw new Error('Invalid email')
+                }
+                const sanitizedEmail = String(email).trim()
+
+                let user: IAccount = await Account.findOne({ email: sanitizedEmail }).setOptions({sanitizeFilter: true}).populate('role')
 
                 if (!user) {
                     const defaultRole = await Role.findOne({ roleName: 'CANDIDATE' })
-
-                    console.log('defaultRole', profile);
 
                     // Nếu người dùng chưa tồn tại, tạo mới với role mặc định là 'CANDIDATE'
                     user = await Account.create({
                         googleId: profile.id,
                         name: profile.displayName,
-                        email: profile.emails[0].value,
+                        email: sanitizedEmail,
                         role: defaultRole._id,
-                        image: profile?.photos[0]?.value || ''
+                        image: profile?.photos[0]?.value || '',
                     })
 
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    user.role = defaultRole as any;
+                    user.role = defaultRole as any
                 }
                 const tokenPayload = {
-                    googleId: user.googleId,
+                    _id: user._id,
                     displayName: user.name,
                     email: user.email,
                     role: (user.role as IRole)?.roleName || '',
+                    image: user.image,
                 }
 
-                const token = jwt.sign(tokenPayload, process.env.JWT_SECRET!, { expiresIn: '1h' })
-                done(null, token)
+                done(null, tokenPayload)
             } catch (error) {
                 done(error, null)
             }
