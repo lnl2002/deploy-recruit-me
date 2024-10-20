@@ -25,6 +25,16 @@ li p {
   margin-bottom: 0.25em;
 }
 
+[data-slot="listbox"] ul {
+  padding: 3px;
+  margin: 0;
+}
+
+input {
+  caret-color: black; 
+}
+
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

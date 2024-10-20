@@ -1,15 +1,61 @@
-import axios from "axios";
-import { TJob } from "../jobApi";
 import { BACKEND_URL } from "@/utils/env";
+import axios from "axios";
+import { IResponse, ITable } from "../common/type";
+import { TJob } from "../jobApi";
 
-export const applyApi = {
+export interface IApply {
+  _id: string;
+  cv: string;
+  job: string;
+  status: string;
+  assigns: string[];
+}
+
+const applyApi = {
+  getApplyByJob: async ({
+    _id,
+    page,
+    limit,
+  }: {
+    _id: string;
+    page: number;
+    limit: number;
+  }): Promise<ITable<IApply>> => {
+    try {
+      const res = await axios.get(
+        `${BACKEND_URL}/api/v1/apply/cvs/${_id}?page=${page}&limit=${limit}`
+      );
+
+      if (res.status === 200) {
+        return res.data.data;
+      } else {
+        return {
+          page: 1,
+          data: [],
+          total: 0,
+          totalPages: 0,
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching career list:", error);
+      return {
+        page: 1,
+        data: [],
+        total: 0,
+        totalPages: 0,
+      };
+    }
+  },
+
   applyToJob: async (cvData: Partial<TJob>, jobId: string) => {
     try {
       // 3. Send the CV creation request
-      const cvResponse = (await (await axios.post(`${BACKEND_URL}/api/v1/cvs`, cvData)).data);
+      const cvResponse = await (
+        await axios.post(`${BACKEND_URL}/api/v1/cvs`, cvData)
+      ).data;
 
       console.log(cvResponse.data.cv._id);
-      
+
       if (cvResponse.status === 201) {
         // CV created successfully!
         const cvId = cvResponse.data.cv._id;
@@ -38,3 +84,5 @@ export const applyApi = {
     }
   },
 };
+
+export default applyApi;
