@@ -1,16 +1,35 @@
 import { Request, Response } from "express";
-import Apply, { IApply } from "../models/applyModel";
+import Apply from "../models/applyModel";
+import CV from "../models/cvModel";
+import Job from "../models/jobModel";
+import CVStatus from "../models/cvStatusModel";
+import applyService from "../services/apply";
 
 const ApplyController = {
   // Create a new application
   applyToJob: async (req: Request, res: Response): Promise<void> => {
     try {
-      const { cv, job, status, assigns } = req.body;
-      const newApply: IApply = new Apply({ cv, job, status, assigns });
-      await newApply.save();
-      res.status(201).json(newApply);
+      // 1. Extract data from the request body
+      const { cvId, jobId } = req.body;
+
+      // 3. Find the CV, Job, and default CVStatus
+      const [cv, job, defaultStatus] = await Promise.all([
+        CV.findById(cvId),
+        Job.findById(jobId),
+        CVStatus.findOne({ name: "New" }), // Assuming "New" is a default status
+      ]);
+
+      const savedApply = await applyService.createApply({ cvId: cv._id, jobId: job._id, defaultStatusId: defaultStatus._id});
+
+      // 7. Send a success response
+      res.status(201).json({
+        message: "Application created successfully",
+        apply: savedApply,
+      });
     } catch (error) {
-      res.status(500).json({ message: "Error applying to job", error });
+      // 8. Handle errors
+      console.error(error);
+      res.status(500).json({ message: "Error creating application" });
     }
   },
 
@@ -78,4 +97,4 @@ const ApplyController = {
   },
 };
 
-export default ApplyController
+export default ApplyController;
