@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState } from "react";
 import jobApi, { TJob } from "@/api/jobApi";
 import { Image, Tab, Tabs } from "@nextui-org/react";
@@ -6,6 +7,7 @@ import { Dot } from "lucide-react";
 import InformationJob from "./components/InformationJob";
 import TabComponent from "./components/TabComponent";
 
+//example: /job-details?id=67055dd3e22b9a4790729550
 export const JobDetails = (): React.JSX.Element => {
   const searchParams = useSearchParams();
   const jobId = searchParams.get("id");

@@ -7,13 +7,15 @@ import JobSection from "@/components/JobSection";
 
 type InformationJobProps = {
   job: Partial<TJob>;
+  onApply: () => void;
 };
 
 const InformationJob: React.FC<InformationJobProps> = ({
   job,
+  onApply,
 }): React.JSX.Element => {
   const handleApply = () => {
-    console.log("aplly");
+    onApply();
   };
 
   if (!job?._id) return <div></div>;
