@@ -11,7 +11,7 @@ export interface IApply {
   assigns: string[];
 }
 
-const applyApi = {
+export const applyApi = {
   getApplyByJob: async ({
     _id,
     page,
