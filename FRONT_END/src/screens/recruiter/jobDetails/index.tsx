@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState } from "react";
 import jobApi, { TJob } from "@/api/jobApi";
 import { Image, Tab, Tabs } from "@nextui-org/react";
