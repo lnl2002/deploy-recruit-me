@@ -162,8 +162,8 @@ const ApplicantTable = ({ _id }: TableProps) => {
         isLoading={isLoading}
         loadingContent={<Spinner label="Loading..." color="warning" />}
         >
-        {users && users.length > 0 && (
-          users.map((user) => (
+        {users && users.length > 0 ? (
+          users.map((user: any) => (
             <TableRow key={user._id}>
               <TableCell className="py-4 font-bold">
                 {user.cv.firstName} {user.cv.lastName}
@@ -179,7 +179,9 @@ const ApplicantTable = ({ _id }: TableProps) => {
               </TableCell>
             </TableRow>
           ))
-        ) }
+        ) : (
+          <></>
+        )}
         {}
       </TableBody>
     </Table>
