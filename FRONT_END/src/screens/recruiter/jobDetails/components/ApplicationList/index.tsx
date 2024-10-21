@@ -115,7 +115,6 @@ const ApplicantTable = ({ _id }: TableProps) => {
   const [users, setUsers] = useState<IApply[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-
   useEffect(() => {
     if (_id) {
       getApplicants();
@@ -126,7 +125,7 @@ const ApplicantTable = ({ _id }: TableProps) => {
     setIsLoading(true);
     const data = await applyApi.getApplyByJob({ _id, page, limit: 1 });
     setUsers(data.data);
-    setTotalPages(data.totalPages)
+    setTotalPages(data.totalPages);
     setIsLoading(false);
   };
 
@@ -158,10 +157,10 @@ const ApplicantTable = ({ _id }: TableProps) => {
         <TableColumn key="status">STATUS</TableColumn>
         <TableColumn key="action">CV</TableColumn>
       </TableHeader>
-      <TableBody 
+      <TableBody
         isLoading={isLoading}
         loadingContent={<Spinner label="Loading..." color="warning" />}
-        >
+      >
         {users && users.length > 0 ? (
           users.map((user: any) => (
             <TableRow key={user._id}>
@@ -180,7 +179,16 @@ const ApplicantTable = ({ _id }: TableProps) => {
             </TableRow>
           ))
         ) : (
-          <></>
+          <TableRow key='1'>
+            <TableCell className="py-4 font-bold">
+              {" "}
+            </TableCell>
+            <TableCell className="py-4 font-bold">{" "}</TableCell>
+            <TableCell className="py-4 font-bold">{" "}</TableCell>
+            <TableCell className="py-4 font-bold">
+              {" "}
+            </TableCell>
+          </TableRow>
         )}
         {}
       </TableBody>
