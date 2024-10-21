@@ -6,6 +6,8 @@ export * from './Modals'
 export * from './PaginationApp'
 export * from './SearchBox'
 export * from './TopBanner'
+export * from './Modals'
+export * from './FormApplyJob'
 
 
 

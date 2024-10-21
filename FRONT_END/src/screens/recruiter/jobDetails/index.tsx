@@ -8,6 +8,7 @@ import InformationJob from "./components/InformationJob";
 import TabComponent from "./components/TabComponent";
 import ApplicationList from "./components/ApplicationList";
 
+//example: /job-details?id=67055dd3e22b9a4790729550
 export const JobDetails = (): React.JSX.Element => {
   const searchParams = useSearchParams();
   const jobId = searchParams.get("id");
