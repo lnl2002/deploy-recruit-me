@@ -37,9 +37,23 @@ const ApplyController = {
   // Get all CVs by job ID
   getAllCVsByJobId: async (req: Request, res: Response): Promise<void> => {
     try {
-      const { jobId } = req.params;
-      const applications = await Apply.find({ job: jobId }).populate("cv");
-      res.status(200).json(applications);
+        const { jobId } = req.params;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const skip = (page - 1) * limit;
+
+        const totalApplications = await Apply.countDocuments({ job: jobId });
+        const applications = await Apply.find({ job: jobId })
+          .populate("cv")
+          .skip(skip)
+          .limit(limit);
+
+        res.status(200).json({
+          total: totalApplications,
+          page,
+          totalPages: Math.ceil(totalApplications / limit),
+          data: applications,
+        });
     } catch (error) {
       res.status(500).json({ message: "Error fetching CVs", error });
     }
