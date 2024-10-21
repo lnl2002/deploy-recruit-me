@@ -55,33 +55,35 @@ const jobController = {
                 query.order = order as 'asc' | 'desc'
             }
 
-            const fieldTypes: { [key in keyof Partial<IJob>]?: 'string' | 'number' | 'boolean' | 'date' } = {
-                title: 'string',
-                introduction: 'string',
-                description: 'string',
-                benefits: 'string',
-                requests: 'string',
-                minSalary: 'number',
-                maxSalary: 'number',
-                numberPerson: 'number',
-                unit: 'string',
-                career: 'string',
-                account: 'string',
-                location: 'string',
-                interviewer: 'string',
-                address: 'string',
-                timestamp: 'date',
-                expiredDate: 'date',
-                isDelete: 'boolean',
-                isActive: 'boolean',
-                type: 'string',
-                status: 'string',
-            }
+            const fieldTypes: { [key in keyof Partial<IJob>]?: 'string' | 'number' | 'boolean' | 'date' | 'objectId' } =
+                {
+                    title: 'string',
+                    introduction: 'string',
+                    description: 'string',
+                    benefits: 'string',
+                    requests: 'string',
+                    minSalary: 'number',
+                    maxSalary: 'number',
+                    numberPerson: 'number',
+                    unit: 'objectId',
+                    career: 'objectId',
+                    account: 'objectId',
+                    location: 'objectId',
+                    interviewer: 'objectId',
+                    address: 'string',
+                    timestamp: 'date',
+                    expiredDate: 'date',
+                    isDelete: 'boolean',
+                    isActive: 'boolean',
+                    type: 'string',
+                    status: 'string',
+                }
 
             // Lọc và xác thực các trường hợp hợp lệ
             const filteredQuery = Object.keys(query)
                 .filter((key) => key in fieldTypes) // Chỉ giữ lại các trường hợp có trong fieldTypes
                 .reduce((obj, key) => {
+                    const { Types } = require('mongoose')
                     const expectedType = fieldTypes[key as keyof Partial<IJob>]
                     let value = query[key]
 
@@ -96,6 +98,9 @@ const jobController = {
                         if (isNaN(value.getTime())) return obj // Bỏ qua nếu không phải ngày hợp lệ
                     } else if (expectedType === 'string') {
                         value = value.toString()
+                    } else if (expectedType === 'objectId') {
+                        if (!Types.ObjectId.isValid(value)) return obj
+                        value = new Types.ObjectId(value)
                     }
 
                     // Thêm giá trị hợp lệ vào đối tượng query

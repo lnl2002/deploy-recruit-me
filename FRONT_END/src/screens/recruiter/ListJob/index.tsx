@@ -28,9 +28,8 @@ export const ListJob = (): React.JSX.Element => {
 
   useEffect(() => {
     (async () => {
-      const { jobs, total } = await jobApi.getJobListOwn(
-        params,
-        "671124aa9578b132a235155d"
+      const { jobs, total } = await jobApi.getJobList(
+        `&account=${"671124aa9578b132a235155d"}${params}`
       );
       setListJob(jobs);
       setJobTotal(total);
