@@ -1,10 +1,24 @@
-import { montserratRegular } from "@/app/fonts"
-import { twMerge } from "tailwind-merge"
+import { Button } from "@nextui-org/react";
+import { twMerge } from "tailwind-merge";
 
-export const ButtonApp = ({title, className, handleNavigate}: {title:string, className?: string, handleNavigate?: () => void}) => {
-    return(
-        <button className={twMerge("bg-themeDark rounded-lg", className)} onClick={handleNavigate}>
-            <p className={twMerge(montserratRegular.className, "text-themeWhite text-sm mx-5 my-3")}>{title}</p>
-        </button>
-    )
-}
+export const ButtonApp = ({
+  title,
+  className,
+  type,
+  onClick,
+}: {
+  title: string;
+  className?: string;
+  type?: "button" | "submit" | "reset" | undefined;
+  onClick?: () => void;
+}) => {
+  return (
+    <Button
+      type={type}
+      className={twMerge("bg-surfaceBrand rounded-full", className)}
+      onClick={onClick}
+    >
+      <p className={twMerge("text-sm mx-5 my-3")}>{title}</p>
+    </Button>
+  );
+};

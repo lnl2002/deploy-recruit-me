@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState } from "react";
 import jobApi, { TJob } from "@/api/jobApi";
 import { Image, Tab, Tabs } from "@nextui-org/react";
@@ -5,7 +6,9 @@ import { useSearchParams } from "next/navigation";
 import { Dot } from "lucide-react";
 import InformationJob from "./components/InformationJob";
 import TabComponent from "./components/TabComponent";
+import ApplicationList from "./components/ApplicationList";
 
+//example: /job-details?id=67055dd3e22b9a4790729550
 export const JobDetails = (): React.JSX.Element => {
   const searchParams = useSearchParams();
   const jobId = searchParams.get("id");
@@ -53,6 +56,7 @@ export const JobDetails = (): React.JSX.Element => {
             tabSelected={tabSelected}
           />
           {tabSelected === "overview" && <InformationJob job={job} />}
+          {tabSelected === "applicants-list" && <ApplicationList jobId={jobId || ''}/>}
         </div>
       </div>
     </>

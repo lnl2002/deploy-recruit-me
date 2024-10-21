@@ -59,6 +59,15 @@ const config: Config = {
       //table
       tableBorder500: "#a4a5aa99",
       tableBorder400: "#a4a5aa75",
+
+      //text/icon
+      textIconBrand: "#F36523",
+
+      //border
+      borderSecondary: "#86868E",
+
+      //surface
+      surfaceBrand: "#F36523"
     },
   },
   darkMode: "class",
