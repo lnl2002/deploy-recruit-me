@@ -1,5 +1,4 @@
 "use client";
-import { Images } from "@/images";
 import {
   getKeyValue,
   Input,
@@ -15,13 +14,16 @@ import {
   TableRow,
 } from "@nextui-org/react";
 import { ArrowRight, Search } from "lucide-react";
-import React from "react";
-import AutoScan from "@/images/autoscan.svg";
-import Status from "./components/status";
+import React, { useEffect, useState } from "react";
+import applyApi, { IApply } from "@/api/applyApi";
 
-const ApplicationList: React.FC = () => {
+const ApplicationList: React.FC<{ jobId: string }> = ({
+  jobId,
+}: {
+  jobId: string;
+}) => {
   return (
-    <div className="h-screen px-20">
+    <div className="">
       <div className="flex justify-between items-center mb-4">
         <div>
           <Input
@@ -55,15 +57,18 @@ const ApplicationList: React.FC = () => {
             <SelectItem key={"score"} className="text-themeDark">
               Sort by score
             </SelectItem>
-            
           </Select>
         </div>
       </div>
       <div className="mb-5">
-        <img src="../autoscan.svg" alt="Auto Scan" className="w-full cursor-pointer" />
+        <img
+          src="../autoscan.svg"
+          alt="Auto Scan"
+          className="w-full cursor-pointer"
+        />
       </div>
       <div>
-        <ApplicantTable />
+        <ApplicantTable _id={jobId} />
       </div>
     </div>
   );
@@ -79,29 +84,51 @@ const users = [
   { name: "David Wilson", role: "QA Engineer", status: "Rejected" },
   { name: "Sarah Johnson", role: "Product Owner", status: "New" },
   { name: "Chris Lee", role: "Scrum Master", status: "Interviewed" },
-  { name: "Anna Taylor", role: "Business Analyst", status: "Interview Rescheduled" },
+  {
+    name: "Anna Taylor",
+    role: "Business Analyst",
+    status: "Interview Rescheduled",
+  },
   { name: "Tom Harris", role: "Developer", status: "Rejected" },
   { name: "Laura White", role: "UX Researcher", status: "New" },
   { name: "James Hall", role: "DevOps Engineer", status: "Shortlisted" },
-  { name: "Jessica Martin", role: "Technical Writer", status: "Interview Pending" },
+  {
+    name: "Jessica Martin",
+    role: "Technical Writer",
+    status: "Interview Pending",
+  },
   { name: "Robert Clark", role: "Developer", status: "Accepted" },
   { name: "Sophia Lewis", role: "Tester", status: "Rejected" },
-  { name: "Daniel Walker", role: "UI Designer", status: "Interview Rescheduled" },
+  {
+    name: "Daniel Walker",
+    role: "UI Designer",
+    status: "Interview Rescheduled",
+  },
 ];
 
+type TableProps = {
+  _id: string;
+};
+const ApplicantTable = ({ _id }: TableProps) => {
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [users, setUsers] = useState<IApply[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-const ApplicantTable: React.FC = () => {
-  const [page, setPage] = React.useState(1);
-  const rowsPerPage = 10;
 
-  const pages = Math.ceil(users.length / rowsPerPage);
+  useEffect(() => {
+    if (_id) {
+      getApplicants();
+    }
+  }, [_id, page]);
 
-  const items = React.useMemo(() => {
-    const start = (page - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-
-    return users.slice(start, end);
-  }, [page, users]);
+  const getApplicants = async () => {
+    setIsLoading(true);
+    const data = await applyApi.getApplyByJob({ _id, page, limit: 1 });
+    setUsers(data.data);
+    setTotalPages(data.totalPages)
+    setIsLoading(false);
+  };
 
   return (
     <Table
@@ -112,8 +139,9 @@ const ApplicantTable: React.FC = () => {
             showControls
             showShadow
             color="warning"
+            initialPage={2}
             page={page}
-            total={pages}
+            total={totalPages}
             onChange={(page) => setPage(page)}
           />
         </div>
@@ -130,26 +158,29 @@ const ApplicantTable: React.FC = () => {
         <TableColumn key="status">STATUS</TableColumn>
         <TableColumn key="action">CV</TableColumn>
       </TableHeader>
-      <TableBody items={items}>
-        {(item) => (
-          <TableRow key={item.name}>
-            {(columnKey) => (
+      <TableBody 
+        isLoading={isLoading}
+        loadingContent={<Spinner label="Loading..." color="warning" />}
+        >
+        {users && users.length > 0 && (
+          users.map((user) => (
+            <TableRow key={user._id}>
               <TableCell className="py-4 font-bold">
-                {columnKey === "action" ? (
-                  <button
-                    className="text-themeOrange rounded-lg transition duration-300 ease-in-out transform hover:scale-105 flex gap-1 items-center"
-                  >
-                    View CV <ArrowRight size='16px' />
-                  </button>
-                ) : columnKey === "status" ? (
-                  <Status status={item.status} />
-                ) : (
-                  getKeyValue(item, columnKey)  // Mặc định gọi hàm getKeyValue nếu không rơi vào "action" hoặc "status"
-                )}
+                {user.cv.firstName} {user.cv.lastName}
               </TableCell>
-            )}
-          </TableRow>
-        )}
+              <TableCell className="py-4 font-bold">{user.createdAt}</TableCell>
+              <TableCell className="py-4 font-bold">
+                {user.status.name}
+              </TableCell>
+              <TableCell className="py-4 font-bold">
+                <button className="text-themeOrange rounded-lg transition duration-300 ease-in-out transform hover:scale-105 flex gap-1 items-center">
+                  View CV <ArrowRight size="16px" />
+                </button>
+              </TableCell>
+            </TableRow>
+          ))
+        ) }
+        {}
       </TableBody>
     </Table>
   );

@@ -54,7 +54,7 @@ export const JobDetails = (): React.JSX.Element => {
             tabSelected={tabSelected}
           />
           {tabSelected === "overview" && <InformationJob job={job} />}
-          {tabSelected === "applicants-list" && <ApplicationList/>}
+          {tabSelected === "applicants-list" && <ApplicationList jobId={jobId || ''}/>}
         </div>
       </div>
     </>
