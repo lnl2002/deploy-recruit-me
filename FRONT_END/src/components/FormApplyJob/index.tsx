@@ -32,11 +32,16 @@ const validationSchema = Yup.object().shape({
   gender: Yup.string().required("Gender is required"),
   address: Yup.string().required("Address is required"),
   phoneNumber: Yup.string().required("Phone number is required"),
-  cv: Yup.mixed().required("CV is required"), // Validation for CV file
+  cv: Yup.mixed<File>()
+    .required("CV is required")
+    .test(
+      "fileType",
+      "Please upload a PDF file.",
+      (value) => !!value && value.type === "application/pdf"
+    ),
 });
 
 export const FormApplyJob = ({ job, onApply, onCancel }: FormProps) => {
-  
   const handleSubmit = (values: any) => {
     // Handle form submission here (send data to server, etc.)
     console.log("Form submitted:", values);
@@ -134,24 +139,33 @@ export const FormApplyJob = ({ job, onApply, onCancel }: FormProps) => {
                   <div>
                     <Autocomplete
                       {...field} // Spread Formik field props
-                      labelPlacement={"outside"}
+                      labelPlacement="outside"
                       label="Select gender"
                       classNames={{
                         listboxWrapper: "rounded-none",
                         listbox: "rounded-none",
                       }}
                       name="gender"
+                      allowsCustomValue={false}
                       inputProps={{
+                        className: "text-textPrimary",
                         classNames: {
                           inputWrapper:
                             "border border-borderSecondary rounded-none bg-white w-full",
                         },
                       }}
+                      readOnly={true}
                       placeholder="Select your gender"
                       className="w-full"
                     >
-                      {gender.map((item: string) => (
-                        <AutocompleteItem key={item} value={item}>
+                      {gender.map((item) => (
+                        <AutocompleteItem
+                          key={item}
+                          value={item}
+                          classNames={{
+                            title: "text-surfaceBrand",
+                          }}
+                        >
                           {item}
                         </AutocompleteItem>
                       ))}
@@ -232,7 +246,7 @@ export const FormApplyJob = ({ job, onApply, onCancel }: FormProps) => {
               <Input
                 classNames={{
                   inputWrapper: "border-none rounded-none bg-white p-0",
-                  input: "placeholder:text-textIconBrand",
+                  input: "text-textPrimary file:border-0 file:text-sm",
                 }}
                 type="file" // Use type="file" for file input
                 label="CV available"
