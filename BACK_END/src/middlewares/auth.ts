@@ -13,6 +13,7 @@ export const requireRole = (roles: string[]) => {
             if (!roles.includes(decoded.role)) {
                 return res.status(403).json({ message: 'Forbidden' })
             }
+            req.user = decoded;
             next()
         } catch (error) {
             console.log('error auth middleware', error)
