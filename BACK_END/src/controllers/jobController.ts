@@ -272,7 +272,6 @@ const jobController = {
                 minSalary,
                 maxSalary,
                 numberPerson,
-                account,
                 interviewManager,
                 unit,
                 career,
@@ -281,6 +280,8 @@ const jobController = {
                 type,
                 location,
             } = req.body
+
+            const account = req.user?._id
 
             if (!title) {
                 return res.status(400).json({ message: 'Title is required' })
@@ -327,10 +328,6 @@ const jobController = {
                 return res.status(400).json({ message: 'Expired date must be a valid future date.' })
             }
 
-            if (!Types.ObjectId.isValid(account)) {
-                return res.status(400).json({ message: 'Invalid account ID format' })
-            }
-
             if (!Types.ObjectId.isValid(interviewManager)) {
                 return res.status(400).json({ message: 'Invalid interview manager ID format' })
             }
@@ -345,12 +342,6 @@ const jobController = {
 
             if (!Types.ObjectId.isValid(location)) {
                 return res.status(400).json({ message: 'Invalid location ID format' })
-            }
-
-            const accountResult = await accountService.getAccountById(account)
-
-            if (!accountResult) {
-                return res.status(404).json({ message: 'Account not found' })
             }
 
             const interviewManagerResult = await accountService.getAccountById(interviewManager)
@@ -386,7 +377,7 @@ const jobController = {
                 minSalary: Number(minSalary),
                 maxSalary: Number(maxSalary),
                 numberPerson: Number(numberPerson),
-                account: account,
+                account: new Types.ObjectId(account),
                 unit: unit,
                 career: career,
                 location: location,

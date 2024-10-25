@@ -67,7 +67,7 @@ const Tiptap: React.FC<TiptapProps> = ({
           !isInvalid ? "outline-[#DDD]" : "outline-none"
         } outline-[2px] lg:prose-lg xl:prose-2xl m-1 focus:outline-[#999] text-themeDark ${
           !isInvalid ? "bg-[#f4f4f5]" : "bg-[#fee7ef]"
-        } shadow-sm px-4 py-2 rounded-lg`,
+        } shadow-sm px-4 py-2 rounded-lg text-[14px]`,
       },
     },
     immediatelyRender: false,

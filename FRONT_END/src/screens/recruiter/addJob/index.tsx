@@ -5,16 +5,12 @@ import {
   Tab,
   Card,
   CardBody,
-  Textarea,
-  Autocomplete,
-  AutocompleteItem,
   Button,
-  Input,
   DateValue,
 } from "@nextui-org/react";
 import { DatePicker } from "@nextui-org/date-picker";
 import { ArrowLeft, ArrowRight, DollarSign, MapPin } from "lucide-react";
-import { Key, useEffect, useMemo, useState } from "react";
+import { Key, useEffect, useState } from "react";
 import unitApi, { TUnit } from "@/api/unitApi";
 import accountApi, { IAccount } from "@/api/accountApi/accountApi";
 import jobApi, { TJob } from "@/api/jobApi";
@@ -23,6 +19,7 @@ import { TLocation } from "@/api/locationApi";
 import AutocompleteComponent from "./select";
 import InputComponent from "./input";
 import TextareaComponent from "./textarea";
+import { useRouter } from "next/navigation";
 
 const CustomEditor = dynamic(() => import("./custom"), {
   ssr: false,
@@ -34,7 +31,6 @@ const requiredFields = [
   "requests",
   "benefits",
   "unit",
-  "account",
   "interviewManager",
   "career",
   "location",
@@ -61,15 +57,16 @@ const types: JobType[] = [
 ];
 
 export const AddJob = (): React.JSX.Element => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("Job Description");
   const [formValue, setFormValue] = useState<Partial<TJob>>({});
   const [formValueError, setFormValueError] = useState<Partial<TJob>>({});
   const [unitList, setUnitList] = useState<Partial<TUnit[]> | []>([]);
   const [unit, setUnit] = useState<Partial<TUnit>>({});
-  const [userInfo, setUserInfo] = useState<Partial<IAccount>>({});
   const [careerList, setCareerList] = useState<Partial<TCareer[]> | []>([]);
   const [accountList, setAccountList] = useState<Partial<IAccount[]> | []>([]);
   const [dateSelected, setDateSelected] = useState<DateValue | null>();
+  const [submitLoading, setSubmitLoading] = useState<boolean>(false);
 
   useEffect(() => {
     (async () => {
@@ -78,24 +75,6 @@ export const AddJob = (): React.JSX.Element => {
       setUnitList(units);
       setCareerList(careers);
     })();
-  }, []);
-
-  useEffect(() => {
-    try {
-      const { userInfo } = JSON.parse(
-        localStorage.getItem("persist:root") as string
-      );
-      const userInfoParse = JSON.parse(userInfo);
-      setUserInfo(userInfoParse);
-      setFormValue(
-        (pre): Partial<TJob> => ({
-          ...pre,
-          account: userInfoParse._id,
-        })
-      );
-    } catch (error) {
-      console.log(error);
-    }
   }, []);
 
   useEffect(() => {
@@ -113,8 +92,8 @@ export const AddJob = (): React.JSX.Element => {
   }, [formValue?.unit]);
 
   useEffect(() => {
-    console.log(formValue);
-  }, [formValue]);
+    console.log(submitLoading);
+  }, [submitLoading]);
 
   const handleOnChange = (value: string, label: string) => {
     if (label === "job description") {
@@ -255,15 +234,15 @@ export const AddJob = (): React.JSX.Element => {
         }));
       }
     }
+
     if (missingFields.length > 0) {
       console.log("Missing required fields:", missingFields);
-      if (missingFields.includes("account")) {
-        console.log("Login required!");
-      }
       return;
     }
-
-    const res = await jobApi.addJob(formValue);
+    setSubmitLoading(true);
+    await jobApi.addJob(formValue);
+    setSubmitLoading(false);
+    router.push("/recruiter/list-job");
   };
 
   return (
