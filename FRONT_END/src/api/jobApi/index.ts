@@ -3,6 +3,8 @@ import axios from "axios";
 import { TLocation } from "../locationApi";
 import { TUnit } from "../unitApi";
 import { TCareer } from "../careerApi";
+import { IAccount } from "../accountApi/accountApi";
+import { IApply } from "../applyApi";
 
 const jobApi = {
   getJobList: async (
@@ -59,22 +61,32 @@ const jobApi = {
       return { job: {} };
     }
   },
+
+  addJob: async (job: Partial<TJob>): Promise<{ job: Partial<TJob> }> => {
+    try {
+      const accessToken = localStorage.getItem("access_token");
+      const res = await axios.post(`${BACKEND_URL}/api/v1/jobs`, job, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      console.log(res);
+
+      if (res.status === 201) {
+        return { job: res.data.data };
+      } else {
+        return { job: {} };
+      }
+    } catch (error) {
+      return { job: {} };
+    }
+  },
 };
 
 export default jobApi;
 
-type TApply = {
-  _id?: string;
-  cv?: string;
-  job?: string;
-  status?: string;
-  statusUpdatedBy?: string;
-  statusUpdatedAt?: string;
-  updatedAt?: string;
-  assigns?: string[];
-};
-
-export type TJob = {
+export interface TJob {
   _id: string;
   title: string;
   description: string;
@@ -84,39 +96,17 @@ export type TJob = {
   requests: string;
   benefits: string;
   address: string;
-  unit: TUnit;
-  career: TCareer;
-  account: {
-    _id: string;
-    googleId: string;
-    email: string;
-    name: string;
-    role: string;
-    image: string;
-    cv: any[]; // Assuming cv is an array, if it's an array of specific objects, you can specify the type accordingly
-    createdAt: string;
-    updatedAt: string;
-    __v: number;
-  };
-  interviewer: {
-    _id: string;
-    googleId: string;
-    email: string;
-    name: string;
-    role: string;
-    image: string;
-    cv: any[]; // Same assumption as above
-    createdAt: string;
-    updatedAt: string;
-    __v: number;
-  };
-  location: TLocation;
-  expiredDate: string; // ISO date string
+  unit: string | TUnit;
+  career: string | TCareer;
+  account: string | IAccount;
+  interviewManager: string | IAccount;
+  location: string | TLocation;
+  expiredDate: string;
   type: string;
   isDelete: boolean;
   isActive: boolean;
-  createdAt: string; // ISO date string
-  updatedAt: string; // ISO date string
-  applies: Partial<TApply>[];
+  createdAt: string;
+  updatedAt: string;
+  applies: string[] | Partial<IApply>[];
   __v: number;
-};
+}

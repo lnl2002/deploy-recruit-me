@@ -14,6 +14,51 @@
   }
 }
 
+.tiptap h1 {
+  font-size: 2rem; 
+  font-weight: bold;
+  margin: 0.5rem 0;
+}
+
+.tiptap h2 {
+  font-size: 1.5rem; 
+  font-weight: bold;
+  margin: 0.5rem 0;
+}
+
+.tiptap h3 {
+  font-size: 1.25rem; 
+  font-weight: medium;
+  margin: 0.5rem 0;
+}
+
+.tiptap h4 {
+  font-size: 1.25rem;
+  font-weight: medium;
+  margin: 0.5rem 0;
+}
+
+.tiptap h5 {
+  font-size: 1rem; 
+  font-weight: 400; 
+  margin: 0.5rem 0;
+}
+
+.tiptap h6 {
+  font-size: 0.875rem; 
+  font-weight: 400; 
+  margin: 0.5rem 0;
+}
+
+.tiptap ol,
+.tiptap ul,
+.tiptap menu {
+  list-style: inherit;
+  padding: 0 1rem;
+  margin: 1.25rem 1rem 1.25rem 0.4rem;
+}
+ 
+
 body {
   color: var(--foreground);
   background: var(--background);
