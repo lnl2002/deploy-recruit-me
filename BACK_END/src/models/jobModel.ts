@@ -16,7 +16,7 @@ export interface IJob extends Document {
     unit: mongoose.Types.ObjectId | IUnit
     career: mongoose.Types.ObjectId | ICareer
     account: mongoose.Types.ObjectId | IAccount
-    interviewer: mongoose.Types.ObjectId | IAccount
+    interviewManager: mongoose.Types.ObjectId | IAccount
     location: mongoose.Types.ObjectId | ILocation
     address: string
     timestamp: Date
@@ -81,7 +81,7 @@ const jobSchema: Schema = new Schema(
             ref: 'Account',
             required: true,
         },
-        interviewer: {
+        interviewManager: {
             type: mongoose.Types.ObjectId,
             ref: 'Account',
             required: true,
