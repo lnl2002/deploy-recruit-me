@@ -17,6 +17,20 @@ const unitApi = {
       return { units: [] };
     }
   },
+  getUnit: async (id: string): Promise<{ unit: Partial<TUnit> }> => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/v1/units/${id}`);
+
+      if (res.status === 200) {
+        return { unit: res.data.data };
+      } else {
+        return { unit: {} };
+      }
+    } catch (error) {
+      console.error("Error fetching units list:", error);
+      return { unit: {} };
+    }
+  },
 };
 
 export default unitApi;
@@ -27,5 +41,5 @@ export type TUnit = {
   image?: string;
   banner?: string;
   introduction?: string;
-  locations: TLocation[];
+  locations: string[] | TLocation[];
 };

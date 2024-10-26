@@ -293,9 +293,9 @@ const jobService = {
             {
                 $lookup: {
                     from: 'accounts',
-                    localField: 'interviewer',
+                    localField: 'interviewManager',
                     foreignField: '_id',
-                    as: 'interviewer',
+                    as: 'interviewManager',
                 },
             },
             {
@@ -344,7 +344,7 @@ const jobService = {
                     numberPerson: { $first: '$numberPerson' },
                     unit: { $first: '$unit' },
                     career: { $first: '$career' },
-                    interviewer: { $first: '$interviewer' },
+                    interviewManager: { $first: '$interviewManager' },
                     account: { $first: '$account' },
                     location: { $first: '$location' },
                     applies: { $push: '$applies' },
@@ -378,7 +378,7 @@ const jobService = {
             })
             .populate('career')
             .populate('account')
-            .populate('interviewer')
+            .populate('interviewManager')
             .populate('location')
             .lean()
             .exec()

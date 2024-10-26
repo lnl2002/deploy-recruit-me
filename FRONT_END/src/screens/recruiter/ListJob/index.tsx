@@ -1,14 +1,16 @@
-"use client"
+"use client";
 import { useEffect, useState } from "react";
 
 import jobApi, { TJob } from "@/api/jobApi";
 import { Plus } from "lucide-react";
 import { Button } from "@nextui-org/react";
+import { useRouter } from "next/navigation";
 
 import JobSection from "./components/jobSection";
 import FilterSection from "./components/filterSection";
 
 export const ListJob = (): React.JSX.Element => {
+  const router = useRouter();
   const [limit] = useState(10);
   const [params, setParams] = useState<string>("");
   const [jobTotal, setJobTotal] = useState<number>(0);
@@ -29,9 +31,8 @@ export const ListJob = (): React.JSX.Element => {
 
   useEffect(() => {
     (async () => {
-      const { jobs, total } = await jobApi.getJobListOwn(
-        params,
-        "671124aa9578b132a235155d"
+      const { jobs, total } = await jobApi.getJobList(
+        `&account=${"671124aa9578b132a235155d"}${params}`
       );
       setListJob(jobs);
       setJobTotal(total);
@@ -48,6 +49,7 @@ export const ListJob = (): React.JSX.Element => {
         <div className="w-full flex justify-between">
           <h1 className="font-bold text-themeDark text-3xl">My Job</h1>
           <Button
+            onPress={() => router.push("/recruiter/add-job")}
             radius="full"
             className="bg-themeOrange text-themeWhite px-12"
             startContent={<Plus color="#FFF" size={18} />}

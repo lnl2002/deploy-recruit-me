@@ -16,7 +16,7 @@ const unitController = {
         try {
             const { id } = req.params
 
-            if (Types.ObjectId.isValid(id)) {
+            if (!Types.ObjectId.isValid(id)) {
                 return res.status(400).json({ message: 'Invalid unit ID format' })
             }
 

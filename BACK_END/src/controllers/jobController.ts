@@ -6,6 +6,7 @@ import unitService from '../services/unitService'
 import careerService from '../services/careerService'
 import { IRole } from '../models/roleModel'
 import { IJob } from '../models/jobModel'
+import locationService from '../services/locationService'
 
 const jobController = {
     getJobDetail: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -55,33 +56,35 @@ const jobController = {
                 query.order = order as 'asc' | 'desc'
             }
 
-            const fieldTypes: { [key in keyof Partial<IJob>]?: 'string' | 'number' | 'boolean' | 'date' } = {
-                title: 'string',
-                introduction: 'string',
-                description: 'string',
-                benefits: 'string',
-                requests: 'string',
-                minSalary: 'number',
-                maxSalary: 'number',
-                numberPerson: 'number',
-                unit: 'string',
-                career: 'string',
-                account: 'string',
-                location: 'string',
-                interviewer: 'string',
-                address: 'string',
-                timestamp: 'date',
-                expiredDate: 'date',
-                isDelete: 'boolean',
-                isActive: 'boolean',
-                type: 'string',
-                status: 'string',
-            }
+            const fieldTypes: { [key in keyof Partial<IJob>]?: 'string' | 'number' | 'boolean' | 'date' | 'objectId' } =
+                {
+                    title: 'string',
+                    introduction: 'string',
+                    description: 'string',
+                    benefits: 'string',
+                    requests: 'string',
+                    minSalary: 'number',
+                    maxSalary: 'number',
+                    numberPerson: 'number',
+                    unit: 'objectId',
+                    career: 'objectId',
+                    account: 'objectId',
+                    location: 'objectId',
+                    interviewManager: 'objectId',
+                    address: 'string',
+                    timestamp: 'date',
+                    expiredDate: 'date',
+                    isDelete: 'boolean',
+                    isActive: 'boolean',
+                    type: 'string',
+                    status: 'string',
+                }
 
             // Lọc và xác thực các trường hợp hợp lệ
             const filteredQuery = Object.keys(query)
                 .filter((key) => key in fieldTypes) // Chỉ giữ lại các trường hợp có trong fieldTypes
                 .reduce((obj, key) => {
+                    const { Types } = require('mongoose')
                     const expectedType = fieldTypes[key as keyof Partial<IJob>]
                     let value = query[key]
 
@@ -96,6 +99,9 @@ const jobController = {
                         if (isNaN(value.getTime())) return obj // Bỏ qua nếu không phải ngày hợp lệ
                     } else if (expectedType === 'string') {
                         value = value.toString()
+                    } else if (expectedType === 'objectId') {
+                        if (!Types.ObjectId.isValid(value)) return obj
+                        value = new Types.ObjectId(value)
                     }
 
                     // Thêm giá trị hợp lệ vào đối tượng query
@@ -179,7 +185,7 @@ const jobController = {
                 location: 'string',
                 career: 'string',
                 account: 'string',
-                interviewer: 'string',
+                interviewManager: 'string',
                 address: 'string',
                 timestamp: 'date',
                 expiredDate: 'date',
@@ -266,14 +272,16 @@ const jobController = {
                 minSalary,
                 maxSalary,
                 numberPerson,
-                account,
-                interviewer,
+                interviewManager,
                 unit,
                 career,
                 address,
                 expiredDate,
                 type,
+                location,
             } = req.body
+
+            const account = req.user?._id
 
             if (!title) {
                 return res.status(400).json({ message: 'Title is required' })
@@ -320,12 +328,8 @@ const jobController = {
                 return res.status(400).json({ message: 'Expired date must be a valid future date.' })
             }
 
-            if (!Types.ObjectId.isValid(account)) {
-                return res.status(400).json({ message: 'Invalid account ID format' })
-            }
-
-            if (!Types.ObjectId.isValid(interviewer)) {
-                return res.status(400).json({ message: 'Invalid account ID format' })
+            if (!Types.ObjectId.isValid(interviewManager)) {
+                return res.status(400).json({ message: 'Invalid interview manager ID format' })
             }
 
             if (!Types.ObjectId.isValid(unit)) {
@@ -336,19 +340,17 @@ const jobController = {
                 return res.status(400).json({ message: 'Invalid career ID format' })
             }
 
-            const accountResult = await accountService.getAccountById(account)
-
-            if (!accountResult) {
-                return res.status(404).json({ message: 'Account not found' })
+            if (!Types.ObjectId.isValid(location)) {
+                return res.status(400).json({ message: 'Invalid location ID format' })
             }
 
-            const interviewerResult = await accountService.getAccountById(interviewer)
-            if (!interviewerResult) {
-                return res.status(404).json({ message: 'Interviewer not found' })
+            const interviewManagerResult = await accountService.getAccountById(interviewManager)
+            if (!interviewManagerResult) {
+                return res.status(404).json({ message: 'Interview manager not found' })
             }
 
-            if ((interviewerResult.role as IRole).roleName !== 'INTERVIEWER') {
-                return res.status(403).json({ message: interviewerResult.name + ' is not a interviewer' })
+            if ((interviewManagerResult.role as IRole).roleName !== 'INTERVIEW_MANAGER') {
+                return res.status(403).json({ message: interviewManagerResult.name + ' is not a interview manager' })
             }
 
             const unitResult = await unitService.getUnitById(unit)
@@ -361,22 +363,31 @@ const jobController = {
                 return res.status(404).json({ message: 'Career not found' })
             }
 
+            const locationResult = await locationService.getLocationById(location)
+            if (!locationResult) {
+                return res.status(404).json({ message: 'Location not found' })
+            }
+
             const newJob = await jobService.addJob({
                 title: title,
                 introduction: introduction,
                 description: description,
+                benefits: benefits,
+                requests: requests,
                 minSalary: Number(minSalary),
                 maxSalary: Number(maxSalary),
                 numberPerson: Number(numberPerson),
-                account: account,
+                account: new Types.ObjectId(account),
                 unit: unit,
                 career: career,
-                interviewer: interviewer,
+                location: location,
+                interviewManager: interviewManager,
                 address: address,
                 expiredDate: new Date(expiredDate),
                 isActive: false,
                 isDelete: false,
-                status: 'not-started',
+                status: 'pending',
+                type: type,
             })
             return res.json(newJob)
         } catch (error: unknown) {
