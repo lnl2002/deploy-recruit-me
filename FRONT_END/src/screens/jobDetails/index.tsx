@@ -13,6 +13,7 @@ import { asyncState } from "@/utils/constants";
 import Lottie from "react-lottie";
 import { LottieApp } from "@/lotties";
 import { applyApi } from "@/api/applyApi";
+import { useAppSelector } from "@/store/store";
 
 const JobDetails = (): React.JSX.Element => {
   const searchParams = useSearchParams();
@@ -20,6 +21,7 @@ const JobDetails = (): React.JSX.Element => {
   const [job, setJob] = useState<Partial<TJob>>({});
   const [state, setState] = useState<string>(asyncState.loading);
   const [responseMessage, setResponseMessage] = useState<string>();
+  const { userInfo} = useAppSelector((state) => state.user);
 
   //disclosure
   const popupApplyJob = useDisclosure();

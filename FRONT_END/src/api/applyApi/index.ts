@@ -49,9 +49,15 @@ export const applyApi = {
 
   applyToJob: async (cvData: Partial<TJob>, jobId: string) => {
     try {
+      const accessToken = localStorage.getItem("access_token");
+
       // 3. Send the CV creation request
       const cvResponse = await (
-        await axios.post(`${BACKEND_URL}/api/v1/cvs`, cvData)
+        await axios.post(`${BACKEND_URL}/api/v1/cvs`, cvData, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
       ).data;
 
       console.log(cvResponse.data.cv._id);
@@ -63,7 +69,12 @@ export const applyApi = {
         // 4. Send the job application request
         const applyResponse = await axios.post(
           `${BACKEND_URL}/api/v1/apply/apply-job`,
-          { cvId, jobId }
+          { cvId, jobId },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
         );
 
         if (applyResponse.status === 201) {
