@@ -8,6 +8,7 @@ export interface IApply extends Document {
     cv: mongoose.Types.ObjectId | ICV
     job: mongoose.Types.ObjectId | IJob
     status: mongoose.Types.ObjectId | ICVStatus
+    createdBy: mongoose.Types.ObjectId | IAccount,
     assigns: mongoose.Types.ObjectId[] | IAccount[]
 }
 
@@ -34,6 +35,11 @@ const applySchema: Schema = new Schema(
                 ref: 'Account',
             },
         ],
+        createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Account',
+            required: true,
+        },
         statusUpdatedAt: { type: Date },
         assigns: [
             {

@@ -4,22 +4,25 @@ import CV from "../models/cvModel";
 import Job from "../models/jobModel";
 import CVStatus from "../models/cvStatusModel";
 import applyService from "../services/apply";
+import Account from "../models/accountModel";
+import { AppError } from "../constants/AppError";
 
 const ApplyController = {
   // Create a new application
   applyToJob: async (req: Request, res: Response): Promise<void> => {
     try {
       // 1. Extract data from the request body
-      const { cvId, jobId } = req.body;
+      const { cvId, jobId, createdBy} = req.body;
 
       // 3. Find the CV, Job, and default CVStatus
       const [cv, job, defaultStatus] = await Promise.all([
         CV.findById(cvId),
         Job.findById(jobId),
         CVStatus.findOne({ name: "New" }), // Assuming "New" is a default status
+        Account.findOne(createdBy)
       ]);
 
-      const savedApply = await applyService.createApply({ cvId: cv._id, jobId: job._id, defaultStatusId: defaultStatus._id});
+      const savedApply = await applyService.createApply({ cvId: cv._id, jobId: job._id, defaultStatusId: defaultStatus._id, createdBy: req.user._id});
 
       // 7. Send a success response
       res.status(201).json({
@@ -29,7 +32,7 @@ const ApplyController = {
     } catch (error) {
       // 8. Handle errors
       console.error(error);
-      res.status(500).json({ message: "Error creating application" });
+      res.status(500).json(AppError.UNKNOWN_ERROR);
     }
   },
 
