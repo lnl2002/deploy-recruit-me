@@ -11,6 +11,16 @@ export interface IApply {
   assigns: string[];
 }
 
+export interface ICV {
+  address: string;
+  cv: File;
+  email: string;
+  firstName: string;
+  gender: string;
+  lastName: string;
+  phoneNumber: number;
+}
+
 export const applyApi = {
   getApplyByJob: async ({
     _id,
@@ -47,15 +57,28 @@ export const applyApi = {
     }
   },
 
-  applyToJob: async (cvData: Partial<TJob>, jobId: string) => {
+  applyToJob: async (cvData: ICV, jobId: string) => {
     try {
       const accessToken = localStorage.getItem("access_token");
 
+      // Create FormData and append CV data and file
+      const formData = new FormData();
+
+      // Append all fields to FormData
+      formData.append("address", cvData.address);
+      formData.append("cv", cvData.cv); // File field
+      formData.append("email", cvData.email);
+      formData.append("firstName", cvData.firstName);
+      formData.append("gender", cvData.gender);
+      formData.append("lastName", cvData.lastName);
+      formData.append("phoneNumber", cvData.phoneNumber.toString());
+
       // 3. Send the CV creation request
       const cvResponse = await (
-        await axios.post(`${BACKEND_URL}/api/v1/cvs`, cvData, {
+        await axios.post(`${BACKEND_URL}/api/v1/cvs`, formData, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'multipart/form-data',
           },
         })
       ).data;

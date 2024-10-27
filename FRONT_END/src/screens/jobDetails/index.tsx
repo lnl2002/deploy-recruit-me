@@ -12,7 +12,7 @@ import { FormApplyJob } from "@/components";
 import { asyncState } from "@/utils/constants";
 import Lottie from "react-lottie";
 import { LottieApp } from "@/lotties";
-import { applyApi } from "@/api/applyApi";
+import { applyApi, ICV } from "@/api/applyApi";
 import { useAppSelector } from "@/store/store";
 
 const JobDetails = (): React.JSX.Element => {
@@ -21,7 +21,7 @@ const JobDetails = (): React.JSX.Element => {
   const [job, setJob] = useState<Partial<TJob>>({});
   const [state, setState] = useState<string>(asyncState.loading);
   const [responseMessage, setResponseMessage] = useState<string>();
-  const { userInfo} = useAppSelector((state) => state.user);
+  const { userInfo } = useAppSelector((state) => state.user);
 
   //disclosure
   const popupApplyJob = useDisclosure();
@@ -34,13 +34,13 @@ const JobDetails = (): React.JSX.Element => {
     })();
   }, [jobId]);
 
-  const _applyJob = async (cv: Partial<TJob>) => {
+  const _applyJob = async (cvProfile: ICV) => {
     popupApplyJob.onClose();
     responseModal.onOpen();
     if (!jobId || jobId == "") return;
     try {
       setState(asyncState.loading);
-      await applyApi.applyToJob(cv, jobId);
+      await applyApi.applyToJob(cvProfile, jobId);
       setTimeout(() => {
         setState(asyncState.success);
         setResponseMessage(
@@ -49,6 +49,7 @@ const JobDetails = (): React.JSX.Element => {
       }, 500);
     } catch (error) {
       setState(asyncState.error);
+      setResponseMessage(error + "");
     }
   };
 
