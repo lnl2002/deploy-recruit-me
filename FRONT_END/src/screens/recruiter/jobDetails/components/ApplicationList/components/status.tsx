@@ -24,6 +24,7 @@ const Status: React.FC<Props> = ({ status }: Props) => {
               case "Interview Rescheduled":
                 return "bg-[#FCEAE1] border-none p-2";
               case "Approval Interview Scheduled":
+                return "bg-[#E1F7FC] border-none p-2";
               case "Interviewed":
                 return "bg-[#E1F7FC] border-none p-2";
               case "Accepted":
@@ -45,6 +46,7 @@ const Status: React.FC<Props> = ({ status }: Props) => {
               case "Interview Rescheduled":
                 return "text-[#F36523] font-bold";
               case "Approval Interview Scheduled":
+                return "text-[#0FB1C5] font-bold";
               case "Interviewed":
                 return "text-[#0FB1C5] font-bold";
               case "Accepted":
@@ -66,6 +68,7 @@ const Status: React.FC<Props> = ({ status }: Props) => {
               case "Interview Rescheduled":
                 return "bg-[#F36523]";
               case "Approval Interview Scheduled":
+                return "bg-[#0FB1C5]";
               case "Interviewed":
                 return "bg-[#0FB1C5]";
               case "Accepted":
