@@ -2,10 +2,6 @@ import React, { useState } from "react";
 import {
   Autocomplete,
   AutocompleteItem,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
   Input,
 } from "@nextui-org/react";
 import { Upload } from "lucide-react";
@@ -13,6 +9,7 @@ import { ButtonApp } from "../ButtonApp";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { TJob } from "@/api/jobApi";
+import { ICV } from "@/api/applyApi";
 
 // Define your Gender enum and TJob type (replace with your actual types)
 const gender = ["Male", "Female", "Others"];
@@ -20,7 +17,7 @@ const gender = ["Male", "Female", "Others"];
 // Form Props
 type FormProps = {
   job: TJob;
-  onApply: (cv: Partial<TJob>) => void;
+  onApply: (cv: ICV) => void;
   onCancel: () => void;
 };
 
@@ -74,7 +71,7 @@ export const FormApplyJob = ({ job, onApply, onCancel }: FormProps) => {
         onSubmit={handleSubmit}
       >
         {({ setFieldValue }) => (
-          <Form>
+          <Form encType="multipart/form-data">
             <div className="mt-16">
               <Input
                 classNames={{
@@ -250,6 +247,7 @@ export const FormApplyJob = ({ job, onApply, onCancel }: FormProps) => {
                 }}
                 type="file" // Use type="file" for file input
                 label="CV available"
+                name="cv"
                 labelPlacement={"outside"}
                 placeholder="Upload CV"
                 startContent={
