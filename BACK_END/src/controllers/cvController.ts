@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import cvService from "../services/cvService";
 import CV from "../models/cvModel";
+import fs from 'fs';
 
 const cvController = {
   getListCV: async (
@@ -23,17 +24,27 @@ const cvController = {
   ): Promise<Response> => {
     try {
       // Validation is handled by the middleware
-      // Extract validated data from the request body
-      const {
-        email,
-        lastName,
-        firstName,
-        gender,
-        phoneNumber,
-        address,
-        cv,
-        url,
-      } = req.body;
+      const { email, lastName, firstName, gender, phoneNumber, address } =
+        req.body;
+
+      const { file } = req;
+
+      // Mã hóa file
+      const encryptedFilePath = await cvService.encryptFile(
+        file.path,
+        Buffer.from(process.env.ENCRYPTION_KEY, 'hex'),
+        Buffer.from(process.env.INITIALIZATION_KEY, 'hex'),
+      );
+      
+      // Upload file mã hóa lên S3
+      const s3Result = await cvService.uploadEncryptedFileToS3(
+        encryptedFilePath,
+        process.env.S3_BUCKET_NAME
+      );
+
+      // Xóa file tạm sau khi upload
+      fs.unlinkSync(file.path);
+      fs.unlinkSync(encryptedFilePath);
 
       // Create a new CV instance
       const newCV = new CV({
@@ -43,8 +54,7 @@ const cvController = {
         gender,
         phoneNumber,
         address,
-        cv,
-        url,
+        url:(s3Result as {Location: string}).Location, 
       });
 
       // Save the CV

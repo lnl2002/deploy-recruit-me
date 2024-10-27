@@ -30,7 +30,7 @@ const applyService = {
             cv: cvId, 
             job: jobId,
             status: defaultStatusId, 
-            createdBy: createdBy
+            createdBy: createdBy,
           });
     
           const savedApply = await newApply.save();
