@@ -1,7 +1,7 @@
-import express from "express";
+import express, { Router } from "express";
 import ApplyController from "../controllers/ApplyController";
 
-const applyRouter = express.Router();
+const applyRouter: Router = express.Router();
 
 applyRouter.get("/cvs/:jobId", ApplyController.getAllCVsByJobId);
 applyRouter.get("/:id", ApplyController.getApplicationById);

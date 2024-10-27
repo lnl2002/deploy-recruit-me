@@ -83,6 +83,54 @@ export const applyApi = {
       throw err;
     }
   },
+
+  getApplicationById: async ({
+    _id,
+  }: {
+    _id: string;
+  }): Promise<IApply | null> => {
+    try {
+      const res = await axios.get(
+        `${BACKEND_URL}/api/v1/apply/${_id}`
+      );
+
+      if (res.status === 200) {
+        return res.data.data;
+      } else {
+        return null
+      }
+    } catch (error) {
+      console.error("Error fetching career list:", error);
+      return null
+    }
+  },
+
+  updateApplyStatus: async ({
+    applyId,
+    newStatus
+  }: {
+    applyId: string;
+    newStatus: string;
+  }): Promise<IApply | null> => {
+    try {
+      const res = await axios.put(
+        `${BACKEND_URL}/api/v1/applies/update-status`,{
+          applyId,
+          newStatus
+        }
+      );
+
+      if (res.status === 200) {
+        return res.data.data;
+      } else {
+        return null
+      }
+    } catch (error) {
+      console.error("Error update apply status:", error);
+      return null
+    }
+  },
+
 };
 
 export default applyApi;

@@ -5,24 +5,29 @@ import applyService from '../services/apply'
 
 const applyController = {
     updateApplyStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { applyId, newStatusId } = req.body
+        const { applyId, newStatus } = req.body
 
-        if (!mongoose.Types.ObjectId.isValid(applyId) || !mongoose.Types.ObjectId.isValid(newStatusId)) {
+        if (!mongoose.Types.ObjectId.isValid(applyId)) {
             res.status(400).json({ message: 'Invalid ID' })
+            return
+        }
+
+        if(!newStatus) {
+            res.status(400).json({ message: 'Invalid status' })
             return
         }
 
         try {
             //check status exists
-            const statusExists = await CVStatus.exists({ _id: newStatusId })
+            const statusExists = await CVStatus.exists({ name: newStatus })
             if (!statusExists) {
-                res.status(404).json({ message: 'Not found StatusId' })
+                res.status(404).json({ message: 'Not found status' })
                 return
             }
 
             const updatedApply = await applyService.updateStatus({
                 applyId,
-                newStatusId,
+                newStatusId: statusExists._id.toString(),
             })
 
             if (!updatedApply) {

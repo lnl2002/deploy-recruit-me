@@ -34,6 +34,24 @@ input {
   caret-color: black; 
 }
 
+.fc-prev-button, .fc-next-button{
+  background: none!important;
+  border: none!important;
+  color: #000!important;
+}
+
+.fc-prev-button:focus, .fc-next-button:focus {
+  outline: none!important;
+  box-shadow: none!important;
+}
+
+.fc-toolbar-title {
+  font-size: medium!important;
+}
+
+.fc-day {
+  background: #fff!important;
+}
 
 @layer utilities {
   .text-balance {

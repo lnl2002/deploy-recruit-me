@@ -64,6 +64,7 @@ const ApplyController = {
         const totalApplications = await Apply.countDocuments({ job: jobId });
         const applications = await Apply.find({ job: jobId })
           .populate("cv")
+          .populate("status")
           .skip(skip)
           .limit(limit);
 
