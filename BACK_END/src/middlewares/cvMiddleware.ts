@@ -1,6 +1,5 @@
 import { body, validationResult } from "express-validator";
 import multer from "multer";
-import path from "path";
 
 export const validateCVInput = [
   body("email").isEmail().withMessage("Invalid email format").normalizeEmail(),
@@ -57,28 +56,30 @@ export const validateCVInput = [
   },
 ];
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
+export const upload = multer({ dest: 'uploads/' });
 
-export const upload = multer({
-  storage: storage,
-  fileFilter: (req, file, cb) => {
-    const fileTypes = /pdf/;
-    const extname = fileTypes.test(
-      path.extname(file.originalname).toLowerCase()
-    );
-    const mimetype = fileTypes.test(file.mimetype);
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, "uploads/");
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, `${Date.now()}-${file.originalname}`);
+//   },
+// });
 
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error("Only PDF files are allowed!"));
-    }
-  },
-});
+// export const upload = multer({
+//   storage: storage,
+//   fileFilter: (req, file, cb) => {
+//     const fileTypes = /pdf/;
+//     const extname = fileTypes.test(
+//       path.extname(file.originalname).toLowerCase()
+//     );
+//     const mimetype = fileTypes.test(file.mimetype);
+
+//     if (mimetype && extname) {
+//       return cb(null, true);
+//     } else {
+//       cb(new Error("Only PDF files are allowed!"));
+//     }
+//   },
+// });
