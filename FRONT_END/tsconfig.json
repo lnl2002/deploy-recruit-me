@@ -21,6 +21,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/screens/jobDetails/components/InformationJob", "src/screens/recruiter/jobDetails/components/InformationJob"],
+  "include": ["next-env.d.ts", "**/*.js","**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/screens/jobDetails/components/InformationJob", "src/screens/recruiter/jobDetails/components/InformationJob"],
   "exclude": ["node_modules"]
 }
