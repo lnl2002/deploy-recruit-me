@@ -121,6 +121,10 @@ const ApplicantTable = ({ _id }: TableProps) => {
     setUser(data)
   }
 
+  const onViewCv = async(id:string) => {
+    applyApi.getCvFileById({cvId: id})
+  }
+
   return (
     <div>
       {users && users.length > 0 ? (
@@ -197,7 +201,7 @@ const ApplicantTable = ({ _id }: TableProps) => {
         gender={user?.cv?.gender?.toUpperCase() || ''}
         address={user?.cv?.address || ''}
         state={user?.status?.name || ''}
-        cvUrl={user?.cv?.url || ''}
+        onViewCv={() => onViewCv(user?.cv._id)}
         onDecline={() => {
           console.log('Applicant Declined');
         }}

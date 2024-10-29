@@ -78,7 +78,7 @@ export const applyApi = {
         await axios.post(`${BACKEND_URL}/api/v1/cvs`, formData, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'multipart/form-data',
+            "Content-Type": "multipart/form-data",
           },
         })
       ).data;
@@ -124,47 +124,67 @@ export const applyApi = {
     _id: string;
   }): Promise<IApply | null> => {
     try {
-      const res = await axios.get(
-        `${BACKEND_URL}/api/v1/apply/${_id}`
-      );
+      const res = await axios.get(`${BACKEND_URL}/api/v1/apply/${_id}`);
 
       if (res.status === 200) {
         return res.data.data;
       } else {
-        return null
+        return null;
       }
     } catch (error) {
       console.error("Error fetching career list:", error);
-      return null
+      return null;
     }
   },
 
   updateApplyStatus: async ({
     applyId,
-    newStatus
+    newStatus,
   }: {
     applyId: string;
     newStatus: string;
   }): Promise<IApply | null> => {
     try {
       const res = await axios.put(
-        `${BACKEND_URL}/api/v1/applies/update-status`,{
+        `${BACKEND_URL}/api/v1/applies/update-status`,
+        {
           applyId,
-          newStatus
+          newStatus,
         }
       );
 
       if (res.status === 200) {
         return res.data.data;
       } else {
-        return null
+        return null;
       }
     } catch (error) {
       console.error("Error update apply status:", error);
-      return null
+      return null;
     }
   },
 
+  getCvFileById: async ({ cvId }: { cvId: string }) => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/v1/cvs/${cvId}/download`, {
+        responseType: "blob", // Important for downloading files
+      });
+
+      // Create a temporary URL to the blob
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "decrypted-cv.pdf");
+
+      // Append to the document, simulate click and remove
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch (error) {
+      console.error("Error downloading CV:", error);
+      // Handle errors gracefully (e.g., show a user-friendly error message)
+    }
+  },
 };
 
 export default applyApi;
