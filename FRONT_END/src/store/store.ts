@@ -4,6 +4,7 @@ import { appModalReducer } from "./modalState";
 import { userReducer } from "./userState";
 import storage from 'redux-persist/lib/storage';
 import { persistStore, persistReducer } from "redux-persist";
+import { jobReducer } from "./jobState";
 
 
 const persistConfig = {
@@ -16,7 +17,8 @@ const persistedUserReducer = persistReducer(persistConfig, userReducer);
 export const store = configureStore({
   reducer: { 
     appModal: appModalReducer,
-    user: persistedUserReducer
+    user: persistedUserReducer,
+    job: jobReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }),
