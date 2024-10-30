@@ -4,6 +4,7 @@ import CV from "../models/cvModel";
 import fs from "fs";
 import { s3 } from "../services/s3Service";
 import crypto from "crypto";
+import { Stream } from 'stream';
 
 const cvController = {
   getListCV: async (
@@ -32,11 +33,15 @@ const cvController = {
       const { file } = req;
 
       // Mã hóa file
+      const key = Buffer.from(process.env.ENCRYPTION_KEY, "hex");
+      const iv = Buffer.from(process.env.INITIALIZATION_KEY, "hex");
       const encryptedFilePath = await cvService.encryptFile(
         file.path,
-        Buffer.from(process.env.ENCRYPTION_KEY, "hex"),
-        Buffer.from(process.env.INITIALIZATION_KEY, "hex")
+        key,
+        iv
       );
+      console.log("Encryption Key (hex):", key.toString('hex'));
+      console.log("IV (hex):", iv.toString('hex'));
 
       // Upload file mã hóa lên S3
       const s3Result = await cvService.uploadEncryptedFileToS3(
@@ -79,11 +84,13 @@ const cvController = {
       const encryptedFileUrl = cv.url;
 
       const parsedUrl = new URL(encryptedFileUrl);
-      const bucketName = parsedUrl.hostname.split(".")[0]; 
-      const encryptedPath = parsedUrl.pathname.substring(1); 
+      const bucketName = parsedUrl.hostname.split(".")[0];
+      const encryptedPath = parsedUrl.pathname.substring(1);
 
       const myKey = Buffer.from(process.env.ENCRYPTION_KEY, "hex");
       const myIV = Buffer.from(process.env.INITIALIZATION_KEY, "hex");
+      console.log("Encryption Key (hex):", myKey.toString('hex'));
+      console.log("IV (hex):", myIV.toString('hex'));
 
       const data = await s3
         .getObject({
@@ -92,20 +99,25 @@ const cvController = {
         })
         .promise();
 
-      // Ensure data.Body is a Readable stream:
-      const fileStream = data.Body as NodeJS.ReadableStream; // Explicitly cast to ReadableStream
+      console.log(data);
+
+
+      // Create a ReadableStream regardless of data.Body type
+      const fileStream = data.Body instanceof Buffer ?
+        new Stream.PassThrough().end(data.Body) :
+        data.Body as NodeJS.ReadableStream;
 
       if (!fileStream || typeof fileStream.pipe !== 'function') {
-        throw new Error("Invalid file stream received from S3");
+        throw new Error("Invalid data received from S3. Expected a Buffer or a ReadableStream.");
       }
 
       // Decrypt the file content
       const decipher = crypto.createDecipheriv("aes-256-cbc", myKey, myIV);
-      const decryptedStream = fileStream.pipe(decipher); 
+      const decryptedStream = fileStream.pipe(decipher);
 
       // Set headers for file download
-      res.setHeader("Content-Type", "application/pdf"); 
-      res.setHeader("Content-Disposition", "attachment; filename=decrypted-cv.pdf"); 
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", "attachment; filename=decrypted-cv.pdf");
 
       // Pipe the decrypted data to the response
       decryptedStream.pipe(res);
