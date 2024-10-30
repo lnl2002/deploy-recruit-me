@@ -19,26 +19,18 @@ import {
   DropdownTrigger,
 } from "@nextui-org/react";
 import { logout } from "@/store/userState";
+import { hrNavLinks, navLinks, Role } from "@/utils/constants";
 
-const navLinks = [
-  { id: 1, name: "Home", path: "/", expandable: false, loginRequired: false },
-  {
-    id: 2,
-    name: "My Application",
-    path: "/contact-us",
-    expandable: false,
-    loginRequired: true,
-  },
-  {
-    id: 3,
-    name: "About Us",
-    path: "/about-us",
-    expandable: false,
-    loginRequired: false,
-  },
-];
+const getNavLink = (role: Role) => {
+  switch (role) {
+    case Role.Common:
+      return navLinks;
+    case Role.Recruiter:
+      return hrNavLinks;
+  }
+};
 
-export const Header = (): React.JSX.Element => {
+export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
   const dispatch = useAppDispatch();
   const pathname = usePathname();
   const router = useRouter();
@@ -69,7 +61,7 @@ export const Header = (): React.JSX.Element => {
           </div>
         </Link>
         <div className="hidden sm:flex">
-          {navLinks.map((item, index: number) => (
+          {getNavLink(role ?? Role.Common).map((item, index: number) => (
             <HeaderLink
               key={index}
               title={item.name}
@@ -98,9 +90,9 @@ export const Header = (): React.JSX.Element => {
                   as="button"
                   className="transition-transform"
                   color="secondary"
-                  name={userInfo?.displayName || ''}
+                  name={userInfo?.displayName || ""}
                   size="sm"
-                  src={userInfo?.image || ''}
+                  src={userInfo?.image || ""}
                 />
               </DropdownTrigger>
               <DropdownMenu
@@ -109,7 +101,7 @@ export const Header = (): React.JSX.Element => {
                 variant="flat"
               >
                 <DropdownItem key="profile" className="h-10 gap-2">
-                  <p className="font-semibold">{userInfo?.displayName || ''}</p>
+                  <p className="font-semibold">{userInfo?.displayName || ""}</p>
                 </DropdownItem>
                 <DropdownItem key="settings">My Settings</DropdownItem>
                 <DropdownItem key="team_settings">Team Settings</DropdownItem>
