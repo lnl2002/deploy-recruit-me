@@ -7,7 +7,9 @@ import {v4 as uuid} from 'uuid'
 
 const meetingController = {
     updateMeetingStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { meetingRoomId, participantId, status } = req.body
+        const { meetingRoomId, participantId, status, title } = req.body
+
+        console.log('title', title);
 
         // Kiểm tra tính hợp lệ của dữ liệu đầu vào
         if (!meetingRoomId || !participantId || !status) {
@@ -44,8 +46,12 @@ const meetingController = {
         try {
             const start = new Date(startTime as string)
             const end = new Date(endTime as string)
+
             start.setHours(0, 0, 0, 0)
             end.setHours(23, 59, 59, 999)
+
+            console.log('--------', start, end);
+
 
             if (end <= start) {
                 return res.status(400).json({ message: 'endTime must be later than startTime' })
@@ -63,7 +69,7 @@ const meetingController = {
         }
     },
     createMeetingRoom: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { participantIds, timeStart } = req.body
+        const { participantIds, timeStart, timeEnd } = req.body
 
         if (!participantIds || !timeStart ) {
             return res.status(400).json({ message: 'Missing required fields' })
@@ -73,8 +79,8 @@ const meetingController = {
             return res.status(400).json({ message: 'participantIds need more than or equal 2' })
         }
 
-        if (isNaN(Date.parse(timeStart))) {
-            return res.status(400).json({ message: 'Invalid timeStart format, must be a valid date-time' });
+        if (isNaN(Date.parse(timeStart)) || isNaN(Date.parse(timeEnd))) {
+            return res.status(400).json({ message: 'Invalid time format, must be a valid date-time' });
         }
 
         try {
@@ -89,8 +95,17 @@ const meetingController = {
             const schedules = await meetingService.createMeetingRoom({
                 url,
                 timeStart,
-                participants
+                timeEnd,
+                participants,
             })
+
+            if((schedules as {
+                isError: boolean,
+                message: string
+            })?.isError){
+                res.status(400).json(schedules)
+                return
+            }
 
             return res.status(200).json(schedules)
         } catch (error) {

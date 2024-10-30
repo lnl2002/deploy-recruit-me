@@ -94,6 +94,7 @@ const ApplicantTable = ({ _id }: TableProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [user, setUser] = useState<IApply | any>();
+  const [loadAgain, setLoadAgain] = useState(false);
 
   useEffect(() => {
     if (_id) {
@@ -101,9 +102,16 @@ const ApplicantTable = ({ _id }: TableProps) => {
     }
   }, [_id, page]);
 
+  useEffect(() => {
+    if(_id && loadAgain){
+      getApplicants();
+    }
+  }, [loadAgain])
+
   const getApplicants = async () => {
     setIsLoading(true);
     const data = await applyApi.getApplyByJob({ _id, page, limit: 10 });
+    setLoadAgain(false)
     setUsers(data.data);
     setTotalPages(data.totalPages);
     setIsLoading(false);
@@ -195,6 +203,7 @@ const ApplicantTable = ({ _id }: TableProps) => {
         <Empty />
       )}
       <ApplicantCard
+        image={user?.createdBy?.image}
         name={`${user?.cv?.firstName || ''} ${user?.cv?.lastName || ''}`}
         email={user?.cv?.email || ''}
         phoneNumber={formatVietnamPhoneNumber(user?.cv?.phoneNumber || '') }
@@ -211,6 +220,12 @@ const ApplicantTable = ({ _id }: TableProps) => {
         isOpen={isOpenModal}
         onClose={() => handleCloseModal()}
         applyId={user?._id || ''}
+        setLoadAgain={setLoadAgain}
+        cv={{
+          ...user?.cv,
+          image: user?.createdBy?.image,
+          name: `${user?.cv?.firstName || ''} ${user?.cv?.lastName || ''}`
+        }}
       />
     </div>
   );

@@ -42,7 +42,7 @@ export type ModalConfirmRef = {
 };
 
 const ModalConfirm = forwardRef<ModalConfirmRef, CommonModalProps>(
-  ({ onCloseModal, children, disclosure, variant, title, description }: CommonModalProps, ref) => {
+  ({ onCloseModal, children, disclosure, variant, title, description,onConfirm }: CommonModalProps, ref) => {
     const modalRef = useRef(null);
     const [confirmHandler, setConfirmHandler] = useState<() => void>(() => {});
 
@@ -77,10 +77,10 @@ const ModalConfirm = forwardRef<ModalConfirmRef, CommonModalProps>(
                 )}
                 {variant === undefined && (title || description) && (
                   <div className="flex flex-col justify-center items-center">
-                    <p className="text-textPrimary text-xl my-3 text-center" dangerouslySetInnerHTML={{__html: title || ''}}>
+                    <p className="text-textPrimary text-xl mt-3 text-center" dangerouslySetInnerHTML={{__html: title || ''}}>
                     </p>
                     <br />
-                    <p className="text-textSecondary text-center">
+                    <p className="text-textPrimary text-center opacity-70">
                       {description}
                     </p>
                   </div>
@@ -89,14 +89,17 @@ const ModalConfirm = forwardRef<ModalConfirmRef, CommonModalProps>(
               </div>
             </ModalBody>
             <ModalFooter>
-              <Button onClick={disclosure.onClose} color="default">
+              <Button 
+                className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
+                radius="full"
+                onClick={disclosure.onClose} 
+                >
                 Cancel
               </Button>
               <Button
-                onClick={() => {
-                  if (confirmHandler) confirmHandler();
-                }}
-                color="primary"
+                className="bg-themeOrange text-[#fff]"
+                radius="full"
+                onClick={onConfirm}
               >
                 Confirm
               </Button>

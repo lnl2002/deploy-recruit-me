@@ -87,7 +87,7 @@ const ApplyController = {
     try {
       const { id } = req.params;
       const application = await Apply.findById(id).populate(
-        "cv job status assigns"
+        "cv job status assigns createdBy"
       );
       if (!application) {
         res.status(404).json({ message: "Application not found" });
