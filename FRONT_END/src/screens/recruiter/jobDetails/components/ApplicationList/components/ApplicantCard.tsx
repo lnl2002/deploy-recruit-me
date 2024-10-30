@@ -16,7 +16,7 @@ interface ApplicantCardProps {
   address: string;
   state: string;
   image: string;
-  cvUrl: string;
+  onViewCv: () => void;
   onDecline: () => void;
   onShortlist: () => void;
   isOpen: boolean;
@@ -33,7 +33,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
   gender,
   address,
   state,
-  cvUrl,
+  onViewCv,
   onDecline,
   onShortlist,
   isOpen,
@@ -97,14 +97,13 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
                   <div className="grid grid-cols-2">
                     <strong>CV:</strong>{" "}
                     <strong>
-                      <a
-                        href={cvUrl}
-                        target="_blank"
+                      <button
+                        onClick={onViewCv}
                         className="text-orange-500 hover:underline"
                         rel="noopener noreferrer"
                       >
                         View CV
-                      </a>
+                      </button>
                     </strong>
                   </div>
                 </li>

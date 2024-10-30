@@ -75,6 +75,7 @@ __data
 
 public/upload
 types/env.d.ts
+uploads
 
 # env
 .env

@@ -1,14 +1,14 @@
 "use client";
 import React from "react";
-import { MainLayout } from "@/components";
+import { HrLayout } from "@/components";
 import { AddJob } from "@/screens";
 
 export default function AddJobPage() {
   return (
     <main>
-      <MainLayout>
+      <HrLayout>
         <AddJob />
-      </MainLayout>
+      </HrLayout>
     </main>
   );
 }
