@@ -170,18 +170,11 @@ export const applyApi = {
         responseType: "blob", // Important for downloading files
       });
 
-      // Create a temporary URL to the blob
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "decrypted-cv.pdf");
-
-      // Append to the document, simulate click and remove
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode?.removeChild(link);
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf'}));
+      return url;
     } catch (error) {
       console.error("Error downloading CV:", error);
+      return "n/a"
       // Handle errors gracefully (e.g., show a user-friendly error message)
     }
   },
