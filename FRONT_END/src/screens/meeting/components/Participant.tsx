@@ -11,18 +11,24 @@ import {
   VideoTrackPublication,
   AudioTrackPublication,
 } from "twilio-video";
+import CameraOffView from "./CameraOffView";
+import { MicOff } from "lucide-react";
 
 interface ParticipantProps {
   participant: TwilioParticipant;
   videoStyle: string;
+  avatartStyle: string;
 }
 
 const Participant: React.FC<ParticipantProps> = ({
   participant,
   videoStyle,
+  avatartStyle,
 }) => {
   const [videoTracks, setVideoTracks] = useState<VideoTrack[]>([]);
   const [audioTracks, setAudioTracks] = useState<AudioTrack[]>([]);
+  const [isVideoSubscribe, setIsVideoSubscribe] = useState<boolean>(true);
+  const [isAudioSubscribe, setIsAudioSubscribe] = useState<boolean>(true);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -52,11 +58,13 @@ const Participant: React.FC<ParticipantProps> = ({
 
     const trackSubscribed = (track: Track) => {
       if (track.kind === "video") {
+        setIsVideoSubscribe(true);
         setVideoTracks((prevVideoTracks) => [
           ...prevVideoTracks,
           track as VideoTrack,
         ]);
       } else if (track.kind === "audio") {
+        setIsAudioSubscribe(true);
         setAudioTracks((prevAudioTracks) => [
           ...prevAudioTracks,
           track as AudioTrack,
@@ -66,10 +74,12 @@ const Participant: React.FC<ParticipantProps> = ({
 
     const trackUnsubscribed = (track: Track) => {
       if (track.kind === "video") {
+        setIsVideoSubscribe(false);
         setVideoTracks((prevVideoTracks) =>
           prevVideoTracks.filter((v) => v !== track)
         );
       } else if (track.kind === "audio") {
+        setIsAudioSubscribe(false);
         setAudioTracks((prevAudioTracks) =>
           prevAudioTracks.filter((a) => a !== track)
         );
@@ -108,12 +118,39 @@ const Participant: React.FC<ParticipantProps> = ({
 
   if (!participant.sid) return;
 
-  return (
-    <>
-      <video className={`w-40 ${videoStyle}`} ref={videoRef} autoPlay={true} />
-      <audio ref={audioRef} autoPlay={true} muted={false} />
-    </>
-  );
+  let render = null;
+
+  // check video track in remote user
+  if (isVideoSubscribe) {
+    render = (
+      <div className="relative">
+        {(!isAudioSubscribe || participant.audioTracks.size === 0) && (
+          <MicOff
+            className="absolute z-10 right-3 top-3"
+            size={16}
+            color="#000"
+          />
+        )}
+        <video
+          className={`min-w-40 w-40 ${videoStyle}`}
+          style={{ transform: "scaleX(-1)" }}
+          ref={videoRef}
+          autoPlay={true}
+        />
+        <audio ref={audioRef} autoPlay={true} muted={false} />
+      </div>
+    );
+  } else {
+    render = (
+      <CameraOffView
+        isAudioSubscribe={isAudioSubscribe}
+        name={participant.identity}
+        avatartStyle={avatartStyle}
+      />
+    );
+  }
+
+  return render;
 };
 
 export default Participant;

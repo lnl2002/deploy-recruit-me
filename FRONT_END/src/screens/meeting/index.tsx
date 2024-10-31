@@ -47,10 +47,6 @@ export const Meeting = (): React.JSX.Element => {
     }
   };
 
-  useEffect(() => {
-    console.log(isCameraOn);
-  }, [isCameraOn]);
-
   const handleSubmit = useCallback(async () => {
     setConnecting(true);
     try {
@@ -124,7 +120,6 @@ export const Meeting = (): React.JSX.Element => {
           isCameraOn={isCameraOn}
           setIsMicOn={setIsMicOn}
           isMicOn={isMicOn}
-          roomName={roomName}
           room={room}
           handleLogout={handleLogout}
         />

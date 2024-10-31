@@ -47,7 +47,7 @@ const Lobby: React.FC<LobbyProps> = ({
           videoRef.current.play();
         }
       } catch (err) {
-        console.log("Error accessing camera: ", err);
+        console.log("Error accessing camera: ");
       }
     })();
     return () => {
@@ -91,6 +91,7 @@ const Lobby: React.FC<LobbyProps> = ({
           placeholder="Enter your user name"
           type={"text"}
           size={"sm"}
+          value={username}
           onChange={handleUsernameChange}
           className="min-w-60"
           classNames={{
@@ -142,6 +143,13 @@ const Lobby: React.FC<LobbyProps> = ({
         </Button>
       </div>
       <div className="relative w-[720px] h-[540px] bg-themeDark rounded-2xl overflow-hidden">
+        {!isMicOn && (
+          <MicOff
+            className="absolute z-20 right-3 top-3"
+            size={16}
+            color={!isCameraOn ? "#FFF" : "#000"}
+          />
+        )}
         <div className="z-10 absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-7">
           {isMicOn ? (
             <Button
@@ -181,11 +189,12 @@ const Lobby: React.FC<LobbyProps> = ({
         {isCameraOn ? (
           <video
             className="rounded-xl h-full w-full"
+            style={{ transform: "scaleX(-1)" }}
             ref={videoRef}
             autoPlay={isCameraOn}
           />
         ) : (
-          <CameraOffView name="Camera is off" />
+          <CameraOffView isAudioSubscribe={isMicOn} name={username} />
         )}
       </div>
     </div>
