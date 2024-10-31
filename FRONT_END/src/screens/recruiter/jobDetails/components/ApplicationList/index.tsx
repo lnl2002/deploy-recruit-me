@@ -12,6 +12,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
+  useDisclosure,
 } from "@nextui-org/react";
 import { ArrowRight, Search } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -22,6 +23,8 @@ import { formatDateTime } from "@/utils/formatDateTime";
 import Empty from "./components/empty";
 import ApplicantCard from "./components/ApplicantCard";
 import { formatVietnamPhoneNumber } from "@/utils/formatPhone";
+import ModalCommon from "@/components/Modals/ModalCommon";
+import { CvViewer } from "@/components/CvViewer";
 
 const ApplicationList: React.FC<{ jobId: string }> = ({
   jobId,
@@ -76,8 +79,7 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
       <div>
         <ApplicantTable _id={jobId} />
       </div>
-      <div className="flex justify-center">
-    </div>
+      <div className="flex justify-center"></div>
     </div>
   );
 };
@@ -88,6 +90,9 @@ type TableProps = {
   _id: string;
 };
 const ApplicantTable = ({ _id }: TableProps) => {
+  const cvViewDisclosure = useDisclosure();
+  const [url, setUrl] = useState("");
+
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [users, setUsers] = useState<IApply[]>([]);
@@ -110,20 +115,23 @@ const ApplicantTable = ({ _id }: TableProps) => {
   };
 
   const handleOpenModal = async (_id: string) => {
-    await getApplicant(_id)
+    await getApplicant(_id);
     setIsOpenModal(true);
-  }
+  };
   const handleCloseModal = () => {
     setIsOpenModal(false);
-  }
+  };
   const getApplicant = async (_id: string) => {
-    const data = await applyApi.getApplicationById({_id})
-    setUser(data)
-  }
+    const data = await applyApi.getApplicationById({ _id });
+    setUser(data);
+  };
 
-  const onViewCv = async(id:string) => {
-    applyApi.getCvFileById({cvId: id})
-  }
+  const onViewCv = async (id: string) => {
+    cvViewDisclosure.onOpen();
+    setUrl("");
+    const url = await applyApi.getCvFileById({ cvId: id });
+    setUrl(url ?? "");
+  };
 
   return (
     <div>
@@ -171,10 +179,10 @@ const ApplicantTable = ({ _id }: TableProps) => {
                     <Status status={user.status.name} />
                   </TableCell>
                   <TableCell className="py-4 font-bold">
-                    <button 
+                    <button
                       className="text-themeOrange rounded-lg transition duration-300 ease-in-out transform hover:scale-105 flex gap-1 items-center"
                       onClick={() => handleOpenModal(user._id)}
-                      >
+                    >
                       View CV <ArrowRight size="16px" />
                     </button>
                   </TableCell>
@@ -195,23 +203,26 @@ const ApplicantTable = ({ _id }: TableProps) => {
         <Empty />
       )}
       <ApplicantCard
-        name={`${user?.cv?.firstName || ''} ${user?.cv?.lastName || ''}`}
-        email={user?.cv?.email || ''}
-        phoneNumber={formatVietnamPhoneNumber(user?.cv?.phoneNumber || '') }
-        gender={user?.cv?.gender?.toUpperCase() || ''}
-        address={user?.cv?.address || ''}
-        state={user?.status?.name || ''}
+        name={`${user?.cv?.firstName || ""} ${user?.cv?.lastName || ""}`}
+        email={user?.cv?.email || ""}
+        phoneNumber={formatVietnamPhoneNumber(user?.cv?.phoneNumber || "")}
+        gender={user?.cv?.gender?.toUpperCase() || ""}
+        address={user?.cv?.address || ""}
+        state={user?.status?.name || ""}
         onViewCv={() => onViewCv(user?.cv._id)}
         onDecline={() => {
-          console.log('Applicant Declined');
+          console.log("Applicant Declined");
         }}
         onShortlist={() => {
-          console.log('Applicant Declined');
+          console.log("Applicant Declined");
         }}
         isOpen={isOpenModal}
         onClose={() => handleCloseModal()}
-        applyId={user?._id || ''}
+        applyId={user?._id || ""}
       />
+      <ModalCommon size={"5xl"} disclosure={cvViewDisclosure}>
+        <CvViewer url={url ?? ""} />
+      </ModalCommon>
     </div>
   );
 };
