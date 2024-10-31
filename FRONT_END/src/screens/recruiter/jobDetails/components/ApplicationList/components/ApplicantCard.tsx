@@ -1,11 +1,12 @@
 import { Avatar, Button, useDisclosure } from "@nextui-org/react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Status from "./status";
 import { AlarmClock, ChevronLeft } from "lucide-react";
 import { IStateProps } from "../types/status";
 import applyApi from "@/api/applyApi";
 import { toast } from "react-toastify";
 import ScheduleInterviewModal from "./BookSchedule";
+import ModalConfirm from "@/components/Modals/ModalConfirm";
 
 interface ApplicantCardProps {
   name: string;
@@ -14,12 +15,15 @@ interface ApplicantCardProps {
   gender: string;
   address: string;
   state: string;
+  image: string;
   onViewCv: () => void;
   onDecline: () => void;
   onShortlist: () => void;
   isOpen: boolean;
   onClose: () => void;
   applyId: string;
+  setLoadAgain: (loadAgain: boolean) => void;
+  cv: any
 }
 
 const ApplicantCard: React.FC<ApplicantCardProps> = ({
@@ -35,6 +39,9 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
   isOpen,
   onClose,
   applyId,
+  setLoadAgain,
+  image,
+  cv
 }) => {
   return (
     <>
@@ -62,7 +69,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
             </button>
             <div className="flex items-center space-x-4 mb-6 mt-16">
               <Avatar
-                src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
+                src={image}
                 alt="avatar"
                 className="w-20 h-20 text-large"
               />
@@ -109,7 +116,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
               </ul>
             </div>
           </div>
-          <State status={state} applyId={applyId} />
+          <State key={state} status={state} applyId={applyId} setLoadAgain={setLoadAgain} cv={cv}/>
         </div>
       </div>
     </>
@@ -118,7 +125,12 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
 
 export default ApplicantCard;
 
-const State = ({ status, applyId = "" }: IStateProps) => {
+const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", setLoadAgain, cv }: IStateProps) => {
+  const [status, setStatus] = useState(initialStatus);
+  useEffect(() => {
+    setStatus(initialStatus);
+  }, []);
+
   const changeStatus = async ({ status }: { status: string }) => {
     const data = await applyApi.updateApplyStatus({
       applyId,
@@ -130,80 +142,107 @@ const State = ({ status, applyId = "" }: IStateProps) => {
       toast.error("Something went wrong! pls try again");
       return;
     }
-    toast.success('Change status successfully')
+    toast.success('Change status successfully');
+    setLoadAgain?.(true)
+    setStatus(status);
   };
 
-  switch (status) {
-    case "New":
-      return (
+  return (
+    <>
+      {status === "New" && (
         <NewStatus
           status={status}
           changeStatus={changeStatus}
+          setLoadAgain={setLoadAgain}
+          cv={cv}
           description="By shortlisting this candidate, you have indicated your interest in interviewing them and they will be contacted shortly to schedule an interview."
         />
-      );
-    case "Shortlisted":
-      return (
+      )}
+      {status === "Shortlisted" && (
         <ShortlistedStatus
           status={status}
           changeStatus={changeStatus}
+          setLoadAgain={setLoadAgain}
+          cv={cv}
           description="Schedule an interview for the candidate now so you can interview them."
         />
-      );
-    case "Interview Pending":
-      return (
+      )}
+      {status === "Interview Pending" && (
         <InterviewPendingStatus
           status={status}
           changeStatus={changeStatus}
+          setLoadAgain={setLoadAgain}
+          cv={cv}
           description="You have scheduled an interview for the candidate. Kindly wait for their confirmation."
         />
-      );
-    case "Approval Interview Scheduled":
-      return (
+      )}
+      {status === "Approval Interview Scheduled" && (
         <ApprovalInterviewScheduleStatus
           status={status}
           changeStatus={changeStatus}
+          setLoadAgain={setLoadAgain}
+          cv={cv}
           description="The interview has been confirmed by both the candidate and the interviewer."
         />
-      );
-    case "Interview Rescheduled":
-      return (
+      )}
+      {status === "Interview Rescheduled" && (
         <RescheduleStatus
           status={status}
           changeStatus={changeStatus}
+          setLoadAgain={setLoadAgain}
+          cv={cv}
           description="The candidate has declined the current interview. Please review and suggest a new schedule or make a different decision regarding this candidate."
         />
-      );
-    case "Interviewed":
-      return (
+      )}
+      {status === "Interviewed" && (
         <InterviewedStatus
           status={status}
           changeStatus={changeStatus}
+          setLoadAgain={setLoadAgain}
+          cv={cv}
           description="We are pleased to inform you that your interview was successful. Please wait to hear back from the interviewer."
         />
-      );
-    case "Accepted":
-      return (
+      )}
+      {status === "Accepted" && (
         <AcceptedStatus
           status={status}
           changeStatus={changeStatus}
+          setLoadAgain={setLoadAgain}
+          cv={cv}
           description="We have informed your candidate of your decision."
         />
-      );
-    case "Rejected":
-      return (
+      )}
+      {status === "Rejected" && (
         <RejectedStatus
           status={status}
           changeStatus={changeStatus}
+          setLoadAgain={setLoadAgain}
+          cv={cv}
           description="We have informed your candidate of your decision."
         />
-      );
-    default:
-      return <div>Error</div>;
-  }
+      )}
+      {!["New", "Shortlisted", "Interview Pending", "Approval Interview Scheduled", "Interview Rescheduled", "Interviewed", "Accepted", "Rejected"].includes(status) && <div>Error</div>}
+    </>
+  );
 };
 
 const NewStatus = ({ status, description, changeStatus }: IStateProps) => {
+  const [isConfirm, setIsConfirm] = useState<boolean>(false);
+  const [btnChoosed, setButtonChoosed] = useState<string>('');
+  const disclosure = useDisclosure();
+
+  const handleClickButton = (updateStatus: string) => {
+    setButtonChoosed(updateStatus);
+    disclosure.onOpen()
+  }
+
+  useEffect(() => {
+    if(isConfirm && changeStatus){
+      changeStatus({status: btnChoosed})
+      disclosure.onClose();
+    }
+  }, [isConfirm])
+
   return (
     <div className="flex-grow flex justify-between flex-col">
       <div className="mb-6">
@@ -222,13 +261,25 @@ const NewStatus = ({ status, description, changeStatus }: IStateProps) => {
         <Button
           className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
           radius="full"
+          onClick={() => handleClickButton('Rejected')} // status name in db
         >
-          Decline
+          Reject
         </Button>
-        <Button className="bg-themeOrange text-[#fff]" radius="full">
+        <Button 
+          className="bg-themeOrange text-[#fff]"
+          radius="full"
+          onClick={() => handleClickButton('Shortlisted')} // status name in db
+          >
           Shortlisting
         </Button>
       </div>
+      <ModalConfirm
+        title={`Are you sure you want to change to status </br><strong>${btnChoosed}</strong>?`}
+        description="You can not be undone !!"
+        disclosure={disclosure}
+        onCloseModal={() => setIsConfirm(false)}
+        onConfirm={() => setIsConfirm(true)}
+      />
     </div>
   );
 };
@@ -317,7 +368,7 @@ const RejectedStatus = ({ status, description, changeStatus }: IStateProps) => {
     </div>
   );
 };
-const ShortlistedStatus = ({ status, description, changeStatus }: IStateProps) => {
+const ShortlistedStatus = ({ status, description, changeStatus, cv }: IStateProps) => {
   const disclosure = useDisclosure();
 
   const handleSend = (data: any) => {
@@ -345,8 +396,10 @@ const ShortlistedStatus = ({ status, description, changeStatus }: IStateProps) =
       </div>
       <ScheduleInterviewModal 
         disclosure={disclosure}
-        onClose={() => console.log('test')}
+        onClose={() => disclosure.onClose()}
         onSend={() => console.log('test')}
+        cv={cv}
+        changeStatus={changeStatus}
         />
     </div>
   );
@@ -366,7 +419,7 @@ const InterviewPendingStatus = ({ status, description, changeStatus }: IStatePro
           {description}
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      {/* <div className="grid grid-cols-2 gap-4">
         <Button
           className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
           radius="full"
@@ -376,7 +429,7 @@ const InterviewPendingStatus = ({ status, description, changeStatus }: IStatePro
         <Button className="bg-themeOrange text-[#fff]" radius="full">
           Shortlisting
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 };
