@@ -1,19 +1,26 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { MainLayout } from "@/components";
+import { Footer, Header, MainLayout } from "@/components";
 import { Spinner } from "@nextui-org/react";
 import { Meeting } from "@/screens";
 
 const MeetingPage: React.FC = () => {
   return (
-    <main className="">
-      <MainLayout>
-        <Suspense fallback={<Spinner label="Loading..." color="primary" />}>
-          <Meeting />
-        </Suspense>
-      </MainLayout>
-    </main>
+    <div
+      className="w-screen h-screen overflow-auto"
+      style={{
+        background: `url("./background-login.png")`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <Header />
+      <Suspense fallback={<Spinner label="Loading..." color="primary" />}>
+        <Meeting />
+      </Suspense>
+      <Footer />
+    </div>
   );
 };
 

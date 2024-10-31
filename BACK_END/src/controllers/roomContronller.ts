@@ -41,6 +41,14 @@ const roomContronller = {
             next(error)
         }
     },
+    listRoom: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const result = await roomService.listRoom()
+            res.json(result)
+        } catch (error) {
+            next(error)
+        }
+    },
 }
 
 export default roomContronller

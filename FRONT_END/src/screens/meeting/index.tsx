@@ -22,6 +22,8 @@ export const Meeting = (): React.JSX.Element => {
   const [room, setRoom] = useState<TwilioRoom | null>(null);
   const [connecting, setConnecting] = useState<boolean>(false);
   const [roomSid, setRoomSid] = useState<string>("");
+  const [isCameraOn, setIsCameraOn] = useState<boolean>(true);
+  const [isMicOn, setIsMicOn] = useState<boolean>(true);
 
   const handleUsernameChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,28 +47,22 @@ export const Meeting = (): React.JSX.Element => {
     }
   };
 
+  useEffect(() => {
+    console.log(isCameraOn);
+  }, [isCameraOn]);
+
   const handleSubmit = useCallback(async () => {
-    //   event.preventDefault();
     setConnecting(true);
     try {
       const token = await meetingApi.getAccessToken(username, roomName);
 
       const connectedRoom = await Video.connect(token, {
         name: roomName,
+        audio: isMicOn,
+        video: isCameraOn,
       });
 
       console.log(connectedRoom.sid);
-      connectedRoom.on("participantDisconnected", (participant) => {
-        console.log("Participant Disconnected", participant.identity);
-      });
-
-      connectedRoom.on("participantReconnecting", (participant) => {
-        console.log("Participant Reconnecting", participant.identity);
-      });
-
-      connectedRoom.on("participantReconnected", (participant) => {
-        console.log("Participant Reconnected", participant.identity);
-      });
 
       // setRoomSid(connectedRoom.sid);
       setRoom(connectedRoom);
@@ -75,11 +71,9 @@ export const Meeting = (): React.JSX.Element => {
     } finally {
       setConnecting(false);
     }
-  }, [roomName, username]);
+  }, [roomName, username, isMicOn, isCameraOn]);
 
   const handleLogout = useCallback(() => {
-    console.log("sksksks");
-
     setRoom((prevRoom) => {
       if (prevRoom) {
         prevRoom.localParticipant.tracks.forEach(
@@ -102,7 +96,7 @@ export const Meeting = (): React.JSX.Element => {
       }
       return prevRoom;
     });
-  }, []);
+  }, [room]);
 
   useEffect(() => {
     if (room) {
@@ -125,9 +119,21 @@ export const Meeting = (): React.JSX.Element => {
   return (
     <>
       {room ? (
-        <Room roomName={roomName} room={room} handleLogout={handleLogout} />
+        <Room
+          setIsCameraOn={setIsCameraOn}
+          isCameraOn={isCameraOn}
+          setIsMicOn={setIsMicOn}
+          isMicOn={isMicOn}
+          roomName={roomName}
+          room={room}
+          handleLogout={handleLogout}
+        />
       ) : (
         <Lobby
+          setIsCameraOn={setIsCameraOn}
+          isCameraOn={isCameraOn}
+          setIsMicOn={setIsMicOn}
+          isMicOn={isMicOn}
           username={username}
           roomName={roomName}
           handleUsernameChange={handleUsernameChange}

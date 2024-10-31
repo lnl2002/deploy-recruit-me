@@ -41,6 +41,14 @@ const twilioService = {
             return error.message
         }
     },
+    listRoom: async () => {
+        try {
+            const room = await client.video.v1.rooms.list()
+            return room
+        } catch (error: any) {
+            return error.message
+        }
+    },
 }
 
 export default twilioService

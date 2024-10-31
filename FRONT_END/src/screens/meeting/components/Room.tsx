@@ -1,6 +1,6 @@
 "use client";
 
-import { Chip } from "@nextui-org/react";
+import { Button, Chip } from "@nextui-org/react";
 import { Mic, MicOff, Phone, Video, VideoOff } from "lucide-react";
 import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
@@ -21,17 +21,26 @@ interface RoomProps {
   roomName?: string;
   room: TwilioRoom;
   handleLogout?: () => void;
+  setIsCameraOn: (isCameraOn: boolean) => void;
+  setIsMicOn: (isCameraOn: boolean) => void;
+  isCameraOn: boolean;
+  isMicOn: boolean;
 }
 
-const Room: React.FC<RoomProps> = ({ roomName, room, handleLogout }) => {
+const Room: React.FC<RoomProps> = ({
+  roomName,
+  room,
+  handleLogout,
+  setIsCameraOn,
+  setIsMicOn,
+  isCameraOn,
+  isMicOn,
+}) => {
   const [participants, setParticipants] = useState<TwilioParticipant[]>(
     Array.from(room?.participants.values()) ?? []
   );
   const [participantSelected, setParticipantSelected] =
     useState<TwilioParticipant | null>(null);
-
-  const [isCameraOn, setIsCameraOn] = useState<boolean>(true);
-  const [isMicOn, setIsMicOn] = useState<boolean>(true);
 
   const localParticipant = (localParticipant: TwilioParticipant) => {
     setParticipants((prevParticipants) => [
@@ -47,12 +56,6 @@ const Room: React.FC<RoomProps> = ({ roomName, room, handleLogout }) => {
       publication.track.stop();
       publication.unpublish();
       setIsCameraOn(false);
-      // setParticipantSelected(
-      //   (prev) =>
-      //     participants.find(
-      //       (participant) => participant.videoTracks?.size > 0
-      //     ) || null
-      // );
     });
   };
 
@@ -116,10 +119,7 @@ const Room: React.FC<RoomProps> = ({ roomName, room, handleLogout }) => {
       room?.off("participantDisconnected", participantDisconnected);
     };
   }, [room]);
-
-  useEffect(() => {
-    console.log("ssss");
-  }, [participants]);
+ 
 
   const handleSelectedParticipant = (participant: TwilioParticipant) => {
     setParticipantSelected(participant);
@@ -129,6 +129,7 @@ const Room: React.FC<RoomProps> = ({ roomName, room, handleLogout }) => {
     (participant, index) =>
       participantSelected !== participant && (
         <div
+          key={participant.sid + index}
           onClick={() => handleSelectedParticipant(participant)}
           className="relative flex justify-center"
         >
@@ -147,7 +148,7 @@ const Room: React.FC<RoomProps> = ({ roomName, room, handleLogout }) => {
   );
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center">
+    <div className="flex-1 flex flex-col items-center justify-center my-6">
       <div className="flex-1 w-[70vw] flex flex-col items-center justify-center">
         <h2 className="text-themeDark">Room: {roomName}</h2>
         <button className="text-themeDark" onClick={handleLogout}>
@@ -159,41 +160,46 @@ const Room: React.FC<RoomProps> = ({ roomName, room, handleLogout }) => {
             <div className="relative">
               <div className="z-10 absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-7">
                 {isMicOn ? (
-                  <div
+                  <Button
+                    isIconOnly
                     onClick={handleMicOff}
-                    className="cursor-pointer p-3 rounded-full bg-themeWhite"
+                    className="bg-themeWhite"
                   >
                     <Mic size={24} color="#000" />
-                  </div>
+                  </Button>
                 ) : (
-                  <div
+                  <Button
+                    isIconOnly
                     onClick={handleMicOn}
-                    className="cursor-pointer p-3 rounded-full bg-themeWhite"
+                    className="bg-themeWhite"
                   >
                     <MicOff size={24} color="#000" />
-                  </div>
+                  </Button>
                 )}
                 {isCameraOn ? (
-                  <div
+                  <Button
+                    isIconOnly
                     onClick={handleCameraOff}
-                    className="cursor-pointer p-3 rounded-full bg-themeWhite"
+                    className="bg-themeWhite"
                   >
                     <Video size={24} color="#000" />
-                  </div>
+                  </Button>
                 ) : (
-                  <div
+                  <Button
+                    isIconOnly
                     onClick={handleCameraOn}
-                    className="cursor-pointer p-3 rounded-full bg-themeWhite"
+                    className="bg-themeWhite"
                   >
                     <VideoOff size={24} color="#000" />
-                  </div>
+                  </Button>
                 )}
-                <div
+                <Button
+                  isIconOnly
                   onClick={handleLogout}
-                  className="cursor-pointer p-3 rounded-full bg-themeWhite"
+                  className="bg-themeWhite"
                 >
                   <Phone size={24} color="#D91E2A" />
-                </div>
+                </Button>
               </div>
               {participantSelected.videoTracks.size > 0 ? (
                 <Participant
