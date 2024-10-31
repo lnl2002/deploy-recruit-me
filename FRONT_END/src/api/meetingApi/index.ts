@@ -81,13 +81,6 @@ export const meetingApi = {
       return null;
     }
   },
-};
-
-export default meetingApi;
-import { BACKEND_URL } from "@/utils/env";
-import axios from "axios";
-
-const meetingApi = {
   getAccessToken: async (
     identity: string,
     roomName: string
