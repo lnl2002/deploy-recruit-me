@@ -1,12 +1,13 @@
-import express from "express";
+import express, { Router } from "express";
 import ApplyController from "../controllers/ApplyController";
+import { requireRole } from "../middlewares/auth";
 
-const applyRouter = express.Router();
+const applyRouter: Router = express.Router();
 
 applyRouter.get("/cvs/:jobId", ApplyController.getAllCVsByJobId);
 applyRouter.get("/:id", ApplyController.getApplicationById);
 
-applyRouter.post("/apply-job", ApplyController.applyToJob);
+applyRouter.post("/apply-job", requireRole(['CANDIDATE']) , ApplyController.applyToJob);
 
 applyRouter.put("/status/:id", ApplyController.changeStatus);
 

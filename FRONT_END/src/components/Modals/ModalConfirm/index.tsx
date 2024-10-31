@@ -14,19 +14,7 @@ import React, {
 } from "react";
 
 const VariantMessage = [
-  ["Xoá hình ảnh này ?", "Hình ảnh sẽ bị xoá vĩnh viễn khỏi hệ thống"],
-  [
-    "Thay thế hình ảnh mới ?",
-    "Hình ảnh trước đó sẽ bị xoá vĩnh viễn khỏi hệ thống",
-  ],
-  [
-    "Thêm hình ảnh mới ?",
-    "Hãy đảm bảo dung lượng của ảnh không quá lớn",
-  ],
-  [
-    "Xoá sản phẩm ?",
-    "Sản phẩm cùng mọi hình ảnh liên quan sẽ bị xoá VĨNH VIỄN",
-  ],
+  ["Are you sure?", "This acction cannot be reversed"],
 ];
 
 export type CommonModalProps = {
@@ -35,6 +23,8 @@ export type CommonModalProps = {
   disclosure: DisclosureProp;
   children?: React.ReactNode;
   variant?: number;
+  title?: string;
+  description?: string;
 };
 
 type DisclosureProp = {
@@ -52,7 +42,7 @@ export type ModalConfirmRef = {
 };
 
 const ModalConfirm = forwardRef<ModalConfirmRef, CommonModalProps>(
-  ({ onCloseModal, children, disclosure, variant }: CommonModalProps, ref) => {
+  ({ onCloseModal, children, disclosure, variant, title, description,onConfirm }: CommonModalProps, ref) => {
     const modalRef = useRef(null);
     const [confirmHandler, setConfirmHandler] = useState<() => void>(() => {});
 
@@ -70,13 +60,13 @@ const ModalConfirm = forwardRef<ModalConfirmRef, CommonModalProps>(
         placement="top-center"
         ref={modalRef}
       >
-        <ModalContent className="overflow-visible">
+        <ModalContent className="overflow-visible text-themeDark">
           <>
             <ModalBody>
               <div className="flex flex-col items-center">
                 {variant !== undefined && (
                   <div className="flex flex-col justify-center items-center">
-                    <p className="text-textPrimary text-xl my-5 text-center">
+                    <p className="text-textPrimary text-xl my-3 text-center">
                       {VariantMessage[variant][0]}
                     </p>
                     <br />
@@ -85,20 +75,33 @@ const ModalConfirm = forwardRef<ModalConfirmRef, CommonModalProps>(
                     </p>
                   </div>
                 )}
+                {variant === undefined && (title || description) && (
+                  <div className="flex flex-col justify-center items-center">
+                    <p className="text-textPrimary text-xl mt-3 text-center" dangerouslySetInnerHTML={{__html: title || ''}}>
+                    </p>
+                    <br />
+                    <p className="text-textPrimary text-center opacity-70">
+                      {description}
+                    </p>
+                  </div>
+                )}
                 {children}
               </div>
             </ModalBody>
             <ModalFooter>
-              <Button onClick={disclosure.onClose} color="default">
-                Huỷ bỏ
+              <Button 
+                className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
+                radius="full"
+                onClick={disclosure.onClose} 
+                >
+                Cancel
               </Button>
               <Button
-                onClick={() => {
-                  if (confirmHandler) confirmHandler();
-                }}
-                color="primary"
+                className="bg-themeOrange text-[#fff]"
+                radius="full"
+                onClick={onConfirm}
               >
-                Xác nhận
+                Confirm
               </Button>
             </ModalFooter>
           </>

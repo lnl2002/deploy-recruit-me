@@ -24,12 +24,13 @@ const applyService = {
         return applies
     },
 
-    createApply: async ({cvId, jobId, defaultStatusId}) =>{
+    createApply: async ({cvId, jobId, defaultStatusId, createdBy}) =>{
         try {
           const newApply = new Apply({
             cv: cvId, 
             job: jobId,
             status: defaultStatusId, 
+            createdBy: createdBy,
           });
     
           const savedApply = await newApply.save();

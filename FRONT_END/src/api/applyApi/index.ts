@@ -11,6 +11,16 @@ export interface IApply {
   assigns: string[];
 }
 
+export interface ICV {
+  address: string;
+  cv: File;
+  email: string;
+  firstName: string;
+  gender: string;
+  lastName: string;
+  phoneNumber: number;
+}
+
 export const applyApi = {
   getApplyByJob: async ({
     _id,
@@ -47,11 +57,30 @@ export const applyApi = {
     }
   },
 
-  applyToJob: async (cvData: Partial<TJob>, jobId: string) => {
+  applyToJob: async (cvData: ICV, jobId: string) => {
     try {
+      const accessToken = localStorage.getItem("access_token");
+
+      // Create FormData and append CV data and file
+      const formData = new FormData();
+
+      // Append all fields to FormData
+      formData.append("address", cvData.address);
+      formData.append("cv", cvData.cv); // File field
+      formData.append("email", cvData.email);
+      formData.append("firstName", cvData.firstName);
+      formData.append("gender", cvData.gender);
+      formData.append("lastName", cvData.lastName);
+      formData.append("phoneNumber", cvData.phoneNumber.toString());
+
       // 3. Send the CV creation request
       const cvResponse = await (
-        await axios.post(`${BACKEND_URL}/api/v1/cvs`, cvData)
+        await axios.post(`${BACKEND_URL}/api/v1/cvs`, formData, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "multipart/form-data",
+          },
+        })
       ).data;
 
       console.log(cvResponse.data.cv._id);
@@ -63,7 +92,12 @@ export const applyApi = {
         // 4. Send the job application request
         const applyResponse = await axios.post(
           `${BACKEND_URL}/api/v1/apply/apply-job`,
-          { cvId, jobId }
+          { cvId, jobId },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
         );
 
         if (applyResponse.status === 201) {
@@ -81,6 +115,67 @@ export const applyApi = {
       console.error("Error during API calls:", err);
       // Re-throw to propagate the error
       throw err;
+    }
+  },
+
+  getApplicationById: async ({
+    _id,
+  }: {
+    _id: string;
+  }): Promise<IApply | null> => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/v1/apply/${_id}`);
+
+      if (res.status === 200) {
+        return res.data.data;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching career list:", error);
+      return null;
+    }
+  },
+
+  updateApplyStatus: async ({
+    applyId,
+    newStatus,
+  }: {
+    applyId: string;
+    newStatus: string;
+  }): Promise<IApply | null> => {
+    try {
+      const res = await axios.put(
+        `${BACKEND_URL}/api/v1/applies/update-status`,
+        {
+          applyId,
+          newStatus,
+        }
+      );
+
+      if (res.status === 200) {
+        return res.data.data;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error("Error update apply status:", error);
+      return null;
+    }
+  },
+
+  getCvFileById: async ({ cvId }: { cvId: string }) => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/v1/cvs/${cvId}/download`, {
+        responseType: "blob", // Important for downloading files
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf'}));
+      return url;
+    } catch (error) {
+      console.error("Error downloading CV:", error);
+      return "n/a"
+      // Handle errors gracefully (e.g., show a user-friendly error message)
     }
   },
 };

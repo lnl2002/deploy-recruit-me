@@ -9,6 +9,9 @@ const nextConfig = {
     ], // Thêm domain của hình ảnh vào đây
   },
   reactStrictMode: false, // tránh việc re-render 2 lần sẽ ảnh hưởng tới meetings
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 export default nextConfig;

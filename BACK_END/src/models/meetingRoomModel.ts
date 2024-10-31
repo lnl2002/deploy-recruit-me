@@ -16,6 +16,7 @@ export interface IMeetingRoom extends Document {
     url: string
     participants: IParticipantStatus[]
     timeStart: Date
+    timeEnd: Date
     rejectCount: number
 }
 
@@ -43,6 +44,10 @@ const meetingRoomSchema: Schema = new Schema(
         },
         participants: [participantStatusSchema],
         timeStart: {
+            type: Date,
+            required: true,
+        },
+        timeEnd: {
             type: Date,
             required: true,
         },
