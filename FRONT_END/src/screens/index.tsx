@@ -9,4 +9,6 @@ export * from "./recruiter/addJob";
 export * from "./interview-manager/ListJob"
 export * from "./interview-manager/jobDetails"
 
+export * from "./meeting/index";
+
 export * from "./login";

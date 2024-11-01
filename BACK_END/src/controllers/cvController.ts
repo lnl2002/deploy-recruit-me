@@ -89,8 +89,8 @@ const cvController = {
 
       const myKey = Buffer.from(process.env.ENCRYPTION_KEY, "hex");
       const myIV = Buffer.from(process.env.INITIALIZATION_KEY, "hex");
-      console.log("Encryption Key (hex):", myKey.toString('hex'));
-      console.log("IV (hex):", myIV.toString('hex'));
+      // console.log("Encryption Key (hex):", myKey.toString('hex'));
+      // console.log("IV (hex):", myIV.toString('hex'));
 
       const data = await s3
         .getObject({
@@ -98,9 +98,6 @@ const cvController = {
           Key: encryptedPath,
         })
         .promise();
-
-      console.log(data);
-
 
       // Create a ReadableStream regardless of data.Body type
       const fileStream = data.Body instanceof Buffer ?
