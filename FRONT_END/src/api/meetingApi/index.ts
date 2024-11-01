@@ -31,7 +31,7 @@ export const meetingApi = {
     participantIds,
     timeStart,
     timeEnd,
-    title
+    title,
   }: ICreateMeeting) => {
     try {
       const res = await axios.post(
@@ -40,30 +40,32 @@ export const meetingApi = {
           participantIds,
           timeStart,
           timeEnd,
-          title
+          title,
         }
       );
-      
+
       if (res.status === 200) {
         return res.data.data;
-      }  else {
+      } else {
         return null;
       }
     } catch (error: any) {
       console.error("Error fetching career list:", error);
-      if(error.status === 400) {
-        return error.response.data.data
+      if (error.status === 400) {
+        return error.response.data.data;
       }
-      
+
       return null;
     }
   },
-  getScheduleById: async({
-    interviewerId, startTime, endTime
+  getScheduleById: async ({
+    interviewerId,
+    startTime,
+    endTime,
   }: {
-    interviewerId: string,
-    startTime: string,
-    endTime: string
+    interviewerId: string;
+    startTime: string;
+    endTime: string;
   }): Promise<Meeting[] | null> => {
     try {
       const res = await axios.get(
@@ -78,7 +80,59 @@ export const meetingApi = {
       console.error("Error fetching career list:", error);
       return null;
     }
-  }
+  },
+  getAccessToken: async (
+    identity: string,
+    roomName: string
+  ): Promise<string> => {
+    try {
+      const res = await axios.post(`${BACKEND_URL}/api/v1/rooms/access-token`, {
+        identity,
+        roomName,
+      });
+
+      if (res.status === 200) {
+        return res.data.data.token;
+      } else {
+        return "";
+      }
+    } catch (error) {
+      console.error("Error fetching career list:", error);
+      return "";
+    }
+  },
+  createRoom: async (roomName: string): Promise<boolean> => {
+    try {
+      const res = await axios.post(`${BACKEND_URL}/api/v1/rooms/create-room`, {
+        roomName,
+      });
+
+      if (res.status === 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error("Error fetching career list:", error);
+      return false;
+    }
+  },
+  endMeeting: async (roomSid: string): Promise<boolean> => {
+    try {
+      const res = await axios.post(`${BACKEND_URL}/api/v1/rooms/end-room`, {
+        roomSid,
+      });
+
+      if (res.status === 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error("Error fetching career list:", error);
+      return false;
+    }
+  },
 };
 
 export default meetingApi;
