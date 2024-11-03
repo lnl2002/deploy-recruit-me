@@ -172,7 +172,7 @@ export const MyApplications = (): React.JSX.Element => {
                       <button
                         className="text-themeOrange rounded-lg transition duration-300 ease-in-out transform hover:scale-105 flex gap-1 items-center"
                         onClick={() => {
-                          "/meeting";
+                          route.push("/meeting");
                         }}
                       >
                         Meeting <ArrowRight size="16px" />
