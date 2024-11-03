@@ -401,6 +401,26 @@ const jobService = {
             throw new Error('Error creating job', error)
         }
     },
+    getJobsByInterviewManager: async ({
+        interviewManagerId,
+        page = 1,
+        limit = 10
+    } : {
+        interviewManagerId: string
+        page: number
+        limit: number
+    }) => {
+        const skip = (page - 1) * limit;
+
+        const totalJobs = await Job.countDocuments({interviewManager: interviewManagerId})
+        const jobs = await Job.find({interviewManager: interviewManagerId}).skip(skip).limit(limit).exec();
+        return {
+            total: totalJobs,
+            page,
+            totalPages: Math.ceil(totalJobs / limit),
+            data: jobs
+        }
+    }
 }
 
 export default jobService
