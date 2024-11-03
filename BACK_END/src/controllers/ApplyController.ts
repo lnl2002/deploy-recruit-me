@@ -1,28 +1,27 @@
 import { Request, Response } from "express";
-import Apply from "../models/applyModel";
+import Apply, { IApply } from "../models/applyModel";
 import CV from "../models/cvModel";
 import Job from "../models/jobModel";
 import CVStatus from "../models/cvStatusModel";
 import applyService from "../services/apply";
-import Account from "../models/accountModel";
 import { AppError } from "../constants/AppError";
+import mongoose from 'mongoose';
 
 const ApplyController = {
   // Create a new application
   applyToJob: async (req: Request, res: Response): Promise<void> => {
     try {
       // 1. Extract data from the request body
-      const { cvId, jobId, createdBy} = req.body;
+      const { cvId, jobId } = req.body;
 
       // 3. Find the CV, Job, and default CVStatus
       const [cv, job, defaultStatus] = await Promise.all([
         CV.findById(cvId),
         Job.findById(jobId),
         CVStatus.findOne({ name: "New" }), // Assuming "New" is a default status
-        Account.findOne(createdBy)
       ]);
 
-      const savedApply = await applyService.createApply({ cvId: cv._id, jobId: job._id, defaultStatusId: defaultStatus._id, createdBy: req.user._id});
+      const savedApply = await applyService.createApply({ cvId: cv._id, jobId: job._id, defaultStatusId: defaultStatus._id, createdBy: req.user._id });
 
       // 7. Send a success response
       res.status(201).json({
@@ -59,24 +58,24 @@ const ApplyController = {
   // Get all CVs by job ID
   getAllCVsByJobId: async (req: Request, res: Response): Promise<void> => {
     try {
-        const { jobId } = req.params;
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 10;
-        const skip = (page - 1) * limit;
+      const { jobId } = req.params;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const skip = (page - 1) * limit;
 
-        const totalApplications = await Apply.countDocuments({ job: jobId });
-        const applications = await Apply.find({ job: jobId })
-          .populate("cv")
-          .populate("status")
-          .skip(skip)
-          .limit(limit);
+      const totalApplications = await Apply.countDocuments({ job: jobId });
+      const applications = await Apply.find({ job: jobId })
+        .populate("cv")
+        .populate("status")
+        .skip(skip)
+        .limit(limit);
 
-        res.status(200).json({
-          total: totalApplications,
-          page,
-          totalPages: Math.ceil(totalApplications / limit),
-          data: applications,
-        });
+      res.status(200).json({
+        total: totalApplications,
+        page,
+        totalPages: Math.ceil(totalApplications / limit),
+        data: applications,
+      });
     } catch (error) {
       res.status(500).json({ message: "Error fetching CVs", error });
     }
@@ -113,6 +112,70 @@ const ApplyController = {
       res.status(500).json({ message: "Error deleting application", error });
     }
   },
+
+  getAllApplication: async (req: Request<object, object, object, ApplyQueryParams>, res: Response) => {
+    try {
+      const userId = req.user._id;
+      const { status, page, limit, sortBy, sortOrder } = req.query;
+
+      const query: mongoose.FilterQuery<IApply> = { createdBy: new mongoose.Types.ObjectId(userId) };
+
+      if (status) {
+        query.status = new mongoose.Types.ObjectId(status);
+      }
+
+      const skip = (parseInt(page || '1', 10) - 1) * parseInt(limit || '10', 10);
+      const sortOptions: { [key: string]: 1 | -1 } = {}; // Type safe sort options
+      if (sortBy) {
+        const sortByField = Array.isArray(sortBy) ? sortBy[0] : sortBy;
+        sortOptions[sortByField] = sortOrder === 'asc' ? 1 : -1;
+      }
+
+      const applies: IApply[] = await Apply.find(query)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(parseInt(limit || '10', 10))
+        .populate('job') // Populate job field
+        .populate('status'); // Populate status field
+
+      const totalApplies = await Apply.countDocuments(query);
+
+      res.json({
+        applies,
+        totalApplies,
+        currentPage: parseInt(page || '1', 10),
+        totalPages: Math.ceil(totalApplies / parseInt(limit || '10', 10)),
+      });
+
+    } catch (error: unknown) { // Use `unknown` for general errors
+      console.error("Error fetching applies:", error);
+
+      if (error instanceof mongoose.Error.CastError) {
+        return res.status(400).json({ message: 'Invalid status or user ID.' });
+      }
+
+      res.status(500).json({ message: 'Error fetching applies.' });
+    }
+  },
+
+  getAllStatus: async (req: Request, res: Response) => {
+    try {
+      const statuses = await CVStatus.find(); // Find all CV statuses
+
+      res.json(statuses); // Send the statuses as JSON
+    } catch (error: unknown) {
+      console.error("Error fetching statuses:", error);
+      res.status(500).json({ message: 'Error fetching statuses.' });
+    }
+  }
 };
 
 export default ApplyController;
+
+interface ApplyQueryParams {
+  status?: string;
+  page?: string;
+  limit?: string;
+  sortBy?: string | string[]; // Allow single or array of strings
+  sortOrder?: 'asc' | 'desc';
+}
