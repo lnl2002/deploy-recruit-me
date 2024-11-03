@@ -8,12 +8,16 @@ import { IApply } from "../applyApi";
 
 const jobApi = {
   getJobList: async (
-    params: string
+    params: string,
+    owner?: boolean
   ): Promise<{ jobs: TJob[]; total: number }> => {
     let newParams = "?expiredDate=1&sort_by=createdAt&order=1" + params;
+    console.log(newParams);
 
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/v1/jobs${newParams}`);
+      const res = await (owner ? axios : axios.create()).get(
+        `${BACKEND_URL}/api/v1/jobs${newParams}`
+      );
 
       if (res.status === 200) {
         return { jobs: res.data.data.jobs, total: res.data.data.total };

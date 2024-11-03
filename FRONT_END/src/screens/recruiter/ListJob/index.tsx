@@ -39,16 +39,13 @@ export const ListJob = (): React.JSX.Element => {
   useEffect(() => {
     (async () => {
       const { jobs, total } = await jobApi.getJobList(
-        `&account=${userInfo?._id}${params}`
+        `&owner=1${params}`,
+        true
       );
       setListJob(jobs);
       setJobTotal(total);
     })();
   }, [params]);
-
-  useEffect(() => {
-    console.log(listJob);
-  }, [listJob]);
 
   const handleChangePage = (pageNumber: number) => {
     setCurrentPage(pageNumber);

@@ -224,7 +224,9 @@ const JobSection: React.FC<ListJobProps> = ({
         {(item) => (
           <TableRow key={item._id}>
             {(columnKey) => (
-              <TableCell>{renderCell(item, columnKey)}</TableCell>
+              <TableCell key={item._id}>
+                {renderCell(item, columnKey)}
+              </TableCell>
             )}
           </TableRow>
         )}

@@ -63,14 +63,14 @@ const JobDetails = (): React.JSX.Element => {
   return (
     <>
       <Header
-        bannerUrl={(job.unit as TUnit)?.banner}
-        imageUrl={(job.unit as TUnit)?.image}
+        bannerUrl={(job.unit as Partial<TUnit>)?.banner}
+        imageUrl={(job.unit as Partial<TUnit>)?.image}
       />
       <div className="flex justify-center">
         <div className="flex flex-col w-9/12 -mt-20 gap-4">
           <div className="flex flex-col gap-3">
             <Image
-              src={(job.unit as TUnit)?.image}
+              src={(job.unit as Partial<TUnit>)?.image}
               alt=""
               radius="full"
               className="w-32 p-1 bg-themeWhite shadow-md"
