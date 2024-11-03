@@ -56,7 +56,7 @@ export const validateCVInput = [
   },
 ];
 
-export const upload = multer({ dest: 'uploads/' });
+export const upload = multer({ dest: '/tmp/uploads/' });
 
 // const storage = multer.diskStorage({
 //   destination: (req, file, cb) => {
