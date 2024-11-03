@@ -6,6 +6,7 @@ import { Providers } from "./provider";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { montserratRegular } from "./fonts";
+import '@/utils/axiosConfig'
 
 export default function RootLayout({
   children,

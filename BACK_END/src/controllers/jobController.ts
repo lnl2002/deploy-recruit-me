@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import { Types } from 'mongoose'
+import mongoose, { Types } from 'mongoose'
 import jobService from '../services/jobService'
 import accountService from '../services/accountService'
 import unitService from '../services/unitService'
@@ -431,6 +431,33 @@ const jobController = {
             next(error)
         }
     },
+    getJobsByInterviewManager: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        try {
+            const { page, limit } = req.query;
+
+            const interviewManagerId = req?.user?._id || '';
+
+            if(!mongoose.Types.ObjectId.isValid(interviewManagerId)){
+                return res.status(400).json({
+                    message: 'Bad request'
+                })
+            }
+
+
+            // Chuyển đổi các giá trị query sang định dạng số nếu có
+            const filterOptions = {
+                interviewManagerId: interviewManagerId as string,
+                page: parseInt(page as string, 10) || 1,
+                limit: parseInt(limit as string, 10) || 10,
+            };
+
+            const jobs = await jobService.getJobsByInterviewManager(filterOptions);
+
+            res.status(200).json(jobs);
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 export default jobController
