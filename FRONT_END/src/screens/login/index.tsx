@@ -1,7 +1,7 @@
 "use client"
 import React from 'react';
 import { Button } from '@nextui-org/react';
-import { BACKEND_URL, FRONTEND_URL_ADMIN_HOME, FRONTEND_URL_CANDIDATE_HOME, FRONTEND_URL_HR_MANAGER_HOME, FRONTEND_URL_RECRUITER_HOME } from '@/utils/env';
+import { BACKEND_URL, FRONTEND_URL_ADMIN_HOME, FRONTEND_URL_CANDIDATE_HOME, FRONTEND_URL_INTERVIEW_MANAGER_HOME, FRONTEND_URL_RECRUITER_HOME } from '@/utils/env';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch } from '@/store/store';
 import { login } from '@/store/userState';
@@ -43,9 +43,9 @@ const Login: React.FC = () => {
                     console.log('RECRUITER');
                     router.push(FRONTEND_URL_RECRUITER_HOME) 
                     break;
-                case 'HR_MANAGER':
-                    console.log('HR_MANAGER');
-                    router.push(FRONTEND_URL_HR_MANAGER_HOME) 
+                case 'INTERVIEW_MANAGER':
+                    console.log('INTERVIEW_MANAGER');
+                    router.push(FRONTEND_URL_INTERVIEW_MANAGER_HOME) 
                     break;
                 case 'ADMIN':
                     console.log('ADMIN');
