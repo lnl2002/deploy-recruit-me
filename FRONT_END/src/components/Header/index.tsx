@@ -2,7 +2,7 @@
 import { Icons } from "@/icons";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import { useRouter } from "next/navigation";
@@ -19,7 +19,10 @@ import {
   DropdownTrigger,
 } from "@nextui-org/react";
 import { logout } from "@/store/userState";
+
+import { setStatusJobFilterIndex } from "@/store/jobState";
 import { hrNavLinks, navLinks, Role } from "@/utils/constants";
+import { useDispatch } from "react-redux";
 
 const getNavLink = (role: Role) => {
   switch (role) {
@@ -60,18 +63,30 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
             </span>
           </div>
         </Link>
-        <div className="hidden sm:flex">
-          {getNavLink(role ?? Role.Common).map((item, index: number) => (
-            <HeaderLink
-              key={index}
-              title={item.name}
-              isCurrent={isActive(item.path)}
-              href={item.path}
-              expandable={item.expandable}
-              isLoggedIn={isLoggedIn || false}
-              loginRequired={item.loginRequired}
-            />
-          ))}
+        <div className="hidden sm:flex items-center">
+          {getNavLink(role ?? Role.Common).map((item, index: number) =>
+            !item.expandable && item?.expand.length === 0 ? (
+              <HeaderLink
+                key={index + item.id}
+                title={item.name}
+                isCurrent={isActive(item.path)}
+                href={item.path}
+                // expandable={item.expandable}
+                isLoggedIn={isLoggedIn || false}
+                loginRequired={item.loginRequired}
+              />
+            ) : (
+              <HeaderDropDown
+                key={index + item.id}
+                title={item.name}
+                isCurrent={isActive(item.path)}
+                expand={item?.expand}
+                handleSelected={(value) =>
+                  dispatch(setStatusJobFilterIndex(value))
+                }
+              />
+            )
+          )}
         </div>
         {/*<div>
           <HeaderLink
@@ -194,7 +209,7 @@ const HeaderLink = ({
       ) : (
         <Link
           className={twMerge(
-            "m-5 text-textSecondary flex items-center text-sm",
+            "m-5 text-textSecondary flex gap-3 items-center text-sm",
             isCurrent
               ? "border px-3 py-1 rounded-full border-themeOrange text-themeOrange"
               : "text-blurEffect"
@@ -208,5 +223,66 @@ const HeaderLink = ({
         </Link>
       )}
     </div>
+  );
+};
+
+const HeaderDropDown = ({
+  title,
+  isCurrent,
+  expandable = false,
+  isMobileMenuOpen = false,
+  isLoggedIn = false,
+  loginRequired = false,
+  expand = [],
+  handleSelected,
+}: {
+  title?: string;
+  isCurrent?: boolean;
+  expandable?: boolean;
+  isMobileMenuOpen?: boolean;
+  isLoggedIn?: boolean;
+  loginRequired?: boolean;
+  expand?: Array<any>;
+  handleSelected?: (value: number) => void;
+}) => {
+  const [selectedKeys, setSelectedKeys] = useState<Set<number>>(new Set([0]));
+  const handleSelectionChange = (keys: any) => {
+    handleSelected?.(Number(Object.values(keys)[0]) ?? 0);
+    setSelectedKeys(keys as Set<number>);
+  };
+
+  return (
+    <Dropdown>
+      <DropdownTrigger>
+        <Button
+          size="sm"
+          variant="bordered"
+          className={twMerge(
+            "m-5 text-textSecondary flex gap-3 items-center text-sm font-bold ",
+            isCurrent
+              ? "border px-3 py-1 rounded-full border-themeOrange text-themeOrange"
+              : "text-blurEffect border-none"
+          )}
+        >
+          {title}
+        </Button>
+      </DropdownTrigger>
+      <DropdownMenu
+        aria-label="Multiple selection example"
+        variant="flat"
+        disallowEmptySelection
+        selectionMode="single"
+        selectedKeys={selectedKeys}
+        onSelectionChange={handleSelectionChange}
+      >
+        {expand.map((item) => (
+          <DropdownItem key={item.id}>
+            <Link className={twMerge("text-blurEffect")} href={item?.path}>
+              {item.name}
+            </Link>
+          </DropdownItem>
+        ))}
+      </DropdownMenu>
+    </Dropdown>
   );
 };

@@ -30,7 +30,8 @@ const jobController = {
     },
     getJobList: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { skip, limit, title, sort_by, order, expiredDate } = req.query
+            // getAll = 1|-1
+            const { skip, limit, title, sort_by, order, expiredDate, getAll } = req.query
 
             const pageLimit = parseInt(limit as string, 10) || 10
             const pageSkip = parseInt(skip as string, 10) || 0
@@ -124,6 +125,41 @@ const jobController = {
                 filteredQuery.status = { $in: multiStatus }
             }
 
+            if (filteredQuery.interviewManager) {
+                const account = await accountService.getAccountById(filteredQuery.interviewManager)
+                if ((account.role as IRole).roleName !== 'INTERVIEW_MANAGER') {
+                    res.status(404).json({ message: 'Interview manager not found' })
+                }
+            }
+
+            if (filteredQuery.account) {
+                const account = await accountService.getAccountById(filteredQuery.account)
+                if (!account._id) {
+                    res.status(404).json({ message: 'Account not found' })
+                }
+            }
+
+            if (filteredQuery.unit) {
+                const unit = await unitService.getUnitById(filteredQuery.unit)
+                if (!unit._id) {
+                    res.status(404).json({ message: 'Unit not found' })
+                }
+            }
+
+            if (filteredQuery.location) {
+                const location = await locationService.getLocationById(filteredQuery.location)
+                if (!location._id) {
+                    res.status(404).json({ message: 'Loaction not found' })
+                }
+            }
+
+            if (filteredQuery.career) {
+                const career = await careerService.getCareerById(filteredQuery.career)
+                if (!career._id) {
+                    res.status(404).json({ message: 'Career not found' })
+                }
+            }
+
             const jobs = await jobService.getListJobs(query, filteredQuery)
 
             return res.json(jobs)
@@ -131,6 +167,7 @@ const jobController = {
             next(error)
         }
     },
+
     getJobListByUser: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
             const { skip, limit, title, sort_by, order, expiredDate } = req.query

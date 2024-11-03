@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import jobApi, { TJob } from "@/api/jobApi";
 import { Plus } from "lucide-react";
 import { Button } from "@nextui-org/react";
+import { useSelector } from "react-redux";
+import { RootState, useAppSelector } from "@/store/store";
 import { useRouter } from "next/navigation";
 
 import JobSection from "./components/jobSection";
@@ -12,32 +14,41 @@ import FilterSection from "./components/filterSection";
 export const ListJob = (): React.JSX.Element => {
   const router = useRouter();
   const [limit] = useState(10);
+  const { userInfo, isLoggedIn } = useAppSelector((state) => state.user);
+  const { statusJobFilterIndex } = useSelector((state: RootState) => state.job);
   const [params, setParams] = useState<string>("");
   const [jobTotal, setJobTotal] = useState<number>(0);
   const [listJob, setListJob] = useState<TJob[] | []>();
-  const [filterValue, setFilterValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   useEffect(() => {
     let params = "";
     const limitPage = currentPage * limit;
-    if (filterValue) {
-      params = `&status=${filterValue}`;
+    if (statusJobFilterIndex == 2) {
+      params = `&status=pending,rejected`;
+    } else if (statusJobFilterIndex == 3) {
+      params = `&status=reopened,approved,published`;
+    } else if (statusJobFilterIndex == 4) {
+      params = `&status=expired`;
     }
     if (currentPage) params += `&limit=${limitPage}&skip=${limitPage - limit}`;
 
     setParams(params);
-  }, [filterValue, currentPage]);
+  }, [statusJobFilterIndex, currentPage]);
 
   useEffect(() => {
     (async () => {
       const { jobs, total } = await jobApi.getJobList(
-        `&account=${"671124aa9578b132a235155d"}${params}`
+        `&account=${userInfo?._id}${params}`
       );
       setListJob(jobs);
       setJobTotal(total);
     })();
   }, [params]);
+
+  useEffect(() => {
+    console.log(listJob);
+  }, [listJob]);
 
   const handleChangePage = (pageNumber: number) => {
     setCurrentPage(pageNumber);
@@ -59,16 +70,13 @@ export const ListJob = (): React.JSX.Element => {
         </div>
         <div className="grid grid-flow-col grid-cols-4">
           <div className="col-span-1">
-            <FilterSection
-              setFilterValue={setFilterValue}
-              filterValue={filterValue}
-            />
+            <FilterSection />
           </div>
           <div className="col-span-3">
             <JobSection
               listJob={listJob ?? []}
               totalPage={jobTotal / limit}
-              filterValue={filterValue}
+              statusJobFilterIndex={statusJobFilterIndex}
               handleChangePage={handleChangePage}
             />
           </div>
