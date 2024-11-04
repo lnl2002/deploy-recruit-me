@@ -149,6 +149,8 @@ const jobController = {
                     filteredQuery.account = new Types.ObjectId(account._id)
                 } else if (account.role === 'INTERVIEW_MANAGER') {
                     filteredQuery.interviewManager = new Types.ObjectId(account._id)
+                } else {
+                    return res.status(403).json({ message: 'Forbidden' })
                 }
             }
 
@@ -331,7 +333,11 @@ const jobController = {
                 location,
             } = req.body
 
-            const account = req.user?._id
+            const account = req.user
+
+            if (account.role !== 'RECRUITER') {
+                return res.status(403).json({ message: 'Forbidden' })
+            }
 
             if (!title) {
                 return res.status(400).json({ message: 'Title is required' })
@@ -427,7 +433,7 @@ const jobController = {
                 minSalary: Number(minSalary),
                 maxSalary: Number(maxSalary),
                 numberPerson: Number(numberPerson),
-                account: new Types.ObjectId(account),
+                account: new Types.ObjectId(account?._id),
                 unit: unit,
                 career: career,
                 location: location,

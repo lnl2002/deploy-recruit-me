@@ -68,14 +68,7 @@ const jobApi = {
 
   addJob: async (job: Partial<TJob>): Promise<{ job: Partial<TJob> }> => {
     try {
-      const accessToken = localStorage.getItem("access_token");
-      const res = await axios.post(`${BACKEND_URL}/api/v1/jobs`, job, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      console.log(res);
+      const res = await axios.post(`${BACKEND_URL}/api/v1/jobs`, job);
 
       if (res.status === 201) {
         return { job: res.data.data };
