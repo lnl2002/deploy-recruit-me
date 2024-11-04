@@ -2,6 +2,7 @@ import { BACKEND_URL } from "@/utils/env";
 import axios from "axios";
 import { IResponse, ITable } from "../common/type";
 import { TJob } from "../jobApi";
+import JobPosting from "@/type/job";
 
 export interface IApply {
   _id: string;
@@ -9,6 +10,15 @@ export interface IApply {
   job: string;
   status: string;
   assigns: string[];
+}
+
+export interface IResposeApply {
+  _id: string;
+  cv: ICV;
+  job: JobPosting;
+  status: { name: string };
+  assigns: string[];
+  createdAt: string
 }
 
 export interface ICV {
@@ -19,6 +29,22 @@ export interface ICV {
   gender: string;
   lastName: string;
   phoneNumber: number;
+}
+
+export interface PaginatedApplies {
+  [x: string]: any;
+  applies: IApply[];
+  totalApplies: number;
+  currentPage: number;
+  totalPages: number;
+}
+
+export interface QApply {
+  status?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string | string[];
+  sortOrder?: 'asc' | 'desc';
 }
 
 export const applyApi = {
@@ -170,7 +196,7 @@ export const applyApi = {
         responseType: "blob", // Important for downloading files
       });
 
-      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf'}));
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
       return url;
     } catch (error) {
       console.error("Error downloading CV:", error);
@@ -178,6 +204,33 @@ export const applyApi = {
       // Handle errors gracefully (e.g., show a user-friendly error message)
     }
   },
+
+  getApplicationsById: async (queryParams: QApply = {}) => {
+    try {
+      const response = await axios.get<PaginatedApplies>(`${BACKEND_URL}/api/v1/apply`, {
+        params: queryParams, // Include query parameters
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Replace with your token retrieval logic
+        },
+      });
+
+      return response.data;
+    } catch (error: any) {
+      // Handle API errors appropriately, e.g.,
+      console.error('Error fetching applies:', error);
+      throw error; // Or re-throw if you want to handle the error at a higher level
+    }
+  },
+
+  fetchStatuses: async () => {
+    try {
+      const response = await axios.get<{ name: string, _id: string }[]>(`${BACKEND_URL}/api/v1/apply/statuses/all`);
+      return response.data; // Return the array of CV statuses
+    } catch (error: any) {
+      console.error('Error fetching statuses:', error);
+      throw error;
+    }
+  }
 };
 
 export default applyApi;

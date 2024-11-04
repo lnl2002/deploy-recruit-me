@@ -33,7 +33,7 @@ export const navLinks = [
   {
     id: 2,
     name: "My Application",
-    path: "/contact-us",
+    path: "/my-applications",
     expandable: false,
     loginRequired: true,
   },
