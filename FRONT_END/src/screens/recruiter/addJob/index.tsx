@@ -20,6 +20,8 @@ import AutocompleteComponent from "./select";
 import InputComponent from "./input";
 import TextareaComponent from "./textarea";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import { useAppSelector } from "@/store/store";
 
 const CustomEditor = dynamic(() => import("./custom"), {
   ssr: false,
@@ -58,6 +60,7 @@ const types: JobType[] = [
 
 export const AddJob = (): React.JSX.Element => {
   const router = useRouter();
+  const { userInfo } = useAppSelector((state) => state.user);
   const [activeTab, setActiveTab] = useState("Job Description");
   const [formValue, setFormValue] = useState<Partial<TJob>>({});
   const [formValueError, setFormValueError] = useState<Partial<TJob>>({});
@@ -67,6 +70,13 @@ export const AddJob = (): React.JSX.Element => {
   const [accountList, setAccountList] = useState<Partial<IAccount[]> | []>([]);
   const [dateSelected, setDateSelected] = useState<DateValue | null>();
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (userInfo?.role !== "RECRUITER") {
+      toast.error("You don't have permission to access this page.");
+      router.back();
+    }
+  }, [userInfo]);
 
   useEffect(() => {
     (async () => {
@@ -240,9 +250,10 @@ export const AddJob = (): React.JSX.Element => {
       return;
     }
     setSubmitLoading(true);
-    await jobApi.addJob(formValue);
+    const newJob = await jobApi.addJob(formValue);
     setSubmitLoading(false);
-    router.push("/recruiter/list-job");
+    if ((newJob as Partial<TJob>)?._id) router.push("/recruiter/list-job");
+    else toast.error("Error creating job!");
   };
 
   return (
