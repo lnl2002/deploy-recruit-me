@@ -30,10 +30,13 @@ const jobController = {
     },
     getJobList: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { skip, limit, title, sort_by, order, expiredDate } = req.query
+            // owner = 1|-1
+            const { skip, limit, title, sort_by, order, expiredDate, owner } = req.query
+            const account = req.user
 
             const pageLimit = parseInt(limit as string, 10) || 10
             const pageSkip = parseInt(skip as string, 10) || 0
+            const isOwner = owner === '1'
 
             if (pageLimit <= pageSkip) {
                 return res.status(400).json({
@@ -124,13 +127,60 @@ const jobController = {
                 filteredQuery.status = { $in: multiStatus }
             }
 
-            const jobs = await jobService.getListJobs(query, filteredQuery)
+            if (filteredQuery.interviewManager) {
+                const account = await accountService.getAccountById(filteredQuery.interviewManager)
+                if ((account.role as IRole).roleName !== 'INTERVIEW_MANAGER') {
+                    res.status(404).json({ message: 'Interview manager not found' })
+                }
+            }
+
+            if (filteredQuery.account) {
+                const account = await accountService.getAccountById(filteredQuery.account)
+                if (!account._id) {
+                    res.status(404).json({ message: 'Account not found' })
+                }
+            }
+
+            if (isOwner) {
+                if (!account?._id) {
+                    return res.status(401).json({ message: 'Unauthorized' })
+                }
+                if (account.role === 'RECRUITER') {
+                    filteredQuery.account = new Types.ObjectId(account._id)
+                } else if (account.role === 'INTERVIEW_MANAGER') {
+                    filteredQuery.interviewManager = new Types.ObjectId(account._id)
+                }
+            }
+
+            if (filteredQuery.unit) {
+                const unit = await unitService.getUnitById(filteredQuery.unit)
+                if (!unit._id) {
+                    res.status(404).json({ message: 'Unit not found' })
+                }
+            }
+
+            if (filteredQuery.location) {
+                const location = await locationService.getLocationById(filteredQuery.location)
+                if (!location._id) {
+                    res.status(404).json({ message: 'Loaction not found' })
+                }
+            }
+
+            if (filteredQuery.career) {
+                const career = await careerService.getCareerById(filteredQuery.career)
+                if (!career._id) {
+                    res.status(404).json({ message: 'Career not found' })
+                }
+            }
+
+            const jobs = await jobService.getListJobs(query, filteredQuery, isOwner && !!account?._id)
 
             return res.json(jobs)
         } catch (error: unknown) {
             next(error)
         }
     },
+
     getJobListByUser: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
             const { skip, limit, title, sort_by, order, expiredDate } = req.query
@@ -396,31 +446,30 @@ const jobController = {
     },
     getJobsByInterviewManager: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { page, limit } = req.query;
+            const { page, limit } = req.query
 
-            const interviewManagerId = req?.user?._id || '';
+            const interviewManagerId = req?.user?._id || ''
 
-            if(!mongoose.Types.ObjectId.isValid(interviewManagerId)){
+            if (!mongoose.Types.ObjectId.isValid(interviewManagerId)) {
                 return res.status(400).json({
-                    message: 'Bad request'
+                    message: 'Bad request',
                 })
             }
-
 
             // Chuyển đổi các giá trị query sang định dạng số nếu có
             const filterOptions = {
                 interviewManagerId: interviewManagerId as string,
                 page: parseInt(page as string, 10) || 1,
                 limit: parseInt(limit as string, 10) || 10,
-            };
+            }
 
-            const jobs = await jobService.getJobsByInterviewManager(filterOptions);
+            const jobs = await jobService.getJobsByInterviewManager(filterOptions)
 
-            res.status(200).json(jobs);
+            res.status(200).json(jobs)
         } catch (error) {
-            next(error);
+            next(error)
         }
-    }
+    },
 }
 
 export default jobController
