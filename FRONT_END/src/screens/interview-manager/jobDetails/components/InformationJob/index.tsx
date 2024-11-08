@@ -27,15 +27,24 @@ const InformationJob: React.FC<InformationJobProps> = ({
             <JobSection
               title={"Job Description:"}
               content={job.description || ""}
+              isHtml={true}
             />
           )}
 
           {job.requests && (
-            <JobSection title={"Requests:"} content={job.requests || ""} />
+            <JobSection
+              title={"Requests:"}
+              content={job.requests || ""}
+              isHtml={true}
+            />
           )}
 
           {job.benefits && (
-            <JobSection title={"Benefits:"} content={job.benefits || ""} />
+            <JobSection
+              title={"Benefits:"}
+              content={job.benefits || ""}
+              isHtml={true}
+            />
           )}
         </div>
       </div>

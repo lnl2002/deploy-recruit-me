@@ -9,7 +9,15 @@ import {
   DateValue,
 } from "@nextui-org/react";
 import { DatePicker } from "@nextui-org/date-picker";
-import { ArrowLeft, ArrowRight, DollarSign, MapPin } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CircleMinus,
+  CirclePlus,
+  DollarSign,
+  MapPin,
+  SquareMinus,
+} from "lucide-react";
 import { Key, useEffect, useState } from "react";
 import unitApi, { TUnit } from "@/api/unitApi";
 import accountApi, { IAccount } from "@/api/accountApi/accountApi";
@@ -22,6 +30,7 @@ import TextareaComponent from "./textarea";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useAppSelector } from "@/store/store";
+import criteriaApi, { ICritera } from "@/api/criteriaApi";
 
 const CustomEditor = dynamic(() => import("./custom"), {
   ssr: false,
@@ -49,6 +58,13 @@ interface JobType {
   name: string;
 }
 
+interface ICriteraDetails {
+  criteriaName: string;
+  errorMessageName?: string;
+  requirement: string;
+  errorMessageRequirement?: string;
+}
+
 const types: JobType[] = [
   { _id: "fulltime", name: "Fulltime" },
   { _id: "parttime", name: "Parttime" },
@@ -65,11 +81,13 @@ export const AddJob = (): React.JSX.Element => {
   const [formValue, setFormValue] = useState<Partial<TJob>>({});
   const [formValueError, setFormValueError] = useState<Partial<TJob>>({});
   const [unitList, setUnitList] = useState<Partial<TUnit[]> | []>([]);
+  const [criteriaList, setCriteriaList] = useState<Partial<ICritera[]>>([]);
   const [unit, setUnit] = useState<Partial<TUnit>>({});
   const [careerList, setCareerList] = useState<Partial<TCareer[]> | []>([]);
   const [accountList, setAccountList] = useState<Partial<IAccount[]> | []>([]);
   const [dateSelected, setDateSelected] = useState<DateValue | null>();
-  const [submitLoading, setSubmitLoading] = useState<boolean>(false);
+  const [amountCriteria, setAmountCriteria] = useState<number>(1);
+  const [criteriaArray, setCriteriaArray] = useState<ICriteraDetails[]>([]);
 
   useEffect(() => {
     if (userInfo?.role !== "RECRUITER") {
@@ -92,88 +110,108 @@ export const AddJob = (): React.JSX.Element => {
       if (!formValue?.unit) return;
 
       const params = `&unit=${
-        formValue?.unit
+        formValue?.unit as string
       }&role=${"6718eb41b203b7efd13871ca"}`;
       const { accounts } = await accountApi.getListAccount(params);
       const { unit } = await unitApi.getUnit(formValue?.unit as string);
-      setAccountList(accounts);
       setUnit(unit);
+      setAccountList(accounts);
     })();
   }, [formValue?.unit]);
 
   useEffect(() => {
-    console.log(submitLoading);
-  }, [submitLoading]);
+    (async () => {
+      if (!formValue?.career) return;
+
+      const params = `?career=${formValue?.career as string}`;
+      const { criterias } = await criteriaApi.getCareerList(params);
+
+      setCriteriaList(criterias);
+    })();
+  }, [formValue?.career]);
+
+  useEffect(() => {
+    console.log(formValue);
+  }, [formValue]);
+
+  useEffect(() => {
+    setCriteriaArray((prev) =>
+      Array.from({ length: amountCriteria }).map((_, index) => ({
+        criteriaName: prev[index]?.criteriaName ?? "",
+        errorMessageName: prev[index]?.errorMessageName ?? "",
+        requirement: prev[index]?.requirement ?? "",
+        errorMessageRequirement: prev[index]?.errorMessageRequirement ?? "",
+      }))
+    );
+  }, [amountCriteria]);
+
+  const handleRequirementChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const { value } = event.target;
+    setCriteriaArray((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? { ...item, requirement: value, errorMessageName: "" }
+          : item
+      )
+    );
+  };
+
+  const onSelectionCriteriaChange = (
+    key: Key | null,
+    criteriaIndex: number
+  ) => {
+    const value = key?.toString();
+    const obj: any = {};
+    if (value) {
+      obj.criteriaName = value;
+      obj.errorMessageName = "";
+      const checkExist = criteriaArray.some(
+        (criteria, index) =>
+          criteria.criteriaName === value && index !== criteriaIndex
+      );
+      if (checkExist) {
+        obj.errorMessageName = "This criterion is already added";
+      }
+    } else {
+      obj.criteriaName = "";
+      obj.errorMessageName = "";
+    }
+
+    setCriteriaArray((prev) =>
+      prev.map((item, i) => (i === criteriaIndex ? { ...item, ...obj } : item))
+    );
+  };
+
+  const handleDeleteCriteria = (index: number) => {
+    setCriteriaArray((prev) => prev.filter((_, i) => i !== index));
+    setAmountCriteria((prev) => prev - 1);
+  };
 
   const handleOnChange = (value: string, label: string) => {
-    if (label === "job description") {
-      setFormValue(
-        (pre): Partial<TJob> => ({
-          ...pre,
-          description: value ?? pre?.description,
-        })
-      );
-    } else if (label === "requests") {
-      setFormValue(
-        (pre): Partial<TJob> => ({
-          ...pre,
-          requests: value ?? pre?.requests,
-        })
-      );
-    } else if (label === "benefits") {
-      setFormValue(
-        (pre): Partial<TJob> => ({
-          ...pre,
-          benefits: value ?? pre?.benefits,
-        })
-      );
-    }
-  };
-
-  const onSelectionUnitChange = (key: Key | null) => {
-    const unitId = key?.toString();
-    setFormValue(
-      (pre): Partial<TJob> => ({ ...pre, unit: unitId ?? pre?.unit })
-    );
-  };
-
-  const onSelectionAccountChange = (key: Key | null) => {
-    const interviewManger = key?.toString();
     setFormValue(
       (pre): Partial<TJob> => ({
         ...pre,
-        interviewManager: interviewManger ?? pre?.interviewManager,
+        [label as keyof TJob]: value ?? pre?.[label as keyof TJob],
       })
+    );
+    setFormValueError(
+      (pre): Partial<TJob> => ({ ...pre, [label as keyof TJob]: "" })
     );
   };
 
-  const onSelectionCareerChange = (key: Key | null) => {
-    const career = key?.toString();
+  const onSelectedChange = (key: string, value: Key | null) => {
+    const parseValue = value?.toString();
     setFormValue(
       (pre): Partial<TJob> => ({
         ...pre,
-        career: career ?? pre?.career,
+        [key as keyof TJob]: parseValue,
       })
     );
-  };
-
-  const onSelectionLocationChange = (key: Key | null) => {
-    const location = key?.toString();
-    setFormValue(
-      (pre): Partial<TJob> => ({
-        ...pre,
-        location: location ?? pre?.location,
-      })
-    );
-  };
-
-  const onSelectionTypeChange = (key: Key | null) => {
-    const type = key?.toString();
-    setFormValue(
-      (pre): Partial<TJob> => ({
-        ...pre,
-        type: type ?? pre?.type,
-      })
+    setFormValueError(
+      (pre): Partial<TJob> => ({ ...pre, [key as keyof TJob]: "" })
     );
   };
 
@@ -218,6 +256,18 @@ export const AddJob = (): React.JSX.Element => {
       parsedValue = isNaN(Number(value)) ? value : Number(value);
     }
 
+    let errorMessage = "";
+    const minSalary = formValue?.minSalary;
+    if (name === "maxSalary" && minSalary) {
+      if ((parsedValue as number) < minSalary) {
+        errorMessage =
+          "Maximum salary must be greater than or equal to minimum salary";
+      }
+    }
+
+    setFormValueError(
+      (pre): Partial<TJob> => ({ ...pre, [name as keyof TJob]: errorMessage })
+    );
     setFormValue(
       (pre): Partial<TJob> => ({
         ...pre,
@@ -245,20 +295,46 @@ export const AddJob = (): React.JSX.Element => {
       }
     }
 
-    if (missingFields.length > 0) {
-      console.log("Missing required fields:", missingFields);
+    setCriteriaArray((prevArr) =>
+      prevArr.map((field) => ({
+        ...field,
+        errorMessageName: !field.criteriaName.trim()
+          ? "Criteria name is required."
+          : "",
+        errorMessageRequirement: !field.requirement.trim()
+          ? "Requirement is required."
+          : "",
+      }))
+    );
+
+    const emptyFieldCriteriaQtt = criteriaArray.some(
+      (criteria) =>
+        !criteria.criteriaName.trim() || !criteria.requirement.trim()
+    );
+    if (criteriaArray.length === 0) {
+      toast.warning("Please add at least one criteria");
       return;
     }
-    setSubmitLoading(true);
-    const newJob = await jobApi.addJob(formValue);
-    setSubmitLoading(false);
-    if ((newJob as Partial<TJob>)?._id) router.push("/recruiter/list-job");
-    else toast.error("Error creating job!");
+
+    if (missingFields.length > 0 || emptyFieldCriteriaQtt) {
+      toast.warning("Please add all missing fields");
+      return;
+    }
+
+    const { job: newJob } = await jobApi.addJob({
+      ...formValue,
+      criterias: criteriaArray,
+    });
+
+    if (newJob?._id) {
+      toast.success("Add job successfully");
+      router.push("/recruiter/list-job");
+    } else toast.error("Error creating job!");
   };
 
   return (
-    <div className="flex-grow flex items-center justify-center">
-      <div className="w-[1200px] h-[1173px] bg-white px-[204px]">
+    <div className="flex-grow flex flex-col items-center justify-center">
+      <div className="w-[68vw] flex-1 bg-white">
         <div className="mt-[60px]">
           <h1 className="mb-[4px] text-3xl font-medium text-[#999]">
             Post a new job
@@ -283,6 +359,7 @@ export const AddJob = (): React.JSX.Element => {
                       <TextareaComponent
                         label="Job Title"
                         name="title"
+                        maxRows={1}
                         labelPlacement="outside"
                         placeholder="Add Job Title"
                         value={formValue.title}
@@ -295,7 +372,9 @@ export const AddJob = (): React.JSX.Element => {
                         label="Unit"
                         placeholder="Select a unit"
                         selectedKey={formValue.unit as string | null}
-                        onSelectionChange={onSelectionUnitChange}
+                        onSelectionChange={(value: Key | null) => {
+                          onSelectedChange("unit", value);
+                        }}
                         isInvalid={!!formValueError.unit}
                         errorMessage={formValueError.unit as string}
                         itemToKey={(unit) => unit._id} // Map unit to its unique key
@@ -313,7 +392,10 @@ export const AddJob = (): React.JSX.Element => {
                           selectedKey={
                             formValue.interviewManager as string | null
                           }
-                          onSelectionChange={onSelectionAccountChange}
+                          // onSelectionChange={onSelectionAccountChange}
+                          onSelectionChange={(value: Key | null) => {
+                            onSelectedChange("interviewManager", value);
+                          }}
                           isInvalid={!!formValueError.interviewManager}
                           errorMessage={
                             formValueError.interviewManager as string
@@ -330,7 +412,7 @@ export const AddJob = (): React.JSX.Element => {
                       )}
                       <CustomEditor
                         handleChange={handleOnChange}
-                        label="Job Description"
+                        label="Description"
                         isRequired={true}
                         content={formValue.description}
                         isInvalid={!!formValueError.description}
@@ -359,10 +441,16 @@ export const AddJob = (): React.JSX.Element => {
                   <Button
                     radius="full"
                     className="bg-gradient-to-tr from-themeOrange to-blurEffectGold text-themeWhite shadow-lg w-[174px] h-[44px]"
-                    onClick={() => setActiveTab("Job Extra")} // Chuyển tab khi nhấn Next
+                    onClick={() => {
+                      if (!formValue.unit) {
+                        toast.warning("Please select a unit");
+                        return;
+                      }
+                      setActiveTab("Job Extra");
+                    }} // Chuyển tab khi nhấn Next
+                    endContent={<ArrowRight size={20} />}
                   >
                     Next
-                    <ArrowRight className="w-4 h-4" />
                   </Button>
                 </div>
               </Tab>
@@ -374,7 +462,7 @@ export const AddJob = (): React.JSX.Element => {
                         <TextareaComponent
                           label="Work Address"
                           name="address"
-                          // className="mt-[32px]"
+                          maxRows={1}
                           labelPlacement="outside"
                           placeholder="Enter Work address of job"
                           value={formValue.address?.toString()}
@@ -394,7 +482,10 @@ export const AddJob = (): React.JSX.Element => {
                           label="Job Type"
                           placeholder="Select Job type"
                           selectedKey={formValue.type as string | null}
-                          onSelectionChange={onSelectionTypeChange}
+                          // onSelectionChange={onSelectionTypeChange}
+                          onSelectionChange={(value: Key | null) => {
+                            onSelectedChange("type", value);
+                          }}
                           isInvalid={!!formValueError.type}
                           errorMessage={formValueError.type as string}
                           itemToKey={(type) => type._id}
@@ -410,7 +501,10 @@ export const AddJob = (): React.JSX.Element => {
                           label="Career"
                           placeholder="Select Career"
                           selectedKey={formValue.career as string | null}
-                          onSelectionChange={onSelectionCareerChange}
+                          // onSelectionChange={onSelectionCareerChange}
+                          onSelectionChange={(value: Key | null) => {
+                            onSelectedChange("career", value);
+                          }}
                           isInvalid={!!formValueError.career}
                           errorMessage={formValueError.career as string}
                           itemToKey={(career) => career._id} // Map career to unique key
@@ -424,7 +518,10 @@ export const AddJob = (): React.JSX.Element => {
                           label="Location"
                           placeholder="Select Location"
                           selectedKey={formValue.location as string | null}
-                          onSelectionChange={onSelectionLocationChange}
+                          // onSelectionChange={onSelectionLocationChange}
+                          onSelectionChange={(value: Key | null) => {
+                            onSelectedChange("location", value);
+                          }}
                           isInvalid={!!formValueError.location}
                           errorMessage={formValueError.location as string}
                           itemToKey={(location) => location._id} // Map location to unique key
@@ -531,8 +628,102 @@ export const AddJob = (): React.JSX.Element => {
                     variant="light"
                     className="bg-gradient-to-tr from-[#ccc] to-[#999] text-[#FFF] shadow-lg w-[174px] h-[44px]"
                     onClick={() => setActiveTab("Job Description")}
+                    startContent={<ArrowLeft size={20} />}
                   >
-                    <ArrowLeft className="w-4 h-4" />
+                    Back
+                  </Button>
+                  <Button
+                    onPress={() => {
+                      if (!formValue.career) {
+                        toast.warning("Please select a career");
+                        return;
+                      }
+                      setActiveTab("Job Criteria");
+                    }}
+                    radius="full"
+                    className="bg-gradient-to-tr from-themeOrange to-blurEffectGold text-themeWhite shadow-lg w-[174px] h-[44px]"
+                    endContent={<ArrowRight size={20} />}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </Tab>
+              <Tab key="Job Criteria" title="3. Job Criteria">
+                <Card className="min-h-72">
+                  <CardBody className="mt-5 gap-3">
+                    {Array.from({ length: amountCriteria }).map((_, index) => (
+                      <div className="flex flex-row gap-5 mt-5" key={index}>
+                        <div className="flex items-center">
+                          <Button
+                            isIconOnly={true}
+                            radius="full"
+                            className="bg-themeWhite"
+                            onPress={() => handleDeleteCriteria(index)}
+                          >
+                            <CircleMinus size={18} color="#f70707" />
+                          </Button>
+                        </div>
+                        <AutocompleteComponent
+                          items={criteriaList as ICritera[]}
+                          label={`Criterion ${index + 1}`}
+                          placeholder="Select a criterion"
+                          selectedKey={
+                            criteriaArray[index]?.criteriaName as string | null
+                          }
+                          onSelectionChange={(key: Key | null) =>
+                            onSelectionCriteriaChange(key, index)
+                          }
+                          isInvalid={!!criteriaArray[index]?.errorMessageName}
+                          errorMessage={criteriaArray[index]?.errorMessageName}
+                          itemToKey={(criteria) => criteria.name}
+                          itemToLabel={(criteria) => criteria.name}
+                          inputWrapperClass={
+                            criteriaArray[index]?.errorMessageName
+                              ? "border-0 bg-[#fee7ef]"
+                              : ""
+                          }
+                        />
+                        <TextareaComponent
+                          label={`Requirements ${index + 1}`}
+                          name="requirements"
+                          labelPlacement="outside"
+                          placeholder="Add Job requirements"
+                          value={criteriaArray[index]?.requirement}
+                          onChange={(
+                            event: React.ChangeEvent<HTMLInputElement>
+                          ) => handleRequirementChange(event, index)}
+                          isDisabled={!criteriaArray[index]?.criteriaName}
+                          classNames={{ label: "pb-[4px]" }}
+                          isInvalid={
+                            !!criteriaArray[index]?.errorMessageRequirement
+                          }
+                          errorMessage={
+                            criteriaArray[index]?.errorMessageRequirement
+                          }
+                        />
+                      </div>
+                    ))}
+                    <Button
+                      size="sm"
+                      onPress={() => setAmountCriteria((prev) => prev + 1)}
+                      className="w-fit bg-blurEffectWhite mt-6 mb-3"
+                      startContent={<CirclePlus color="#f16e21" size={20} />}
+                    >
+                      <p className="text-themeOrange text-md">
+                        Add new Criterion
+                      </p>
+                    </Button>
+                  </CardBody>
+                </Card>
+                <div className="flex items-center justify-between mb-4 relative mt-[32px] w-full">
+                  <Button
+                    radius="full"
+                    color="primary"
+                    variant="light"
+                    className="bg-gradient-to-tr from-[#ccc] to-[#999] text-[#FFF] shadow-lg w-[174px] h-[44px]"
+                    onClick={() => setActiveTab("Job Extra")}
+                  >
+                    <ArrowLeft size={20} />
                     Back
                   </Button>
                   <Button

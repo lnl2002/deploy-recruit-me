@@ -12,8 +12,10 @@ interface ITextareaComponentProps {
   className?: string;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void; // Adjusted type
   endContent?: React.ReactNode;
-  isInvalid: boolean;
+  isInvalid?: boolean;
   errorMessage?: string;
+  isDisabled?: boolean;
+  classNames?: any;
 }
 
 const TextareaComponent: React.FC<ITextareaComponentProps> = ({
@@ -22,13 +24,15 @@ const TextareaComponent: React.FC<ITextareaComponentProps> = ({
   name,
   labelPlacement = "outside",
   placeholder,
-  maxRows = 1,
+  maxRows,
   value = "",
   onChange,
   endContent,
   isInvalid,
   errorMessage,
   className,
+  isDisabled,
+  classNames,
 }) => {
   return (
     <Textarea
@@ -44,6 +48,8 @@ const TextareaComponent: React.FC<ITextareaComponentProps> = ({
       endContent={endContent}
       isInvalid={isInvalid}
       errorMessage={errorMessage}
+      disabled={isDisabled}
+      classNames={classNames}
     />
   );
 };
