@@ -1,10 +1,12 @@
 import express, { Router } from 'express'
 import meetingController from '../controllers/meetingRoom'
+import { requireRole } from '../middlewares/auth'
 
 const router: Router = express.Router()
 
 // GET
 router.get('/schedules', meetingController.getInterviewSchedules)
+router.get('/list-candidate',requireRole(["INTERVIEWER", "INTERVIEW_MANAGER"]), meetingController.getListCandidates)
 
 // POST
 router.post('/create', meetingController.createMeetingRoom);

@@ -30,6 +30,7 @@ interface ScheduleInterviewModalProps {
   disclosure: DisclosureProp;
   cv: any
   changeStatus?: ({ status }: { status: string; }) => void
+  applyId: string
 }
 
 type DisclosureProp = {
@@ -47,7 +48,8 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
   onSend,
   disclosure,
   cv,
-  changeStatus
+  changeStatus,
+  applyId
 }) => {
   const zonedDateTime = now(getLocalTimeZone());
   const date = new CalendarDate(
@@ -79,7 +81,8 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
       participantIds: participants,
       timeEnd: timeEnd.toISOString(),
       timeStart: timeStart.toISOString(),
-      title
+      title,
+      applyId
     })
     setIsLoading(false);
     
@@ -95,6 +98,8 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
     getSchedules()
     onClose()
   };
+  console.log("applyId", applyId);
+  
 
   const handleChangeDate = (date: ZonedDateTime | CalendarDate | CalendarDateTime) => {
     setInterviewDate(date)

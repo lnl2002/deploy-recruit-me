@@ -165,6 +165,7 @@ const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", set
           setLoadAgain={setLoadAgain}
           cv={cv}
           description="Schedule an interview for the candidate now so you can interview them."
+          applyId={applyId}
         />
       )}
       {status === "Interview Pending" && (
@@ -368,7 +369,7 @@ const RejectedStatus = ({ status, description, changeStatus }: IStateProps) => {
     </div>
   );
 };
-const ShortlistedStatus = ({ status, description, changeStatus, cv }: IStateProps) => {
+const ShortlistedStatus = ({ status, description, changeStatus, cv, applyId }: IStateProps) => {
   const disclosure = useDisclosure();
 
   const handleSend = (data: any) => {
@@ -400,6 +401,7 @@ const ShortlistedStatus = ({ status, description, changeStatus, cv }: IStateProp
         onSend={() => console.log('test')}
         cv={cv}
         changeStatus={changeStatus}
+        applyId={applyId || ''}
         />
     </div>
   );
