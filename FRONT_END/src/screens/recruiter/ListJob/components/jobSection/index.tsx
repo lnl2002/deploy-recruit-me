@@ -60,14 +60,14 @@ const statusColorMap: {
 type ListJobProps = {
   listJob: TJob[];
   totalPage: number;
-  filterValue: string;
+  statusJobFilterIndex: number;
   handleChangePage: (page: number) => void;
 };
 
 const JobSection: React.FC<ListJobProps> = ({
   listJob,
   totalPage,
-  filterValue,
+  statusJobFilterIndex,
   handleChangePage,
 }): React.JSX.Element => {
   const columns = useMemo(() => {
@@ -75,12 +75,12 @@ const JobSection: React.FC<ListJobProps> = ({
 
     let newColumn = null;
 
-    if (filterValue === "reopened,approved,published") {
+    if (statusJobFilterIndex === 3) {
       newColumn = {
         key: "applies",
         label: "Applicants",
       };
-    } else if (filterValue === "expired") {
+    } else if (statusJobFilterIndex === 4) {
       newColumn = {
         key: "applies",
         label: "Candidates",
@@ -98,7 +98,7 @@ const JobSection: React.FC<ListJobProps> = ({
     }
 
     return updatedColumns;
-  }, [filterValue]);
+  }, [statusJobFilterIndex]);
 
   const renderCell = useCallback(
     (item: any, columnKey: any) => {
@@ -165,10 +165,14 @@ const JobSection: React.FC<ListJobProps> = ({
         case "applies":
           return (
             <div className="flex flex-col">
-              {filterValue === "expired" ? (
+              {statusJobFilterIndex === 4 ? (
                 <AvatarGroup isBordered>
                   {cellValue.map((apply: any) => (
-                    <Avatar size="md" src={apply.account?.image} />
+                    <Avatar
+                      key={apply._id}
+                      size="md"
+                      src={apply.account?.image}
+                    />
                   ))}
                 </AvatarGroup>
               ) : (
@@ -195,7 +199,7 @@ const JobSection: React.FC<ListJobProps> = ({
           return cellValue;
       }
     },
-    [listJob, filterValue]
+    [listJob, statusJobFilterIndex]
   );
 
   return (

@@ -8,8 +8,10 @@ const applyRouter: Router = express.Router();
 applyRouter.get("/cvs/:jobId", ApplyController.getAllCVsByJobId);
 applyRouter.get("/:id", ApplyController.getApplicationById);
 applyRouter.get("/interview-manager/applies",requireRole(["INTERVIEW_MANAGER"]), applyController.getApplyListByInterviewManager);
+applyRouter.get("/", requireRole(['CANDIDATE']), ApplyController.getAllApplication);
+applyRouter.get("/statuses/all", ApplyController.getAllStatus)
 
-applyRouter.post("/apply-job", requireRole(['CANDIDATE']) , ApplyController.applyToJob);
+applyRouter.post("/apply-job", requireRole(['CANDIDATE']), ApplyController.applyToJob);
 
 applyRouter.put("/status/:id", ApplyController.changeStatus);
 

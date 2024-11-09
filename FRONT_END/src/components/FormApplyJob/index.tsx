@@ -1,9 +1,6 @@
+"use client";
 import React, { useState } from "react";
-import {
-  Autocomplete,
-  AutocompleteItem,
-  Input,
-} from "@nextui-org/react";
+import { Autocomplete, AutocompleteItem, Input } from "@nextui-org/react";
 import { Upload } from "lucide-react";
 import { ButtonApp } from "../ButtonApp";
 import { Formik, Form, Field, ErrorMessage } from "formik";

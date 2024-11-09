@@ -8,12 +8,16 @@ import { IApply } from "../applyApi";
 
 const jobApi = {
   getJobList: async (
-    params: string
+    params: string,
+    owner?: boolean
   ): Promise<{ jobs: TJob[]; total: number }> => {
     let newParams = "?expiredDate=1&sort_by=createdAt&order=1" + params;
+    console.log(newParams);
 
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/v1/jobs${newParams}`);
+      const res = await (owner ? axios : axios.create()).get(
+        `${BACKEND_URL}/api/v1/jobs${newParams}`
+      );
 
       if (res.status === 200) {
         return { jobs: res.data.data.jobs, total: res.data.data.total };
@@ -64,14 +68,7 @@ const jobApi = {
 
   addJob: async (job: Partial<TJob>): Promise<{ job: Partial<TJob> }> => {
     try {
-      const accessToken = localStorage.getItem("access_token");
-      const res = await axios.post(`${BACKEND_URL}/api/v1/jobs`, job, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      console.log(res);
+      const res = await axios.post(`${BACKEND_URL}/api/v1/jobs`, job);
 
       if (res.status === 201) {
         return { job: res.data.data };

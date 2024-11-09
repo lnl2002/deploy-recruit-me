@@ -4,6 +4,8 @@ import { Button, Image } from "@nextui-org/react";
 import { TJob } from "@/api/jobApi";
 import JobAppicationCard from "@/components/JobApplicationCard";
 import JobSection from "@/components/JobSection";
+import { TUnit } from "@/api/unitApi";
+import { TCareer } from "@/api/careerApi";
 
 type InformationJobProps = {
   job: Partial<TJob>;
@@ -46,8 +48,8 @@ const InformationJob: React.FC<InformationJobProps> = ({
         <p className="text-themeDark text-lg font-bold">Unit Information</p>
         <div className="mt-4 flex flex-col gap-8">
           <JobSection
-            title={job.unit?.name || ""}
-            content={job.unit?.introduction || ""}
+            title={(job.unit as Partial<TUnit>)?.name || ""}
+            content={(job.unit as Partial<TUnit>)?.introduction || ""}
           />
 
           {job.description && (
@@ -69,12 +71,12 @@ const InformationJob: React.FC<InformationJobProps> = ({
       <div className="col-span-1 px-8 ">
         <div className="p-6 bg-white rounded-2xl shadow-xl border">
           <JobAppicationCard
-            minSalary={job.minSalary || 0}
-            maxSalary={job.maxSalary || 0}
-            numberPerson={job.numberPerson || 0}
-            address={job.address || ""}
-            expiredDate={job.expiredDate || ""}
-            career={job.career?.name || ""}
+            minSalary={job.minSalary ?? 0}
+            maxSalary={job.maxSalary ?? 0}
+            numberPerson={job.numberPerson ?? 0}
+            address={job.address ?? ""}
+            expiredDate={job.expiredDate ?? ""}
+            career={(job.career as Partial<TCareer>)?.name ?? ""}
             type={job.type || ""}
           />
           <div className="mt-10">

@@ -3,10 +3,12 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface JobState {
   job: JobPosting | null;
+  statusJobFilterIndex: number;
 }
 
 const initialState: JobState = {
   job: null,
+  statusJobFilterIndex: 0,
 };
 
 const jobSlice = createSlice({
@@ -19,8 +21,11 @@ const jobSlice = createSlice({
     clearJob: (state) => {
       state.job = null;
     },
+    setStatusJobFilterIndex: (state, action: PayloadAction<number>) => {
+      state.statusJobFilterIndex = action.payload;
+    },
   },
 });
 
-export const { setJob, clearJob } = jobSlice.actions;
+export const { setJob, clearJob, setStatusJobFilterIndex } = jobSlice.actions;
 export const jobReducer = jobSlice.reducer;
