@@ -84,21 +84,27 @@ export const meetingApi = {
   getAccessToken: async (
     identity: string,
     roomName: string
-  ): Promise<string> => {
+  ): Promise<{ data: string; success: boolean }> => {
     try {
       const res = await axios.post(`${BACKEND_URL}/api/v1/rooms/access-token`, {
         identity,
         roomName,
       });
 
+      const { data } = res.data;
+
       if (res.status === 200) {
-        return res.data.data.token;
+        return { data, success: true };
       } else {
-        return "";
+        return { data: "", success: false };
       }
-    } catch (error) {
-      console.error("Error fetching career list:", error);
-      return "";
+    } catch (error: any) {
+      console.error(
+        "Error fetching career list:",
+        error.response.data.data,
+        error.response.status
+      );
+      return { data: error.response.data.data.message, success: false };
     }
   },
   createRoom: async (roomName: string): Promise<boolean> => {

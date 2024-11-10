@@ -40,16 +40,23 @@ const Tiptap: React.FC<TiptapProps> = ({
       StarterKit,
       BulletList.configure({
         HTMLAttributes: {
-          class: "px-2 py-1",
+          class: "px-2 py-1 list-disc",
         },
       }),
       ListItem,
       Document,
       Paragraph,
       Bold.configure({ HTMLAttributes: { class: "font-bold" } }),
-      Italic,
+      Italic.configure({
+        HTMLAttributes: {
+          class: "italic",
+        },
+      }),
       Heading.configure({
         levels: [1, 2, 3, 4, 5, 6],
+        HTMLAttributes: (node: any) => ({
+          class: `tiptap h${node.attrs.level}`,
+        }),
       }),
       Placeholder.configure({
         placeholder: "Chào mừng đến với Tiptap Editor!", // Set your placeholder text
@@ -63,7 +70,7 @@ const Tiptap: React.FC<TiptapProps> = ({
     },
     editorProps: {
       attributes: {
-        class: `prose prose-sm sm:prose-base outline ${
+        class: `prose prose-sm sm:prose-base outline min-h-28 max-h-52 overflow-auto ${
           !isInvalid ? "outline-[#DDD]" : "outline-none"
         } outline-[2px] lg:prose-lg xl:prose-2xl m-1 focus:outline-[#999] text-themeDark ${
           !isInvalid ? "bg-[#f4f4f5]" : "bg-[#fee7ef]"

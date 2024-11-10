@@ -14,6 +14,7 @@ import locationRouter from './locationRouter'
 import careerRouter from './careerRouter'
 import accountRouter from './accountRouter'
 import roomRouter from './roomRouter'
+import criteriaRouter from './criteriaRouter'
 
 const routes = (app: Express) => {
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
@@ -30,6 +31,7 @@ const routes = (app: Express) => {
     app.use('/api/v1/applies', ApplyRouter)
     app.use('/api/v1/accounts', accountRouter)
     app.use('/api/v1/rooms', roomRouter)
+    app.use('/api/v1/criterias', criteriaRouter)
 }
 
 export default routes
