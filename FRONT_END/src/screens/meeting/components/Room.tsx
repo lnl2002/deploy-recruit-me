@@ -117,9 +117,15 @@ const Room: React.FC<RoomProps> = ({
     setParticipantSelected(participant);
   };
 
-  const Participants = participants.map((participant, index) => {
-    console.log(participant.audioTracks.size);
+  const handleShowName = (identity: string) => {
+    return identity.split("6C1B01A16E67")[0];
+  };
 
+  useEffect(() => {
+    console.log(handleShowName(participantSelected?.identity as string));
+  }, [participantSelected]);
+
+  const Participants = participants.map((participant, index) => {
     return (
       participantSelected !== participant && (
         <Card
@@ -132,7 +138,7 @@ const Room: React.FC<RoomProps> = ({
           <p className="absolute z-20 bottom-2 left-1/2 transform -translate-x-1/2 text-xs text-center rounded-full px-3 bg-[#9f9f9f57] min-w-10 max-w-20 truncate text-ellipsis overflow-hidden">
             {participant.sid === room.localParticipant.sid
               ? "You"
-              : participant.identity}
+              : handleShowName(participant.identity)}
           </p>
           {participant.videoTracks.size > 0 ? (
             <Participant
@@ -145,7 +151,7 @@ const Room: React.FC<RoomProps> = ({
             <CameraOffView
               isAudioSubscribe={isMicOn}
               avatartStyle="h-10 w-10 text-xs"
-              name={participant.identity}
+              name={handleShowName(participant.identity)}
             />
           )}
         </Card>
@@ -159,10 +165,10 @@ const Room: React.FC<RoomProps> = ({
         <div className="w-[720px] flex flex-col gap-4">
           {participantSelected && (
             <div className="relative w-[720px] h-[540px] bg-themeDark rounded-2xl overflow-hidden shadow-lg border-1 border-textSecondary">
-              <p className="absolute z-20 top-3 left-20 transform -translate-x-1/2 text-lg text-themeWhite text-center rounded-full py-0.5  bg-[#797979b5] min-w-28 max-w-336 truncate text-ellipsis overflow-hidden">
+              <p className="absolute z-20 top-3 left-5 text-md text-themeWhite text-center rounded-full py-0.5 px-3 bg-[#797979b5] min-w-28 max-w-48 truncate text-ellipsis overflow-hidden">
                 {participantSelected.sid === room.localParticipant.sid
                   ? "You"
-                  : participantSelected.identity}
+                  : handleShowName(participantSelected.identity)}
               </p>
               <div className="z-10 absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-7">
                 {isMicOn ? (

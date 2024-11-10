@@ -12,7 +12,6 @@ const jobApi = {
     owner?: boolean
   ): Promise<{ jobs: TJob[]; total: number }> => {
     let newParams = "?expiredDate=1&sort_by=createdAt&order=1" + params;
-    console.log(newParams);
 
     try {
       const res = await (owner ? axios : axios.create()).get(
@@ -70,7 +69,7 @@ const jobApi = {
     try {
       const res = await axios.post(`${BACKEND_URL}/api/v1/jobs`, job);
 
-      if (res.status === 201) {
+      if (res.status === 200) {
         return { job: res.data.data };
       } else {
         return { job: {} };
@@ -119,6 +118,11 @@ const jobApi = {
 
 export default jobApi;
 
+export interface ICriteria {
+  criteriaName: string;
+  requirement: string;
+}
+
 export interface TJob {
   _id: string;
   title: string;
@@ -142,6 +146,7 @@ export interface TJob {
   updatedAt: string;
   applies: string[] | Partial<IApply>[];
   status: JobStatus;
+  criterias: ICriteria[];
   __v: number;
 }
 

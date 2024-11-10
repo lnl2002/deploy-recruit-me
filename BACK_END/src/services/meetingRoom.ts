@@ -308,6 +308,9 @@ const meetingService = {
             throw error
         }
     },
+    getMeetingRoom: async (url: string): Promise<IMeetingRoom> => {
+        return await MeetingRoom.findOne({ url: url })
+    },
 }
 
 export default meetingService

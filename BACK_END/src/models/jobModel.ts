@@ -4,6 +4,22 @@ import { ICareer } from './careerModel'
 import { IAccount } from './accountModel'
 import { ILocation } from './locationModel'
 
+export interface IJobCriteria extends Document {
+    criteriaName: string
+    requirement: string
+}
+
+const CriteriaSchema: Schema = new Schema({
+    criteriaName: {
+        type: String,
+        required: true,
+    },
+    requirement: {
+        type: String,
+        required: false,
+    },
+})
+
 export interface IJob extends Document {
     title: string
     introduction: string
@@ -25,6 +41,7 @@ export interface IJob extends Document {
     isActive: boolean
     type: string
     status: string
+    criterias: IJobCriteria[]
 }
 
 const jobSchema: Schema = new Schema(
@@ -108,6 +125,7 @@ const jobSchema: Schema = new Schema(
             required: true,
             enum: ['pending', 'approved', 'published', 'expired', 'reopened', 'rejected'],
         },
+        criterias: [CriteriaSchema],
     },
     { timestamps: true },
 )

@@ -27,7 +27,7 @@ const ListJob = (): React.JSX.Element => {
   }, [params]);
 
   useEffect(() => {
-    let params = "";
+    let params = "&status=approved";
     const limitPage = currentPage * limit;
     if (selectedLocationId) params += `&location=${selectedLocationId}`;
     if (selectedUnitId) params += `&unit=${selectedUnitId}`;

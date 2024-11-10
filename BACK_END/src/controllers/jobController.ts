@@ -5,7 +5,7 @@ import accountService from '../services/accountService'
 import unitService from '../services/unitService'
 import careerService from '../services/careerService'
 import { IRole } from '../models/roleModel'
-import { IJob } from '../models/jobModel'
+import { IJob, IJobCriteria } from '../models/jobModel'
 import locationService from '../services/locationService'
 
 const jobController = {
@@ -96,7 +96,7 @@ const jobController = {
                         value = parseInt(value, 10)
                         if (isNaN(value)) return obj // Bỏ qua nếu không phải số hợp lệ
                     } else if (expectedType === 'boolean') {
-                        value = Boolean(value === 'true' || value === true)
+                        value = Boolean(value === '1' || value === true)
                     } else if (expectedType === 'date') {
                         value = new Date(value)
                         if (isNaN(value.getTime())) return obj // Bỏ qua nếu không phải ngày hợp lệ
@@ -120,6 +120,10 @@ const jobController = {
 
             if (title) {
                 filteredQuery.title = { $regex: title, $options: 'i' }
+            }
+
+            if (!filteredQuery.isDelete) {
+                filteredQuery.isDelete = false
             }
 
             if (filteredQuery.status?.includes(',')) {
@@ -331,6 +335,7 @@ const jobController = {
                 expiredDate,
                 type,
                 location,
+                criterias,
             } = req.body
 
             const account = req.user
@@ -364,24 +369,40 @@ const jobController = {
             }
 
             if (!expiredDate) {
-                return res.status(400).json({ message: 'Expired date is required.' })
+                return res.status(400).json({ message: 'Expired date is required' })
             }
 
             if (!benefits) {
-                return res.status(400).json({ message: 'Benefits is required.' })
+                return res.status(400).json({ message: 'Benefits is required' })
             }
 
             if (!requests) {
-                return res.status(400).json({ message: 'Requests is required.' })
+                return res.status(400).json({ message: 'Requests is required' })
             }
 
             if (!type) {
-                return res.status(400).json({ message: 'Type is required.' })
+                return res.status(400).json({ message: 'Type is required' })
+            }
+
+            if (!criterias) {
+                return res.status(400).json({ message: 'Criterias is required' })
+            }
+
+            if (!Array.isArray(criterias)) {
+                return res.status(400).json({ message: 'Criterias must be array' })
+            }
+
+            const checkEmpty = (criterias as IJobCriteria[]).some((criteria) => {
+                return !criteria.criteriaName.trim() || !criteria.requirement.trim()
+            })
+
+            if (checkEmpty) {
+                return res.status(400).json({ message: 'Criteria name and criteria requirement can not be empty' })
             }
 
             const expirationDate = new Date(expiredDate)
             if (isNaN(expirationDate.getTime()) || expirationDate <= new Date()) {
-                return res.status(400).json({ message: 'Expired date must be a valid future date.' })
+                return res.status(400).json({ message: 'Expired date must be a valid future date' })
             }
 
             if (!Types.ObjectId.isValid(interviewManager)) {
@@ -443,6 +464,7 @@ const jobController = {
                 isActive: false,
                 isDelete: false,
                 status: 'pending',
+                criterias: criterias,
                 type: type,
             })
             return res.json(newJob)

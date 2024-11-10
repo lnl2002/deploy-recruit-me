@@ -48,23 +48,32 @@ const InformationJob: React.FC<InformationJobProps> = ({
         <p className="text-themeDark text-lg font-bold">Unit Information</p>
         <div className="mt-4 flex flex-col gap-8">
           <JobSection
-            title={(job.unit as Partial<TUnit>)?.name || ""}
-            content={(job.unit as Partial<TUnit>)?.introduction || ""}
+            title={(job.unit as Partial<TUnit>)?.name ?? ""}
+            content={(job.unit as Partial<TUnit>)?.introduction ?? ""}
           />
 
           {job.description && (
             <JobSection
               title={"Job Description:"}
-              content={job.description || ""}
+              content={job.description ?? ""}
+              isHtml={true}
             />
           )}
 
           {job.requests && (
-            <JobSection title={"Requests:"} content={job.requests || ""} />
+            <JobSection
+              title={"Requests:"}
+              content={job.requests ?? ""}
+              isHtml={true}
+            />
           )}
 
           {job.benefits && (
-            <JobSection title={"Benefits:"} content={job.benefits || ""} />
+            <JobSection
+              title={"Benefits:"}
+              content={job.benefits ?? ""}
+              isHtml={true}
+            />
           )}
         </div>
       </div>
@@ -77,7 +86,7 @@ const InformationJob: React.FC<InformationJobProps> = ({
             address={job.address ?? ""}
             expiredDate={job.expiredDate ?? ""}
             career={(job.career as Partial<TCareer>)?.name ?? ""}
-            type={job.type || ""}
+            type={job.type ?? ""}
           />
           <div className="mt-10">
             <Button
