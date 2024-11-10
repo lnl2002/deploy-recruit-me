@@ -15,10 +15,10 @@ const CameraOffView: React.FC<CameraOffViewProps> = ({
   const shortedNameFormat = (name: string | undefined): string => {
     if (name) {
       return name
-        .split(" ")
-        .map((word) => word[0])
-        .join("")
-        .toUpperCase();
+        .split(/\s+/)
+        .filter((word) => /^[A-Za-z]/.test(word))
+        .map((word) => word[0].toUpperCase())
+        .join("");
     }
 
     return "User";

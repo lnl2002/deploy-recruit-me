@@ -8,12 +8,15 @@ import { IApply } from "../applyApi";
 
 const jobApi = {
   getJobList: async (
-    params: string
+    params: string,
+    owner?: boolean
   ): Promise<{ jobs: TJob[]; total: number }> => {
     let newParams = "?expiredDate=1&sort_by=createdAt&order=1" + params;
 
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/v1/jobs${newParams}`);
+      const res = await (owner ? axios : axios.create()).get(
+        `${BACKEND_URL}/api/v1/jobs${newParams}`
+      );
 
       if (res.status === 200) {
         return { jobs: res.data.data.jobs, total: res.data.data.total };
@@ -64,16 +67,9 @@ const jobApi = {
 
   addJob: async (job: Partial<TJob>): Promise<{ job: Partial<TJob> }> => {
     try {
-      const accessToken = localStorage.getItem("access_token");
-      const res = await axios.post(`${BACKEND_URL}/api/v1/jobs`, job, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const res = await axios.post(`${BACKEND_URL}/api/v1/jobs`, job);
 
-      console.log(res);
-
-      if (res.status === 201) {
+      if (res.status === 200) {
         return { job: res.data.data };
       } else {
         return { job: {} };
@@ -82,9 +78,50 @@ const jobApi = {
       return { job: {} };
     }
   },
+
+  getJobsByInterviewManager: async({
+    limit,
+    page,
+    status,
+    search
+  }: {
+    limit: number
+    page: number
+    status?: string
+    search?: string
+  }) => {
+    try {
+      const res = await axios.get(
+        `${BACKEND_URL}/api/v1/jobs/interview-manager/list-jobs?limit=${limit}&page=${page}&status=${status}&search=${search}`
+      );
+      if (res.status === 200) {
+        return res.data.data;
+      } else {
+        return {
+          page: 1,
+          data: [],
+          total: 0,
+          totalPages: 0,
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching career list:", error);
+      return {
+        page: 1,
+        data: [],
+        total: 0,
+        totalPages: 0,
+      };
+    }
+  }
 };
 
 export default jobApi;
+
+export interface ICriteria {
+  criteriaName: string;
+  requirement: string;
+}
 
 export interface TJob {
   _id: string;
@@ -108,5 +145,16 @@ export interface TJob {
   createdAt: string;
   updatedAt: string;
   applies: string[] | Partial<IApply>[];
+  status: JobStatus;
+  criterias: ICriteria[];
   __v: number;
+}
+
+export enum JobStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  PUBLISHED = 'published',
+  EXPIRED = 'expired',
+  REOPENED = 'reopened',
+  REJECTED = 'rejected',
 }

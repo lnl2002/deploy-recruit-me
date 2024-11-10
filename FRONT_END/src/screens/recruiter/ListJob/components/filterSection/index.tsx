@@ -1,27 +1,26 @@
+import { setStatusJobFilterIndex } from "@/store/jobState";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 import React from "react";
 
-type FilterSectionProps = {
-  setFilterValue: (value: string) => void;
-  filterValue: string;
-};
-
-const FilterSection: React.FC<FilterSectionProps> = ({
-  setFilterValue,
-  filterValue,
-}): React.JSX.Element => {
-  const handleClick = (value: string) => {
-    setFilterValue(value);
+const FilterSection = (): React.JSX.Element => {
+  const dispatch = useDispatch();
+  const { statusJobFilterIndex } = useSelector((state: RootState) => state.job);
+  const handleClick = (value: number) => {
+    dispatch(setStatusJobFilterIndex(value));
   };
 
   return (
     <div className="px-4">
       <div
         className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick("")}
+        onClick={() => handleClick(1)}
       >
         <p
           className={`text-base px-1 text-${
-            !filterValue ? "themeDark border-b-2" : "foreground-400"
+            statusJobFilterIndex === 1
+              ? "themeDark border-b-2"
+              : "foreground-400"
           }`}
         >
           All My Job
@@ -29,11 +28,11 @@ const FilterSection: React.FC<FilterSectionProps> = ({
       </div>
       <div
         className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick("pending,rejected")}
+        onClick={() => handleClick(2)}
       >
         <p
           className={`text-base px-1 text-${
-            filterValue === "pending,rejected"
+            statusJobFilterIndex === 2
               ? "themeDark border-b-2"
               : "foreground-400"
           }
@@ -44,11 +43,11 @@ const FilterSection: React.FC<FilterSectionProps> = ({
       </div>
       <div
         className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick("reopened,approved,published")}
+        onClick={() => handleClick(3)}
       >
         <p
           className={`text-base px-1 text-${
-            filterValue === "reopened,approved,published"
+            statusJobFilterIndex === 3
               ? "themeDark border-b-2"
               : "foreground-400"
           }`}
@@ -58,11 +57,11 @@ const FilterSection: React.FC<FilterSectionProps> = ({
       </div>
       <div
         className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick("expired")}
+        onClick={() => handleClick(4)}
       >
         <p
           className={`text-base px-1 text-${
-            filterValue === "expired"
+            statusJobFilterIndex === 4
               ? "themeDark border-b-2"
               : "foreground-400"
           }`}

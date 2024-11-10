@@ -3,27 +3,65 @@
 import React, { useState, useCallback, useEffect } from "react";
 import Video, {
   Room as TwilioRoom,
-  LocalTrack,
   LocalVideoTrack,
   LocalAudioTrack,
   LocalTrackPublication,
-  ConnectOptions,
 } from "twilio-video";
+import { v4 as uuidv4 } from "uuid";
 import meetingApi from "@/api/meetingApi";
 // import Room from "./components/Room";
 import Lobby from "./components/Lobby";
 import dynamic from "next/dynamic";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+import { useAppSelector } from "@/store/store";
 
 const Room = dynamic(() => import("./components/Room"), { ssr: false });
+const MEETING_URL =
+  "http://localhost:3000/meeting/bbcdd939-95cf-4689-84ff-722457bcd64c";
 
 export const Meeting = (): React.JSX.Element => {
+  const { isLoggedIn, userInfo } = useAppSelector((state) => state.user);
+  const router = useRouter();
   const [username, setUsername] = useState<string>("");
-  const [roomName, setRoomName] = useState<string>("");
   const [room, setRoom] = useState<TwilioRoom | null>(null);
   const [connecting, setConnecting] = useState<boolean>(false);
-  const [roomSid, setRoomSid] = useState<string>("");
   const [isCameraOn, setIsCameraOn] = useState<boolean>(true);
   const [isMicOn, setIsMicOn] = useState<boolean>(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        // Kiểm tra quyền truy cập camera
+        const cameraPermission = await navigator.permissions.query({
+          name: "camera" as PermissionName,
+        });
+        setIsCameraOn(cameraPermission.state == "granted");
+
+        // Kiểm tra quyền truy cập microphone
+        const microphonePermission = await navigator.permissions.query({
+          name: "microphone" as PermissionName,
+        });
+        setIsMicOn(microphonePermission.state == "granted");
+
+        // Thêm sự kiện lắng nghe khi trạng thái quyền thay đổi
+        cameraPermission.onchange = () =>
+          setIsCameraOn(cameraPermission.state == "granted");
+        microphonePermission.onchange = () =>
+          setIsMicOn(microphonePermission.state == "granted");
+      } catch (error) {
+        console.error("Error checking permissions:", error);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.push("/login");
+    } else {
+      setUsername(userInfo?.displayName as string);
+    }
+  }, [isLoggedIn, userInfo]);
 
   const handleUsernameChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,16 +70,9 @@ export const Meeting = (): React.JSX.Element => {
     []
   );
 
-  const handleRoomNameChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRoomName(event.target.value);
-    },
-    []
-  );
-
   const createNewRoom = async () => {
     try {
-      await meetingApi.createRoom(roomName);
+      await meetingApi.createRoom(MEETING_URL);
     } catch (error) {
       console.log(error);
     }
@@ -50,10 +81,23 @@ export const Meeting = (): React.JSX.Element => {
   const handleSubmit = useCallback(async () => {
     setConnecting(true);
     try {
-      const token = await meetingApi.getAccessToken(username, roomName);
+      const { data, success } = await meetingApi.getAccessToken(
+        username + "6C1B01A16E67" + uuidv4(),
+        MEETING_URL
+      );
 
-      const connectedRoom = await Video.connect(token, {
-        name: roomName,
+      if (!success) {
+        if (data === "Invalid token") {
+          toast.error("Login session has expired");
+          router.push("/login");
+          return;
+        }
+        toast.error(data);
+        return;
+      }
+
+      const connectedRoom = await Video.connect(data, {
+        name: MEETING_URL,
         audio: isMicOn,
         video: isCameraOn,
       });
@@ -62,12 +106,14 @@ export const Meeting = (): React.JSX.Element => {
 
       // setRoomSid(connectedRoom.sid);
       setRoom(connectedRoom);
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
+
+      toast.error((error as Error).message);
     } finally {
       setConnecting(false);
     }
-  }, [roomName, username, isMicOn, isCameraOn]);
+  }, [username, isMicOn, isCameraOn]);
 
   const handleLogout = useCallback(() => {
     setRoom((prevRoom) => {
@@ -130,9 +176,7 @@ export const Meeting = (): React.JSX.Element => {
           setIsMicOn={setIsMicOn}
           isMicOn={isMicOn}
           username={username}
-          roomName={roomName}
           handleUsernameChange={handleUsernameChange}
-          handleRoomNameChange={handleRoomNameChange}
           handleSubmit={handleSubmit}
           createNewRoom={createNewRoom}
           connecting={connecting}

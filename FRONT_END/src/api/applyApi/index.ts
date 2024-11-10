@@ -52,14 +52,18 @@ export const applyApi = {
     _id,
     page,
     limit,
+    status,
+    sort
   }: {
     _id: string;
     page: number;
     limit: number;
+    status?: string;
+    sort?: string;
   }): Promise<ITable<IApply>> => {
     try {
       const res = await axios.get(
-        `${BACKEND_URL}/api/v1/apply/cvs/${_id}?page=${page}&limit=${limit}`
+        `${BACKEND_URL}/api/v1/apply/cvs/${_id}?page=${page}&limit=${limit}&status=${status ?? ''}&sort=${sort ?? ''}`
       );
 
       if (res.status === 200) {

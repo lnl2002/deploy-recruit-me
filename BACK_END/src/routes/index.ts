@@ -14,6 +14,7 @@ import locationRouter from './locationRouter'
 import careerRouter from './careerRouter'
 import accountRouter from './accountRouter'
 import roomRouter from './roomRouter'
+import criteriaRouter from './criteriaRouter'
 import systemRouter from './systemRouter'
 
 const routes = (app: Express) => {
@@ -31,6 +32,7 @@ const routes = (app: Express) => {
     app.use('/api/v1/applies', ApplyRouter)
     app.use('/api/v1/accounts', accountRouter)
     app.use('/api/v1/rooms', roomRouter)
+    app.use('/api/v1/criterias', criteriaRouter)
 
     //common api of system
     app.use('/api/v1/system', systemRouter)

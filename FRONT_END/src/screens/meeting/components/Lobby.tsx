@@ -4,12 +4,11 @@ import React, { useEffect, useRef } from "react";
 import { Mic, MicOff, Video, VideoOff } from "lucide-react";
 import { Button, Input } from "@nextui-org/react";
 import CameraOffView from "./CameraOffView";
+import { useAppSelector } from "@/store/store";
 
 type LobbyProps = {
   username: string;
   handleUsernameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  roomName: string;
-  handleRoomNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSubmit: () => void;
   createNewRoom: () => void;
   connecting: boolean;
@@ -22,8 +21,6 @@ type LobbyProps = {
 const Lobby: React.FC<LobbyProps> = ({
   username,
   handleUsernameChange,
-  roomName,
-  handleRoomNameChange,
   handleSubmit,
   createNewRoom,
   connecting,
@@ -97,26 +94,7 @@ const Lobby: React.FC<LobbyProps> = ({
           classNames={{
             inputWrapper: "shadow-none border-none rounded-none",
             input: "text-themeDark",
-            base: "border-b-2",
-            label: "text-[14px]",
-          }}
-        />
-        <Input
-          label="Room name"
-          labelPlacement="outside"
-          variant="bordered"
-          placeholder="Enter your room name"
-          type={"text"}
-          size={"sm"}
-          value={roomName}
-          readOnly={connecting}
-          onChange={handleRoomNameChange}
-          className="min-w-60"
-          required
-          classNames={{
-            inputWrapper: "shadow-none border-none rounded-none",
-            input: "text-themeDark",
-            base: "border-b-2",
+            innerWrapper: "border-b-2",
             label: "text-[14px]",
           }}
         />

@@ -12,7 +12,7 @@ const applyController = {
             return
         }
 
-        if(!newStatus) {
+        if (!newStatus) {
             res.status(400).json({ message: 'Invalid status' })
             return
         }
@@ -53,6 +53,39 @@ const applyController = {
             }
 
             const listApply = await applyService.getApplyListByJob(new Types.ObjectId(id))
+
+            res.status(200).json(listApply)
+        } catch (error) {
+            next(error)
+        }
+    },
+    getApplyListByInterviewManager: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        try {
+            const { page, limit, sort } = req.params
+            const userId = req?.user?._id || ''
+
+            if (!userId) {
+                return res.status(400).json({ message: 'UNAUTHORIZED' })
+            }
+
+            if (page && isNaN(parseInt(page, 10))) {
+                return res.status(400).json({ message: 'BAD REQUEST' })
+            }
+
+            if (limit && isNaN(parseInt(page, 10))) {
+                return res.status(400).json({ message: 'BAD REQUEST' })
+            }
+
+            if (sort && !['desc', 'asc'].includes(sort)) {
+                return res.status(400).json({ message: 'sort must be desc or asc' })
+            }
+
+            const listApply = await applyService.getApplyListByInterviewManager({
+                page: parseInt(page, 10),
+                limit: parseInt(limit, 10),
+                sort,
+                userId,
+            })
 
             res.status(200).json(listApply)
         } catch (error) {
