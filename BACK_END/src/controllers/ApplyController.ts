@@ -131,6 +131,24 @@ const ApplyController = {
     }
   },
 
+  //get application info of a candidate if available
+  getApplicationInfoOfCandidate: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = req.user._id;
+      const { jobId } = req.params;
+      const application = await Apply.findOne({ job: jobId, createdBy: userId }).populate(
+        "cv job status assigns createdBy"
+      );
+      if (!application) {
+        res.status(404).json({ message: "Application not found" });
+        return;
+      }
+      res.status(200).json(application);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching application", error });
+    }
+  },
+
   getAllApplication: async (req: Request<object, object, object, ApplyQueryParams>, res: Response) => {
     try {
       const userId = req.user._id;

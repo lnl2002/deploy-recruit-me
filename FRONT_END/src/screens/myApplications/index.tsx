@@ -59,7 +59,6 @@ export const MyApplications = (): React.JSX.Element => {
   async function loadStatuses() {
     const response = await applyApi.fetchStatuses();
     setStatuses(response.data);
-    console.log(response.data);
   }
 
   return (

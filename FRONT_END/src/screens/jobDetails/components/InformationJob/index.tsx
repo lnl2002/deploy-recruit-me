@@ -4,6 +4,7 @@ import { Button, Image } from "@nextui-org/react";
 import { TJob } from "@/api/jobApi";
 import JobAppicationCard from "@/components/JobApplicationCard";
 import JobSection from "@/components/JobSection";
+import { StateBox } from "@/components/StateBox";
 import { TUnit } from "@/api/unitApi";
 import { TCareer } from "@/api/careerApi";
 
@@ -78,7 +79,10 @@ const InformationJob: React.FC<InformationJobProps> = ({
         </div>
       </div>
       <div className="col-span-1 px-8 ">
-        <div className="p-6 bg-white rounded-2xl shadow-xl border">
+        <div className="p-6 bg-white rounded-2xl shadow-md mb-8 border">
+          <StateBox/>
+        </div>
+        <div className="p-6 bg-white rounded-2xl shadow-md border">
           <JobAppicationCard
             minSalary={job.minSalary ?? 0}
             maxSalary={job.maxSalary ?? 0}

@@ -234,6 +234,21 @@ export const applyApi = {
       console.error('Error fetching statuses:', error);
       throw error;
     }
+  },
+
+  getApplyInfo: async (jobId: string) => {
+    try {
+      const accessToken = localStorage.getItem("access_token");
+      const response = await axios.get<{ name: string, _id: string }[]>(`${BACKEND_URL}/api/v1/apply/info/${jobId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      return response.data; // Return the array of CV statuses
+    } catch (error: any) {
+      console.error('Error fetching statuses:', error);
+      throw error;
+    }
   }
 };
 

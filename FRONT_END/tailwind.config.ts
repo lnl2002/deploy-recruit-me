@@ -40,9 +40,9 @@ const config: Config = {
       themeDark: "#060710",
 
       //text
-      textPrimary: "#060710",
-      textSecondary: "#96969F",
-      textTertiary: "#D6D6E4",
+      textPrimary: "#000000",
+      textSecondary: "#4F4F55",
+      textTertiary: "#86868E",
 
       //input
       inputPrimary: "#060710",
@@ -67,7 +67,8 @@ const config: Config = {
       borderSecondary: "#86868E",
 
       //surface
-      surfaceBrand: "#F36523"
+      surfaceBrand: "#F36523",
+      surfaceTertiary: "#F6F5F9"
     },
   },
   darkMode: "class",

@@ -311,6 +311,9 @@ const meetingService = {
     getMeetingRoom: async (url: string): Promise<IMeetingRoom> => {
         return await MeetingRoom.findOne({ url: url })
     },
+    getMeetingRoomByApplyId: async (applyId: string): Promise<IMeetingRoom> => {
+        return await MeetingRoom.findOne({ apply: applyId })
+    },
 }
 
 export default meetingService

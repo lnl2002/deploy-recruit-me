@@ -9,7 +9,7 @@ const meetingController = {
     updateMeetingStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { meetingRoomId, participantId, status, title } = req.body
 
-        console.log({title});
+        console.log({ title });
 
 
         // Kiểm tra tính hợp lệ của dữ liệu đầu vào
@@ -141,6 +141,26 @@ const meetingController = {
             return res.status(200).json(data)
         } catch (error) {
             next(error)
+        }
+    },
+
+    getMeetingRoomByApplyId: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        const { applyId } = req.params;
+
+        if (!isValidObjectId(applyId)) {
+            return res.status(400).json({ message: 'Invalid applyId' });
+        }
+
+        try {
+            const meetingRoom = await meetingService.getMeetingRoomByApplyId(applyId);
+
+            if (!meetingRoom) {
+                return res.status(404).json({ message: 'Meeting room not found' });
+            }
+
+            return res.status(200).json(meetingRoom);
+        } catch (error) {
+            next(error);
         }
     },
 }

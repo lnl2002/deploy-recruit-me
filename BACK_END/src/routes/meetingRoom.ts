@@ -6,7 +6,8 @@ const router: Router = express.Router()
 
 // GET
 router.get('/schedules', meetingController.getInterviewSchedules)
-router.get('/list-candidate',requireRole(["INTERVIEWER", "INTERVIEW_MANAGER"]), meetingController.getListCandidates)
+router.get('/list-candidate', requireRole(["INTERVIEWER", "INTERVIEW_MANAGER"]), meetingController.getListCandidates)
+router.get('/get/:applyId', meetingController.getMeetingRoomByApplyId)
 
 // POST
 router.post('/create', meetingController.createMeetingRoom);
