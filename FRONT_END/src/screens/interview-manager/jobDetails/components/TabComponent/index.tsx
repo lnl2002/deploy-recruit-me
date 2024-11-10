@@ -74,7 +74,7 @@ const TabComponent: React.FC<TabComponentProps> = ({
         </div>
       </div>
       <div>
-        <Dropdown>
+        {/* <Dropdown>
           <DropdownTrigger>
             <EllipsisVertical
               size={43}
@@ -88,7 +88,7 @@ const TabComponent: React.FC<TabComponentProps> = ({
               Delete
             </DropdownItem>
           </DropdownMenu>
-        </Dropdown>
+        </Dropdown> */}
       </div>
     </div>
   );

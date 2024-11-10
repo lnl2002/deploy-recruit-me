@@ -41,6 +41,36 @@ const applyService = {
             throw error // Re-throw for the controller to handle
         }
     },
+
+    // Chua hoan thien
+    getApplyListByInterviewManager: async ({
+        page = 1,
+        limit = 10,
+        sort = 'desc',
+        userId,
+    }: {
+        page: number
+        limit: number
+        sort: string
+        userId: string
+    }) => {
+        const skip = (page - 1) * limit
+
+        const totalApplications = await Apply.countDocuments({ interviewManager: userId })
+        const applications = await Apply.find({ interviewManager: userId })
+            .populate('cv')
+            .populate('status')
+            .sort({ createdAt: sort === 'asc' ? 1 : -1 })
+            .skip(skip)
+            .limit(limit)
+
+        return {
+            total: totalApplications,
+            page,
+            totalPages: Math.ceil(totalApplications / limit),
+            data: applications,
+        }
+    },
 }
 
 export default applyService

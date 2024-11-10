@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import { IMeetingApproveStatus, IParticipantStatus } from '../models/meetingRoomModel'
 import meetingService from '../services/meetingRoom'
-import mongoose from 'mongoose'
+import mongoose, { isValidObjectId } from 'mongoose'
 import { FRONTEND_URL_CANDIDATE_HOME } from '../utils/env'
 import { v4 as uuid } from 'uuid'
 
@@ -9,7 +9,7 @@ const meetingController = {
     updateMeetingStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { meetingRoomId, participantId, status, title } = req.body
 
-        console.log('title', title)
+        console.log({ title })
 
         // Kiểm tra tính hợp lệ của dữ liệu đầu vào
         if (!meetingRoomId || !participantId || !status) {
@@ -50,8 +50,6 @@ const meetingController = {
             start.setHours(0, 0, 0, 0)
             end.setHours(23, 59, 59, 999)
 
-            console.log('--------', start, end)
-
             if (end <= start) {
                 return res.status(400).json({ message: 'endTime must be later than startTime' })
             }
@@ -68,7 +66,7 @@ const meetingController = {
         }
     },
     createMeetingRoom: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { participantIds, timeStart, timeEnd } = req.body
+        const { participantIds, timeStart, timeEnd, applyId } = req.body
 
         if (!participantIds || !timeStart) {
             return res.status(400).json({ message: 'Missing required fields' })
@@ -76,6 +74,10 @@ const meetingController = {
 
         if (participantIds.length < 2) {
             return res.status(400).json({ message: 'participantIds need more than or equal 2' })
+        }
+
+        if (!isValidObjectId(applyId)) {
+            return res.status(400).json({ message: 'Invalid applyId' })
         }
 
         if (isNaN(Date.parse(timeStart)) || isNaN(Date.parse(timeEnd))) {
@@ -96,6 +98,7 @@ const meetingController = {
                 timeStart,
                 timeEnd,
                 participants,
+                applyId,
             })
 
             if (
@@ -111,6 +114,30 @@ const meetingController = {
             }
 
             return res.status(200).json(schedules)
+        } catch (error) {
+            next(error)
+        }
+    },
+    getListCandidates: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        try {
+            const { sortOrder, statusFilter, page, limit, jobId } = req.query
+
+            const userId = req?.user?._id
+
+            if (!userId) {
+                throw new Error('UNAUTHORIZED')
+            }
+
+            const data = await meetingService.getCandidateList({
+                sortOrder: sortOrder as 'asc' | 'desc' | undefined,
+                statusFilter: statusFilter as string | undefined,
+                page: page ? parseInt(page as string, 10) : undefined,
+                limit: limit ? parseInt(limit as string, 10) : undefined,
+                userId,
+                jobId: jobId?.toString() as string,
+            })
+
+            return res.status(200).json(data)
         } catch (error) {
             next(error)
         }

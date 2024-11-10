@@ -1,22 +1,23 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
+import { Spinner } from "@nextui-org/react";
+import { CandidateList as Candidates } from "@/screens";
 import { HrLayout } from "@/components";
-import { InterviewManagerListJob } from "@/screens";
 
-export default function ContactUsPage() {
+export default function CandidateList() {
   return (
     <div
       className="flex flex-col w-screen h-screen"
       style={{
-        background: `url("../../background-login.png")`,
+        background: `url("../background-login.png")`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
       <HrLayout>
         <div className="flex-1">
-          <InterviewManagerListJob />
+          <Candidates />
         </div>
       </HrLayout>
     </div>

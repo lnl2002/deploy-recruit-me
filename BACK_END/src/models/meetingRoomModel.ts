@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 import { IAccount } from './accountModel'
+import { IApply } from './applyModel'
 
 export interface IParticipantStatus {
     participant: mongoose.Types.ObjectId | IAccount
@@ -18,6 +19,10 @@ export interface IMeetingRoom extends Document {
     timeStart: Date
     timeEnd: Date
     rejectCount: number
+    isActive: boolean
+    apply: mongoose.Types.ObjectId | IApply
+    createdAt: Date
+    updatedAt: Date
 }
 
 const participantStatusSchema: Schema = new Schema(
@@ -58,6 +63,11 @@ const meetingRoomSchema: Schema = new Schema(
         isActive: {
             type: Boolean,
             default: false,
+            required: true,
+        },
+        apply: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Apply',
             required: true,
         }
     },

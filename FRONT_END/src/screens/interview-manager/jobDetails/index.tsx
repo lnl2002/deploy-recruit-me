@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useEffect, useState } from "react";
 import jobApi, { TJob } from "@/api/jobApi";
 import { Image, Tab, Tabs } from "@nextui-org/react";
@@ -9,7 +9,9 @@ import TabComponent from "./components/TabComponent";
 import ApplicationList from "./components/ApplicationList";
 import JobPosting from "@/type/job";
 import { useAppDispatch } from "@/store/store";
-import {setJob as saveJob} from '@/store/jobState'
+import { setJob as saveJob } from "@/store/jobState";
+import { TUnit } from "@/api/unitApi";
+import { TLocation } from "@/api/locationApi";
 
 //example: /job-details?id=67055dd3e22b9a4790729550
 export const InterviewManagerJobDetails = (): React.JSX.Element => {
@@ -23,7 +25,7 @@ export const InterviewManagerJobDetails = (): React.JSX.Element => {
     (async () => {
       const { job } = await jobApi.getJobById(jobId as string);
       setJob(job);
-      dispatch(saveJob((job as any)))
+      dispatch(saveJob(job as any));
     })();
   }, [jobId]);
 
@@ -33,12 +35,12 @@ export const InterviewManagerJobDetails = (): React.JSX.Element => {
 
   return (
     <>
-      <Image src={job.unit?.banner} alt="" radius="none" />
+      <Image src={(job.unit as Partial<TUnit>)?.banner} alt="" radius="none" />
       <div className="flex justify-center">
         <div className="flex flex-col w-9/12 -mt-16 gap-4">
           <div className="flex flex-col gap-3">
             <Image
-              src={job.unit?.image}
+              src={(job.unit as Partial<TUnit>)?.image}
               alt=""
               radius="full"
               className="w-32 p-1 bg-themeWhite shadow-md"
@@ -46,7 +48,7 @@ export const InterviewManagerJobDetails = (): React.JSX.Element => {
             <h1 className="text-themeDark text-3xl font-bold">{job.title}</h1>
             <div className="flex gap-1 items-center">
               <span className="text-sm text-blurEffect">
-                {job.location?.city}
+                {(job.location as Partial<TLocation>)?.city}
               </span>
               <Dot />
               {job.createdAt && (
@@ -61,7 +63,9 @@ export const InterviewManagerJobDetails = (): React.JSX.Element => {
             tabSelected={tabSelected}
           />
           {tabSelected === "overview" && <InformationJob job={job} />}
-          {tabSelected === "applicants-list" && <ApplicationList jobId={jobId || ''}/>}
+          {tabSelected === "applicants-list" && (
+            <ApplicationList jobId={jobId ?? ""} />
+          )}
         </div>
       </div>
     </>

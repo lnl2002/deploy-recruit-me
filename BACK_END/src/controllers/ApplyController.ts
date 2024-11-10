@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import Apply, { IApply } from "../models/applyModel";
 import CV from "../models/cvModel";
 import Job from "../models/jobModel";
-import CVStatus from "../models/cvStatusModel";
+import CVStatus, { ICVStatus } from "../models/cvStatusModel";
 import applyService from "../services/apply";
 import { AppError } from "../constants/AppError";
 import mongoose from 'mongoose';
@@ -59,14 +59,32 @@ const ApplyController = {
   getAllCVsByJobId: async (req: Request, res: Response): Promise<void> => {
     try {
       const { jobId } = req.params;
+      const { sort, status } = req.query;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      const totalApplications = await Apply.countDocuments({ job: jobId });
-      const applications = await Apply.find({ job: jobId })
+      let cvStatusId = null;
+      if(status) {
+        const data = await CVStatus.findOne({
+            name: status
+        })
+        if(data){
+            cvStatusId = data._id ;
+        }
+      }
+
+      const totalApplications = await Apply.countDocuments({
+        job: jobId,
+        ...(status ? { status: cvStatusId } : {}),
+      });
+      const applications = await Apply.find({
+        job: jobId,
+        ...(status ? { status: cvStatusId } : {}),
+      })
         .populate("cv")
         .populate("status")
+        .sort({createdAt: sort === "asc" ? 1 : -1})
         .skip(skip)
         .limit(limit);
 
