@@ -35,7 +35,7 @@ const columnsRoot = [
   },
   {
     key: "action",
-    label: "action",
+    label: "Action",
   },
 ];
 

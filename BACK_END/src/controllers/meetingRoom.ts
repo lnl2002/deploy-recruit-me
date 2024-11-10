@@ -9,6 +9,9 @@ const meetingController = {
     updateMeetingStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { meetingRoomId, participantId, status, title } = req.body
 
+        console.log({title});
+
+
         // Kiểm tra tính hợp lệ của dữ liệu đầu vào
         if (!meetingRoomId || !participantId || !status) {
             return res.status(400).json({ message: 'Missing required fields' })
@@ -118,7 +121,7 @@ const meetingController = {
     },
     getListCandidates: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { sortOrder, statusFilter, page, limit } = req.query
+            const { sortOrder, statusFilter, page, limit, jobId } = req.query
 
             const userId = req?.user?._id
 
@@ -132,6 +135,7 @@ const meetingController = {
                 page: page ? parseInt(page as string, 10) : undefined,
                 limit: limit ? parseInt(limit as string, 10) : undefined,
                 userId,
+                jobId: jobId?.toString() as string
             })
 
             return res.status(200).json(data)

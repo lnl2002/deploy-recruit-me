@@ -129,12 +129,14 @@ const meetingService = {
         page = 1,
         limit = 1,
         userId,
+        jobId
     }: {
         sortOrder?: 'asc' | 'desc'
         statusFilter?: string
         page?: number
         limit?: number
         userId: string
+        jobId: string
     }) => {
         try {
             const skip = (page - 1) * limit
@@ -188,6 +190,7 @@ const meetingService = {
                     },
                 },
                 { $unwind: '$jobDetails' },
+                ...(jobId ? [{ $match: { 'jobDetails._id': new mongoose.Types.ObjectId(jobId) } }] : []),
                 {
                     $lookup: {
                         from: 'cvstatuses',

@@ -26,16 +26,16 @@ const InformationJob: React.FC<InformationJobProps> = ({
           {job.description && (
             <JobSection
               title={"Job Description:"}
-              content={job.description || ""}
+              content={job.description ?? ""}
             />
           )}
 
           {job.requests && (
-            <JobSection title={"Requests:"} content={job.requests || ""} />
+            <JobSection title={"Requests:"} content={job.requests ?? ""} />
           )}
 
           {job.benefits && (
-            <JobSection title={"Benefits:"} content={job.benefits || ""} />
+            <JobSection title={"Benefits:"} content={job.benefits ?? ""} />
           )}
         </div>
       </div>
@@ -47,7 +47,7 @@ const InformationJob: React.FC<InformationJobProps> = ({
             numberPerson={job.numberPerson ?? 0}
             address={job.address ?? ""}
             expiredDate={job.expiredDate ?? ""}
-            career={(job.career as TCareer)?.name ?? ""}
+            career={(job.career as Partial<TCareer>)?.name ?? ""}
             type={job.type ?? ""}
           />
         </div>

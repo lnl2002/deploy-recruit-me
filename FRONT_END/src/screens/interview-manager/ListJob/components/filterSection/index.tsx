@@ -24,31 +24,31 @@ const FilterSection: React.FC<FilterSectionProps> = ({
             !filterValue ? "themeDark border-b-2" : "foreground-400"
           }`}
         >
-          All My Job
+          All Job
         </p>
       </div>
       <div
         className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick("pending,rejected")}
+        onClick={() => handleClick("approved")}
       >
         <p
           className={`text-base px-1 text-${
-            filterValue === "pending,rejected"
+            filterValue === "approved"
               ? "themeDark border-b-2"
               : "foreground-400"
           }
           `}
         >
-          Posted Jobs
+          Approved Jobs
         </p>
       </div>
       <div
         className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick("reopened,approved,published")}
+        onClick={() => handleClick("reopened,published")}
       >
         <p
           className={`text-base px-1 text-${
-            filterValue === "reopened,approved,published"
+            filterValue === "reopened,published"
               ? "themeDark border-b-2"
               : "foreground-400"
           }`}

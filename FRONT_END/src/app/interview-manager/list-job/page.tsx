@@ -9,7 +9,7 @@ export default function ContactUsPage() {
     <div
       className="flex flex-col w-screen h-screen"
       style={{
-        background: `url("../background-login.png")`,
+        background: `url("../../background-login.png")`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
