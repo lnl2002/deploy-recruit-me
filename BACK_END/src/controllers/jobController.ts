@@ -474,7 +474,12 @@ const jobController = {
     },
     getJobsByInterviewManager: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { page, limit } = req.query
+            const { page, limit, status, search } = req.query
+
+            let listStatus = []
+            if(status){
+                listStatus = (status as string).split(',');
+            }
 
             const interviewManagerId = req?.user?._id || ''
 
@@ -489,6 +494,8 @@ const jobController = {
                 interviewManagerId: interviewManagerId as string,
                 page: parseInt(page as string, 10) || 1,
                 limit: parseInt(limit as string, 10) || 10,
+                status: listStatus as string[],
+                search: search.toString()
             }
 
             const jobs = await jobService.getJobsByInterviewManager(filterOptions)

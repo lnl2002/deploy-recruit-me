@@ -56,7 +56,7 @@ const InformationJob: React.FC<InformationJobProps> = ({
             numberPerson={job.numberPerson ?? 0}
             address={job.address ?? ""}
             expiredDate={job.expiredDate ?? ""}
-            career={(job.career as TCareer)?.name ?? ""}
+            career={(job.career as Partial<TCareer>)?.name ?? ""}
             type={job.type ?? ""}
           />
         </div>

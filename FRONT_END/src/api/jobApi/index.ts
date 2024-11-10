@@ -78,6 +78,42 @@ const jobApi = {
       return { job: {} };
     }
   },
+
+  getJobsByInterviewManager: async({
+    limit,
+    page,
+    status,
+    search
+  }: {
+    limit: number
+    page: number
+    status?: string
+    search?: string
+  }) => {
+    try {
+      const res = await axios.get(
+        `${BACKEND_URL}/api/v1/jobs/interview-manager/list-jobs?limit=${limit}&page=${page}&status=${status}&search=${search}`
+      );
+      if (res.status === 200) {
+        return res.data.data;
+      } else {
+        return {
+          page: 1,
+          data: [],
+          total: 0,
+          totalPages: 0,
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching career list:", error);
+      return {
+        page: 1,
+        data: [],
+        total: 0,
+        totalPages: 0,
+      };
+    }
+  }
 };
 
 export default jobApi;
@@ -109,6 +145,16 @@ export interface TJob {
   createdAt: string;
   updatedAt: string;
   applies: string[] | Partial<IApply>[];
+  status: JobStatus;
   criterias: ICriteria[];
   __v: number;
+}
+
+export enum JobStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  PUBLISHED = 'published',
+  EXPIRED = 'expired',
+  REOPENED = 'reopened',
+  REJECTED = 'rejected',
 }

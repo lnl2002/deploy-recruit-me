@@ -1,13 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import jobApi, { TJob } from "@/api/jobApi";
-import { Plus } from "lucide-react";
-import { Button } from "@nextui-org/react";
+import { Plus, Search } from "lucide-react";
+import { Button, Input } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 
 import JobSection from "./components/jobSection";
 import FilterSection from "./components/filterSection";
+import { debounce } from "@/utils/debounce";
 
 export const InterviewManagerListJob = (): React.JSX.Element => {
   const router = useRouter();
@@ -17,6 +18,21 @@ export const InterviewManagerListJob = (): React.JSX.Element => {
   const [listJob, setListJob] = useState<TJob[] | []>();
   const [filterValue, setFilterValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [search, setSearch] = useState<string>("");
+
+  const fetchJobs = useCallback(
+    debounce(async (searchTerm) => {
+      const { data, totalPages } = await jobApi.getJobsByInterviewManager({
+        limit: 10,
+        page: currentPage,
+        status: filterValue,
+        search: searchTerm
+      });
+      setListJob(data);
+      setJobTotal(totalPages);
+    }, 500),
+    [currentPage, filterValue]
+  );
 
   useEffect(() => {
     let params = "";
@@ -31,13 +47,21 @@ export const InterviewManagerListJob = (): React.JSX.Element => {
 
   useEffect(() => {
     (async () => {
-      const { jobs, total } = await jobApi.getJobList(
-        `&account=${"671124aa9578b132a235155d"}${params}`
-      );
-      setListJob(jobs);
-      setJobTotal(total);
+      const { data, totalPages } = await jobApi.getJobsByInterviewManager({
+        limit: 10,
+        page: currentPage,
+        status: filterValue,
+        search
+      });
+      setListJob(data);
+      setJobTotal(totalPages);
     })();
   }, [params]);
+
+  useEffect(() => {
+    fetchJobs(search);
+  }, [search, fetchJobs]);
+    
 
   const handleChangePage = (pageNumber: number) => {
     setCurrentPage(pageNumber);
@@ -48,14 +72,14 @@ export const InterviewManagerListJob = (): React.JSX.Element => {
       <div className="w-[85vw] flex flex-col gap-8 py-6">
         <div className="w-full flex justify-between">
           <h1 className="font-bold text-themeDark text-3xl">My Job</h1>
-          <Button
-            onPress={() => router.push("/recruiter/add-job")}
-            radius="full"
-            className="bg-themeOrange text-themeWhite px-12"
-            startContent={<Plus color="#FFF" size={18} />}
-          >
-            Post New Job
-          </Button>
+          <div>
+            <Input 
+              placeholder="Search Job"
+              startContent={<Search className="text-themeDark"/>}
+              className="min-w-[300px]"
+              onChange={(e) => setSearch(e.target.value)} 
+              />
+          </div>
         </div>
         <div className="grid grid-flow-col grid-cols-4">
           <div className="col-span-1">

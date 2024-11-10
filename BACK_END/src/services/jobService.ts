@@ -295,15 +295,32 @@ const jobService = {
         interviewManagerId,
         page = 1,
         limit = 10,
+        status,
+        search
     }: {
         interviewManagerId: string
-        page: number
-        limit: number
+        page?: number
+        limit?: number
+        status?: string[]
+        search: string
     }) => {
         const skip = (page - 1) * limit
 
-        const totalJobs = await Job.countDocuments({ interviewManager: interviewManagerId })
-        const jobs = await Job.find({ interviewManager: interviewManagerId }).skip(skip).limit(limit).exec()
+        const totalJobs = await Job.countDocuments({
+            interviewManager: interviewManagerId,
+            ...(status && status.length > 0 ? { status: { $in: status } } : {}),
+            ...(search ? {title: search.toString()} : {})
+        })
+        const jobs = await Job.find({
+            interviewManager: interviewManagerId,
+            ...(status && status.length > 0 ? { status: { $in: status } } : {}),
+            ...(search ? { title: { $regex: search.toString(), $options: 'i' } } : {})
+        })
+            .populate("unit")
+            .skip(skip)
+            .limit(limit)
+            .sort({createdAt: -1})
+
         return {
             total: totalJobs,
             page,

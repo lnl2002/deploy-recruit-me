@@ -115,10 +115,6 @@ const jobSchema: Schema = new Schema(
             type: Boolean,
             default: false,
         },
-        isActive: {
-            type: Boolean,
-            default: false,
-        },
         type: {
             type: String,
             required: true,
