@@ -65,12 +65,12 @@ const ApplyController = {
       const skip = (page - 1) * limit;
 
       let cvStatusId = null;
-      if(status) {
+      if (status) {
         const data = await CVStatus.findOne({
-            name: status
+          name: status
         })
-        if(data){
-            cvStatusId = data._id ;
+        if (data) {
+          cvStatusId = data._id;
         }
       }
 
@@ -84,7 +84,7 @@ const ApplyController = {
       })
         .populate("cv")
         .populate("status")
-        .sort({createdAt: sort === "asc" ? 1 : -1})
+        .sort({ createdAt: sort === "asc" ? 1 : -1 })
         .skip(skip)
         .limit(limit);
 
@@ -135,6 +135,9 @@ const ApplyController = {
   getApplicationInfoOfCandidate: async (req: Request, res: Response): Promise<void> => {
     try {
       const userId = req.user._id;
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        res.status(400).json({ message: "invalid user ID" })
+      }
       const { jobId } = req.params;
       const application = await Apply.findOne({ job: jobId, createdBy: userId }).populate(
         "cv job status assigns createdBy"

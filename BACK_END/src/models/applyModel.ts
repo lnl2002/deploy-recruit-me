@@ -3,13 +3,17 @@ import { ICV } from './cvModel'
 import { IJob } from './jobModel'
 import { ICVStatus } from './cvStatusModel'
 import { IAccount } from './accountModel'
+import { IApplicantReport } from './applicantReportModel'
 
 export interface IApply extends Document {
     cv: mongoose.Types.ObjectId | ICV
     job: mongoose.Types.ObjectId | IJob
     status: mongoose.Types.ObjectId | ICVStatus
-    createdBy: mongoose.Types.ObjectId | IAccount,
+    statusUpdatedBy: mongoose.Types.ObjectId | IAccount[]
+    createdBy: mongoose.Types.ObjectId | IAccount
     assigns: mongoose.Types.ObjectId[] | IAccount[]
+    applicantReport: mongoose.Types.ObjectId[] | IApplicantReport[]
+    statusUpdatedAt: Date
 }
 
 const applySchema: Schema = new Schema(
@@ -39,6 +43,11 @@ const applySchema: Schema = new Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Account',
             required: true,
+        },
+        applicantReport: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'ApplicantReport',
+            required: false,
         },
         statusUpdatedAt: { type: Date },
         assigns: [

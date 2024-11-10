@@ -1,16 +1,13 @@
 "use client";
 
-import { Button, Card, Chip } from "@nextui-org/react";
+import { Button, Card } from "@nextui-org/react";
 import { Mic, MicOff, Phone, Video, VideoOff } from "lucide-react";
 import dynamic from "next/dynamic";
-import React, { useEffect, useMemo, useState } from "react";
-import TwilioVideo, {
+import React, { useEffect, useState } from "react";
+import {
   Room as TwilioRoom,
   Participant as TwilioParticipant,
   createLocalVideoTrack,
-  LocalVideoTrackPublication,
-  LocalTrackPublication,
-  LocalAudioTrackPublication,
   createLocalAudioTrack,
 } from "twilio-video";
 import CameraOffView from "./CameraOffView";
@@ -89,16 +86,12 @@ const Room: React.FC<RoomProps> = ({
     localParticipant(room.localParticipant);
 
     const participantConnected = (participant: TwilioParticipant) => {
-      console.log("Participant connected:", participant.identity);
-
       setParticipants((prevParticipants) => {
         return [...prevParticipants, participant];
       });
     };
 
     const participantDisconnected = (participant: TwilioParticipant) => {
-      console.log("Participant disconnected:", participant.identity);
-
       setParticipants((prevParticipants) =>
         prevParticipants.filter((p) => p !== participant)
       );
@@ -118,12 +111,8 @@ const Room: React.FC<RoomProps> = ({
   };
 
   const handleShowName = (identity: string) => {
-    return identity.split("6C1B01A16E67")[0];
+    return identity?.split("6C1B01A16E67")[0];
   };
-
-  useEffect(() => {
-    console.log(handleShowName(participantSelected?.identity as string));
-  }, [participantSelected]);
 
   const Participants = participants.map((participant, index) => {
     return (

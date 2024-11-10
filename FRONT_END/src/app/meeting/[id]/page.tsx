@@ -5,7 +5,13 @@ import { Footer, Header, MainLayout } from "@/components";
 import { Spinner } from "@nextui-org/react";
 import { Meeting } from "@/screens";
 
-const MeetingPage: React.FC = () => {
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+const MeetingPage: React.FC<PageProps> = ({ params }) => {
   return (
     <div
       className="w-screen h-screen overflow-auto"
@@ -17,7 +23,7 @@ const MeetingPage: React.FC = () => {
     >
       <Header />
       <Suspense fallback={<Spinner label="Loading..." color="primary" />}>
-        <Meeting />
+        <Meeting params={params} />
       </Suspense>
       <Footer />
     </div>
