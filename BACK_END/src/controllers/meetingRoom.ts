@@ -7,8 +7,8 @@ import { v4 as uuid } from 'uuid'
 
 const meetingController = {
     updateMeetingStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { meetingRoomId, participantId, status, title } = req.body
-
+        const { meetingRoomId, status, title, declineReason } = req.body
+        const participantId = new mongoose.Types.ObjectId(req.user._id);
         console.log({ title });
 
 
@@ -26,6 +26,7 @@ const meetingController = {
                 meetingRoomId: meetingRoomId,
                 participantId: participantId,
                 status: status as IMeetingApproveStatus,
+                declineReason: declineReason
             })
 
             return res.status(200).json({ message: 'Status updated successfully' })

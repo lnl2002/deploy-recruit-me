@@ -13,6 +13,6 @@ router.get('/get/:applyId', meetingController.getMeetingRoomByApplyId)
 router.post('/create', meetingController.createMeetingRoom);
 
 // PUT
-router.put('/update-status', meetingController.updateMeetingStatus)
+router.put('/update-status', requireRole(["CANDIDATE", "INTERVIEW_MANAGER" , "INTERVIEWER"]) ,meetingController.updateMeetingStatus)
 
 export default router
