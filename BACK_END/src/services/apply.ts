@@ -24,24 +24,23 @@ const applyService = {
         return applies
     },
 
-    createApply: async ({cvId, jobId, defaultStatusId, createdBy}) =>{
+    createApply: async ({ cvId, jobId, defaultStatusId, createdBy }) => {
         try {
-          const newApply = new Apply({
-            cv: cvId, 
-            job: jobId,
-            status: defaultStatusId, 
-            createdBy: createdBy,
-          });
-    
-          const savedApply = await newApply.save();
-          return savedApply; 
-    
+            const newApply = new Apply({
+                cv: cvId,
+                job: jobId,
+                status: defaultStatusId,
+                createdBy: createdBy,
+            })
+
+            const savedApply = await newApply.save()
+            return savedApply
         } catch (error) {
-          // Handle errors (e.g., log and re-throw)
-          console.error("Error creating application in applyService:", error);
-          throw error; // Re-throw for the controller to handle
+            // Handle errors (e.g., log and re-throw)
+            console.error('Error creating application in applyService:', error)
+            throw error // Re-throw for the controller to handle
         }
-      }
+    },
 }
 
 export default applyService

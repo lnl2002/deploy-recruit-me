@@ -3,13 +3,13 @@ import { IMeetingApproveStatus, IParticipantStatus } from '../models/meetingRoom
 import meetingService from '../services/meetingRoom'
 import mongoose from 'mongoose'
 import { FRONTEND_URL_CANDIDATE_HOME } from '../utils/env'
-import {v4 as uuid} from 'uuid'
+import { v4 as uuid } from 'uuid'
 
 const meetingController = {
     updateMeetingStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { meetingRoomId, participantId, status, title } = req.body
 
-        console.log('title', title);
+        console.log('title', title)
 
         // Kiểm tra tính hợp lệ của dữ liệu đầu vào
         if (!meetingRoomId || !participantId || !status) {
@@ -39,7 +39,7 @@ const meetingController = {
             return res.status(400).json({ message: 'Missing required fields' })
         }
 
-        if (!mongoose.Types.ObjectId.isValid(interviewerId as string) ) {
+        if (!mongoose.Types.ObjectId.isValid(interviewerId as string)) {
             return res.status(400).json({ message: 'Invalid ID' })
         }
 
@@ -50,8 +50,7 @@ const meetingController = {
             start.setHours(0, 0, 0, 0)
             end.setHours(23, 59, 59, 999)
 
-            console.log('--------', start, end);
-
+            console.log('--------', start, end)
 
             if (end <= start) {
                 return res.status(400).json({ message: 'endTime must be later than startTime' })
@@ -71,25 +70,25 @@ const meetingController = {
     createMeetingRoom: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { participantIds, timeStart, timeEnd } = req.body
 
-        if (!participantIds || !timeStart ) {
+        if (!participantIds || !timeStart) {
             return res.status(400).json({ message: 'Missing required fields' })
         }
 
-        if(participantIds.length < 2) {
+        if (participantIds.length < 2) {
             return res.status(400).json({ message: 'participantIds need more than or equal 2' })
         }
 
         if (isNaN(Date.parse(timeStart)) || isNaN(Date.parse(timeEnd))) {
-            return res.status(400).json({ message: 'Invalid time format, must be a valid date-time' });
+            return res.status(400).json({ message: 'Invalid time format, must be a valid date-time' })
         }
 
         try {
-            const participants = (participantIds as Array<string>).map(participantId => {
+            const participants = (participantIds as Array<string>).map((participantId) => {
                 return {
                     participant: new mongoose.Types.ObjectId(participantId),
-                    status: IMeetingApproveStatus.PENDING
+                    status: IMeetingApproveStatus.PENDING,
                 }
-            }) as IParticipantStatus[];
+            }) as IParticipantStatus[]
 
             const url = `${FRONTEND_URL_CANDIDATE_HOME}/meeting/${uuid()}`
             const schedules = await meetingService.createMeetingRoom({
@@ -99,15 +98,34 @@ const meetingController = {
                 participants,
             })
 
-            if((schedules as {
-                isError: boolean,
-                message: string
-            })?.isError){
+            if (
+                (
+                    schedules as {
+                        isError: boolean
+                        message: string
+                    }
+                )?.isError
+            ) {
                 res.status(400).json(schedules)
                 return
             }
 
             return res.status(200).json(schedules)
+        } catch (error) {
+            next(error)
+        }
+    },
+    getMeetingRoomByUrl: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        try {
+            const { url } = req.query
+            if (!url) {
+                return res.status(400).json({ message: 'Meeting URL is required' })
+            }
+            const meetingRoom = await meetingService.getMeetingRoom(url as string)
+            if (!meetingRoom) {
+                return res.status(404).json({ message: 'Meeting room not found' })
+            }
+            return res.status(200).json(meetingRoom)
         } catch (error) {
             next(error)
         }

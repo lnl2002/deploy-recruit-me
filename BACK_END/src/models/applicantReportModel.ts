@@ -1,9 +1,16 @@
 import mongoose, { Document, Schema } from 'mongoose'
+import { IAccount } from './accountModel'
 
 export interface IApplicantReport extends Document {
-    name: string
-    image: string
-    introduction: string
+    details: IDetailCriteria[]
+    createdBy: mongoose.Types.ObjectId | IAccount
+    comment: string
+    isPass: boolean
+}
+
+export interface IDetailCriteria extends Document {
+    criteriaName: string
+    comment: string
 }
 
 const DetailCriteriaSchema: Schema = new Schema({
@@ -19,19 +26,11 @@ const DetailCriteriaSchema: Schema = new Schema({
 
 const applicantReportSchema: Schema = new Schema(
     {
-        name: {
-            type: String,
+        details: {
+            type: [DetailCriteriaSchema],
             required: true,
+            minlength: 0,
         },
-        image: {
-            type: String,
-            required: false,
-        },
-        introduction: {
-            type: String,
-            required: false,
-        },
-        detail: DetailCriteriaSchema,
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Account',
