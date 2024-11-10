@@ -99,7 +99,7 @@ const JobDetails = (): React.JSX.Element => {
             </div>
           </div>
 
-          <InformationJob job={job} onApply={() => popupApplyJob.onOpen()} />
+          <InformationJob job={job} applied={applyInfo ? true : false} onApply={() => popupApplyJob.onOpen()} />
         </div>
       </div>
 

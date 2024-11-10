@@ -68,6 +68,7 @@ const config: Config = {
 
       //surface
       surfaceBrand: "#F36523",
+      surfaceSecondary: "#86868E",
       surfaceTertiary: "#F6F5F9"
     },
   },

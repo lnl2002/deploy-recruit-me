@@ -11,11 +11,13 @@ import { TCareer } from "@/api/careerApi";
 type InformationJobProps = {
   job: Partial<TJob>;
   onApply: () => void;
+  applied?: boolean
 };
 
 const InformationJob: React.FC<InformationJobProps> = ({
   job,
   onApply,
+  applied = false
 }): React.JSX.Element => {
   const handleApply = () => {
     onApply();
@@ -80,7 +82,7 @@ const InformationJob: React.FC<InformationJobProps> = ({
       </div>
       <div className="col-span-1 px-8 ">
         <div className="p-6 bg-white rounded-2xl shadow-md mb-8 border">
-          <StateBox/>
+          <StateBox />
         </div>
         <div className="p-6 bg-white rounded-2xl shadow-md border">
           <JobAppicationCard
@@ -92,14 +94,16 @@ const InformationJob: React.FC<InformationJobProps> = ({
             career={(job.career as Partial<TCareer>)?.name ?? ""}
             type={job.type ?? ""}
           />
-          <div className="mt-10">
-            <Button
-              onPress={handleApply}
-              className="w-full py-2 bg-themeOrange text-themeWhite rounded-full hover:bg-themeOrange"
-            >
-              Apply Now
-            </Button>
-          </div>
+          {
+            !applied && <div className="mt-10">
+              <Button
+                onPress={handleApply}
+                className="w-full py-2 bg-themeOrange text-themeWhite rounded-full hover:bg-themeOrange"
+              >
+                Apply Now
+              </Button>
+            </div>
+          }
         </div>
       </div>
     </div>

@@ -177,6 +177,17 @@ export const meetingApi = {
       };
     }
   },
+
+  getMeetingByApplyId: async (applyId: string): Promise<Meeting | undefined> => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/v1/meeting-room/get/${applyId}`);
+      return res.data;
+
+    } catch (error) {
+      console.error("Error fetching career list:", error);
+      return undefined
+    }
+  },
 };
 
 export default meetingApi;
