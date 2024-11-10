@@ -7,6 +7,7 @@ import JobSection from "@/components/JobSection";
 import { StateBox } from "@/components/StateBox";
 import { TUnit } from "@/api/unitApi";
 import { TCareer } from "@/api/careerApi";
+import { useAppSelector } from "@/store/store";
 
 type InformationJobProps = {
   job: Partial<TJob>;
@@ -19,6 +20,8 @@ const InformationJob: React.FC<InformationJobProps> = ({
   onApply,
   applied = false
 }): React.JSX.Element => {
+  const { applyInfo } = useAppSelector((state) => state.applyInfo);
+
   const handleApply = () => {
     onApply();
   };
@@ -81,9 +84,11 @@ const InformationJob: React.FC<InformationJobProps> = ({
         </div>
       </div>
       <div className="col-span-1 px-8 ">
-        <div className="p-6 bg-white rounded-2xl shadow-md mb-8 border">
-          <StateBox />
-        </div>
+        {
+          applyInfo?.status && <div className="p-6 bg-white rounded-2xl shadow-md mb-8 border">
+            <StateBox />
+          </div>
+        }
         <div className="p-6 bg-white rounded-2xl shadow-md border">
           <JobAppicationCard
             minSalary={job.minSalary ?? 0}

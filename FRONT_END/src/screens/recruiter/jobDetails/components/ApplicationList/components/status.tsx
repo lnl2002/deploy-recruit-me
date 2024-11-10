@@ -2,7 +2,7 @@ import { Chip } from "@nextui-org/react";
 import React from "react";
 
 interface Props {
-  status: string;
+  status: string | undefined;
 }
 
 interface StatusConfig {
@@ -94,7 +94,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
 const getDefaultConfig = (status: string) => {
   return {
     message: "Your CV is under our review. Please check back frequently for updates.",
-    label: status,
+    label: status + " (old)",
     styles: {
       base: "bg-[#E0E0E1] border-none p-2",
       content: "text-[#000] font-bold",
@@ -104,20 +104,23 @@ const getDefaultConfig = (status: string) => {
 };
 
 const Status: React.FC<Props> = ({ status }) => {
+  if (!status) return (<></>)
   const config = STATUS_CONFIG[status] || getDefaultConfig(status);
 
   return (
     <div>
-      <Chip
-        variant="dot"
-        classNames={{
-          base: config.styles.base,
-          content: config.styles.content,
-          dot: config.styles.dot,
-        }}
-      >
-        {config.label}
-      </Chip>
+      {
+        status && <Chip
+          variant="dot"
+          classNames={{
+            base: config.styles.base,
+            content: config.styles.content,
+            dot: config.styles.dot,
+          }}
+        >
+          {config.label}
+        </Chip>
+      }
     </div>
   );
 };

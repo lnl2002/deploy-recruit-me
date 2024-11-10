@@ -27,6 +27,12 @@ export type Meeting = {
   __v: number;
 };
 
+export type MeetingPaticipant = {
+  meetingRoomId: string
+  status: string
+  declineReason?: string
+}
+
 export const meetingApi = {
   createSchedule: async ({
     participantIds,
@@ -181,6 +187,31 @@ export const meetingApi = {
   getMeetingByApplyId: async (applyId: string): Promise<Meeting | undefined> => {
     try {
       const res = await axios.get(`${BACKEND_URL}/api/v1/meeting-room/get/${applyId}`);
+      return res.data;
+
+    } catch (error) {
+      console.error("Error fetching career list:", error);
+      return undefined
+    }
+  },
+
+  updateMeetingStatus: async ({meetingRoomId, status, declineReason} : MeetingPaticipant): Promise<Meeting | undefined> => {
+    try {
+      const accessToken = localStorage.getItem("access_token");
+
+      const res = await axios.put(
+        `${BACKEND_URL}/api/v1/meeting-room/update-status`,
+        {
+            meetingRoomId,
+            status,
+            declineReason
+        },
+        {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        }
+    );
       return res.data;
 
     } catch (error) {

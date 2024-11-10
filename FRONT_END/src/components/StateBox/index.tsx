@@ -1,12 +1,13 @@
 import meetingApi, { Meeting } from "@/api/meetingApi"
 import Status, { getStateText } from "@/screens/recruiter/jobDetails/components/ApplicationList/components/status"
-import { AlarmClockIcon } from "lucide-react"
+import { AlarmClockIcon, CheckCircle2, XCircle } from "lucide-react"
 import { ButtonApp } from "../ButtonApp"
 import { useAppSelector } from "@/store/store"
 import { useEffect, useState } from "react"
 import { formatDateTimeSeperate } from "@/utils/formatDateTime"
 import ModalCommon from "../Modals/ModalCommon"
-import { Button, Card, CardBody, CardFooter, CardHeader, Textarea, useDisclosure } from "@nextui-org/react"
+import { Button, Card, CardBody, CardFooter, CardHeader, Link, Textarea, useDisclosure } from "@nextui-org/react"
+import { useRouter } from "next/navigation"
 
 type Props = {
 
@@ -17,6 +18,8 @@ export const StateBox: React.FC<Props> = (props) => {
     const [meeting, setMeeting] = useState<Meeting>();
     const declineDisclosure = useDisclosure();
     const agreeDisclosure = useDisclosure();
+    const route = useRouter();
+    const { userInfo } = useAppSelector((state) => state.user);
     const [message, setMessage] = useState("");
     useEffect(() => {
         if (applyInfo?._id) {
@@ -30,11 +33,99 @@ export const StateBox: React.FC<Props> = (props) => {
         setMeeting(res?.data ?? undefined)
     }
 
+    const acceptSchedule = async () => {
+        await meetingApi.updateMeetingStatus({
+            meetingRoomId: meeting?._id ?? "",
+            status: "approved",
+        })
+        if (applyInfo?._id) {
+            fetchMeeting(applyInfo?._id)
+        }
+    }
+
+    const declineSchedule = async () => {
+        await meetingApi.updateMeetingStatus({
+            meetingRoomId: meeting?._id ?? "",
+            status: "rejected",
+            declineReason: message
+        })
+        if (applyInfo?._id) {
+            fetchMeeting(applyInfo?._id)
+        }
+    }
+
+    const goMeeting = () => {
+        if (meeting && (applyInfo?.status.name == "Interview Scheduled" || applyInfo?.status.name == "Interview Rescheduled"))
+            return (
+                <Link href={meeting.url}>
+                    <ButtonApp
+                        className="bg-white text-textIconBrand border w-full col-span-1 mt-10"
+                        title="Go to Interview Room"
+                    />
+                </Link >
+            )
+    }
+
+    const conFirmMeeting = () => {
+        if (meeting && applyInfo?.status.name == "Pending Interview Confirmation")
+            return (
+                <>
+                    {
+                        meeting.participants.filter((e) => e.participant == userInfo?._id).at(0)?.status == "pending" &&
+                        <div className="grid grid-cols-2 gap-4 mt-10">
+                            <ButtonApp
+                                onClick={() => { declineDisclosure.onOpen() }}
+                                className="bg-white text-textIconBrand border w-full col-span-1"
+                                title="Decline"
+                            />
+                            <ButtonApp
+                                onClick={() => { agreeDisclosure.onOpen() }}
+                                type="submit"
+                                className="w-full col-span-1 text-white"
+                                title="Accept"
+                            />
+                        </div>
+                    }
+
+                    {
+                        meeting.participants.filter((e) => e.participant == userInfo?._id).at(0)?.status == "approved" &&
+                        <div className="flex flex-col gap-4 mt-10">
+                            <div className="flex items-center gap-5">
+                                <CheckCircle2 size={35} color="#17c964" />
+                                <p className="text-success-500 font-medium text-base">You have accepted the schedule</p>
+                            </div>
+                            <ButtonApp
+                                onClick={() => { declineDisclosure.onOpen() }}
+                                className="bg-white text-textPrimary border w-full col-span-1"
+                                title="Decline"
+                            />
+                        </div>
+                    }
+
+
+                    {
+                        meeting.participants.filter((e) => e.participant == userInfo?._id).at(0)?.status == "rejected" &&
+                        <div className="flex flex-col gap-4 mt-10">
+                            <div className="flex items-center gap-5">
+                                <XCircle size={35} color="#f31260" />
+                                <p className="text-danger-500 font-medium text-base">You have declined the schedule</p>
+                            </div>
+                            <ButtonApp
+                                onClick={() => { agreeDisclosure.onOpen() }}
+                                type="submit"
+                                className="w-full col-span-1 text-white"
+                                title="Accept"
+                            />
+                        </div>
+                    }</>
+            )
+    }
+
     return (
         <div>
             <div className="flex justify-between items-center">
                 <p className="text-themeDark font-bold text-2xl">State</p>
-                <Status status={applyInfo?.status.name} />
+                <Status status={applyInfo?.status.name ?? "n/a"} />
             </div>
             <p className="text-base text-textTertiary mt-8">{getStateText(applyInfo?.status.name ?? "default")[0]}</p>
             {
@@ -48,19 +139,10 @@ export const StateBox: React.FC<Props> = (props) => {
                             <p className="text-textSecondary text-base">{formatDateTimeSeperate(meeting?.timeStart ?? "").formattedDate}</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 mt-10">
-                        <ButtonApp
-                            onClick={() => { declineDisclosure.onOpen() }}
-                            className="bg-white text-textIconBrand border w-full col-span-1"
-                            title="Decline"
-                        />
-                        <ButtonApp
-                        onClick={() => {agreeDisclosure.onOpen()}}
-                            type="submit"
-                            className="w-full col-span-1 text-white"
-                            title="Accept"
-                        />
-                    </div>
+
+                    {conFirmMeeting()}
+                    {goMeeting()}
+
                 </div>
             }
             <ModalCommon size={"xl"} disclosure={declineDisclosure}>
@@ -103,7 +185,7 @@ export const StateBox: React.FC<Props> = (props) => {
                                 Not now
                             </Button>
                             <Button
-                                onClick={() => { declineDisclosure.onClose() }}
+                                onClick={() => { declineDisclosure.onClose(); declineSchedule() }}
                                 className="flex-1 bg-surfaceTertiary text-black rounded-full"
                             >
                                 Send
@@ -143,7 +225,7 @@ export const StateBox: React.FC<Props> = (props) => {
                     <CardFooter className="flex flex-col gap-3">
                         <div className="flex gap-3 w-full">
                             <Button
-                                onClick={() => { declineDisclosure.onClose() }}
+                                onClick={() => { agreeDisclosure.onClose(); acceptSchedule() }}
                                 className="flex-1 bg-white border-2 border-themeOrange rounded-full text-themeOrange"
                             >
                                 Accept
@@ -155,3 +237,4 @@ export const StateBox: React.FC<Props> = (props) => {
         </div>
     )
 }
+
