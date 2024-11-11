@@ -5,6 +5,7 @@ import { IApply } from './applyModel'
 export interface IParticipantStatus {
     participant: mongoose.Types.ObjectId | IAccount
     status: IMeetingApproveStatus
+    declineReason?: String
 }
 
 export enum IMeetingApproveStatus {

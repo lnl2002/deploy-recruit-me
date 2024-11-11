@@ -12,8 +12,11 @@ import { FormApplyJob } from "@/components";
 import { asyncState } from "@/utils/constants";
 import Lottie from "react-lottie";
 import { LottieApp } from "@/lotties";
-import { applyApi, ICV } from "@/api/applyApi";
+import { applyApi, ICV, IResposeApply } from "@/api/applyApi";
 import { useAppSelector } from "@/store/store";
+import Status from "../recruiter/jobDetails/components/ApplicationList/components/status";
+import { useDispatch } from "react-redux";
+import { setApplyInfo } from "@/store/applyState";
 import { TUnit } from "@/api/unitApi";
 import { TLocation } from "@/api/locationApi";
 
@@ -24,6 +27,8 @@ const JobDetails = (): React.JSX.Element => {
   const [state, setState] = useState<string>(asyncState.loading);
   const [responseMessage, setResponseMessage] = useState<string>();
   const { userInfo } = useAppSelector((state) => state.user);
+  const { applyInfo } = useAppSelector((state) => state.applyInfo);
+  const dispatcher = useDispatch();
 
   //disclosure
   const popupApplyJob = useDisclosure();
@@ -33,6 +38,8 @@ const JobDetails = (): React.JSX.Element => {
     (async () => {
       const { job } = await jobApi.getJobById(jobId as string);
       setJob(job);
+      const applyInfo = await applyApi.getApplyInfo(jobId as string);
+      dispatcher(setApplyInfo(applyInfo.data))
     })();
   }, [jobId]);
 
@@ -75,7 +82,10 @@ const JobDetails = (): React.JSX.Element => {
               radius="full"
               className="w-32 p-1 bg-themeWhite shadow-md"
             />
-            <h1 className="text-themeDark text-3xl font-bold">{job.title}</h1>
+            <div className="flex items-center gap-6">
+              <h1 className="text-themeDark text-3xl font-bold">{job.title}</h1>
+              <Status status={applyInfo?.status.name} />
+            </div>
             <div className="flex gap-1 items-center">
               <span className="text-sm text-blurEffect">
                 {(job.location as TLocation)?.city}
@@ -89,7 +99,7 @@ const JobDetails = (): React.JSX.Element => {
             </div>
           </div>
 
-          <InformationJob job={job} onApply={() => popupApplyJob.onOpen()} />
+          <InformationJob job={job} applied={applyInfo ? true : false} onApply={() => popupApplyJob.onOpen()} />
         </div>
       </div>
 

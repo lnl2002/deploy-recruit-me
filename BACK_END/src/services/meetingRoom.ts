@@ -8,6 +8,7 @@ interface UpdateMeetingStatusInput {
     meetingRoomId: mongoose.Types.ObjectId
     participantId: mongoose.Types.ObjectId
     status: IMeetingApproveStatus
+    declineReason?: string
 }
 
 interface InterviewScheduleParams {
@@ -17,7 +18,7 @@ interface InterviewScheduleParams {
 }
 
 const meetingService = {
-    updateMeetingStatus: async ({ meetingRoomId, participantId, status }: UpdateMeetingStatusInput): Promise<void> => {
+    updateMeetingStatus: async ({ meetingRoomId, participantId, status, declineReason }: UpdateMeetingStatusInput): Promise<void> => {
         // Tìm meeting room
         const meetingRoom = await MeetingRoom.findById(meetingRoomId)
 
@@ -35,10 +36,13 @@ const meetingService = {
         const participant = meetingRoom.participants.find((p) => p.participant.toString() === participantId.toString())
 
         if (!participant) {
-            throw new Error('Participant not found in meeting room')
+            throw new Error('Participant not found in meeting room: ' + participantId)
         }
 
         participant.status = status
+        if (declineReason && status == IMeetingApproveStatus.REJECTED) {
+            participant.declineReason = declineReason
+        }
 
         if (status === IMeetingApproveStatus.REJECTED && (user.role as IRole).roleName === 'CANDIDATE') {
             meetingRoom.rejectCount += 1
@@ -82,9 +86,9 @@ const meetingService = {
     }): Promise<
         | IMeetingRoom
         | {
-              isError: boolean
-              message: string
-          }
+            isError: boolean
+            message: string
+        }
     > => {
         // Lấy danh sách participant IDs
         const participantIds = participants.map((p) => p.participant.toString())
@@ -279,19 +283,19 @@ const meetingService = {
                 // Nếu có statusFilter thì cần thêm vào pipeline để lọc theo status
                 ...(statusFilter
                     ? [
-                          // Lookup for statusDetails to join cvstatuses collection
-                          {
-                              $lookup: {
-                                  from: 'cvstatuses',
-                                  localField: 'applyDetails.status',
-                                  foreignField: '_id',
-                                  as: 'statusDetails',
-                              },
-                          },
-                          { $unwind: '$statusDetails' },
-                          // Match theo statusFilter
-                          { $match: { 'statusDetails.name': statusFilter } },
-                      ]
+                        // Lookup for statusDetails to join cvstatuses collection
+                        {
+                            $lookup: {
+                                from: 'cvstatuses',
+                                localField: 'applyDetails.status',
+                                foreignField: '_id',
+                                as: 'statusDetails',
+                            },
+                        },
+                        { $unwind: '$statusDetails' },
+                        // Match theo statusFilter
+                        { $match: { 'statusDetails.name': statusFilter } },
+                    ]
                     : []),
                 // Final stage to count documents
                 { $count: 'total' },
@@ -310,6 +314,9 @@ const meetingService = {
     },
     getMeetingRoom: async (url: string): Promise<IMeetingRoom> => {
         return await MeetingRoom.findOne({ url: url })
+    },
+    getMeetingRoomByApplyId: async (applyId: string): Promise<IMeetingRoom> => {
+        return await MeetingRoom.findOne({ apply: applyId })
     },
 }
 
