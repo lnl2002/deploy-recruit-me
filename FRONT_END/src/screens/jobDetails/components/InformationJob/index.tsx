@@ -4,18 +4,24 @@ import { Button, Image } from "@nextui-org/react";
 import { TJob } from "@/api/jobApi";
 import JobAppicationCard from "@/components/JobApplicationCard";
 import JobSection from "@/components/JobSection";
+import { StateBox } from "@/components/StateBox";
 import { TUnit } from "@/api/unitApi";
 import { TCareer } from "@/api/careerApi";
+import { useAppSelector } from "@/store/store";
 
 type InformationJobProps = {
   job: Partial<TJob>;
   onApply: () => void;
+  applied?: boolean
 };
 
 const InformationJob: React.FC<InformationJobProps> = ({
   job,
   onApply,
+  applied = false
 }): React.JSX.Element => {
+  const { applyInfo } = useAppSelector((state) => state.applyInfo);
+
   const handleApply = () => {
     onApply();
   };
@@ -78,7 +84,12 @@ const InformationJob: React.FC<InformationJobProps> = ({
         </div>
       </div>
       <div className="col-span-1 px-8 ">
-        <div className="p-6 bg-white rounded-2xl shadow-xl border">
+        {
+          applyInfo?.status && <div className="p-6 bg-white rounded-2xl shadow-md mb-8 border">
+            <StateBox />
+          </div>
+        }
+        <div className="p-6 bg-white rounded-2xl shadow-md border">
           <JobAppicationCard
             minSalary={job.minSalary ?? 0}
             maxSalary={job.maxSalary ?? 0}
@@ -88,14 +99,16 @@ const InformationJob: React.FC<InformationJobProps> = ({
             career={(job.career as Partial<TCareer>)?.name ?? ""}
             type={job.type ?? ""}
           />
-          <div className="mt-10">
-            <Button
-              onPress={handleApply}
-              className="w-full py-2 bg-themeOrange text-themeWhite rounded-full hover:bg-themeOrange"
-            >
-              Apply Now
-            </Button>
-          </div>
+          {
+            !applied && <div className="mt-10">
+              <Button
+                onPress={handleApply}
+                className="w-full py-2 bg-themeOrange text-themeWhite rounded-full hover:bg-themeOrange"
+              >
+                Apply Now
+              </Button>
+            </div>
+          }
         </div>
       </div>
     </div>

@@ -23,36 +23,32 @@ const roomContronller = {
             const account = req.user
 
             if (!identity) {
-                return res.status(400).json({ masseage: 'Identity is required' })
+                return res.status(400).json({ message: 'Identity is required' })
             }
 
             if (!roomName) {
-                return res.status(400).json({ masseage: 'Room name is required' })
+                return res.status(400).json({ message: 'Room name is required' })
             }
 
             const meetingRoom = await meetingService.getMeetingRoom(roomName)
 
             if (!meetingRoom) {
-                return res.status(404).json({ masseage: 'Room is not found!' })
+                return res.status(404).json({ message: 'Room is not found!' })
             }
 
             const checkParticipant = meetingRoom.participants.find((obj) => obj.participant?.toString() === account._id)
 
             if (!checkParticipant) {
-                return res.status(401).json({ masseage: 'You can not join this room' })
+                return res.status(401).json({ message: 'You can not join this room' })
             }
 
             const startTime = new Date(meetingRoom.timeStart).toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' })
             const currentTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' })
 
-            // console.log(
-            //     startTime.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }),
-            //     currentTime.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }),
-            // )
-            console.log(startTime, currentTime)
-
-            if (startTime > currentTime) {
-                return res.status(400).json({ masseage: 'The meeting has not started yet' })
+            const startDate = new Date(startTime)
+            const currentDate = new Date(currentTime)
+            if (startDate > currentDate) {
+                return res.status(400).json({ message: 'The meeting has not started yet' })
             }
 
             const token = roomService.generateAccessToken(identity, roomName)

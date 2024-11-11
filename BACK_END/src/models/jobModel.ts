@@ -125,7 +125,11 @@ const jobSchema: Schema = new Schema(
             required: true,
             enum: ['pending', 'approved', 'published', 'expired', 'reopened', 'rejected'],
         },
-        criterias: [CriteriaSchema],
+        criterias: {
+            type: [CriteriaSchema],
+            required: true,
+            minlength: 0,
+        },
     },
     { timestamps: true },
 )

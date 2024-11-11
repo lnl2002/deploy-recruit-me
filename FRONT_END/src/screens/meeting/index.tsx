@@ -15,19 +15,41 @@ import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/store/store";
+import { FRONTEND_URL } from "@/utils/env";
+
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
 
 const Room = dynamic(() => import("./components/Room"), { ssr: false });
-const MEETING_URL =
-  "http://localhost:3000/meeting/bbcdd939-95cf-4689-84ff-722457bcd64c";
 
-export const Meeting = (): React.JSX.Element => {
+export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
+  // const paramss = params;
   const { isLoggedIn, userInfo } = useAppSelector((state) => state.user);
   const router = useRouter();
+  const [meetingUrl, setMeetingUrl] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [room, setRoom] = useState<TwilioRoom | null>(null);
   const [connecting, setConnecting] = useState<boolean>(false);
   const [isCameraOn, setIsCameraOn] = useState<boolean>(true);
   const [isMicOn, setIsMicOn] = useState<boolean>(true);
+
+  useEffect(() => {
+    // Set room from meeting API
+    (async () => {
+      const meetingRoom = await meetingApi.getMeetingRoomByUrl(
+        FRONTEND_URL + "/meeting/" + params.id
+      );
+      if (meetingRoom) {
+        setMeetingUrl(meetingRoom.url);
+      } else {
+        toast.error("Meeting URL not exists!");
+        router.push("/");
+      }
+    })();
+  }, [params]);
 
   useEffect(() => {
     (async () => {
@@ -72,7 +94,7 @@ export const Meeting = (): React.JSX.Element => {
 
   const createNewRoom = async () => {
     try {
-      await meetingApi.createRoom(MEETING_URL);
+      await meetingApi.createRoom(meetingUrl);
     } catch (error) {
       console.log(error);
     }
@@ -83,7 +105,7 @@ export const Meeting = (): React.JSX.Element => {
     try {
       const { data, success } = await meetingApi.getAccessToken(
         username + "6C1B01A16E67" + uuidv4(),
-        MEETING_URL
+        meetingUrl
       );
 
       if (!success) {
@@ -92,12 +114,15 @@ export const Meeting = (): React.JSX.Element => {
           router.push("/login");
           return;
         }
+
+        console.log(data);
+
         toast.error(data);
         return;
       }
 
       const connectedRoom = await Video.connect(data, {
-        name: MEETING_URL,
+        name: meetingUrl,
         audio: isMicOn,
         video: isCameraOn,
       });
@@ -113,7 +138,7 @@ export const Meeting = (): React.JSX.Element => {
     } finally {
       setConnecting(false);
     }
-  }, [username, isMicOn, isCameraOn]);
+  }, [username, isMicOn, isCameraOn, meetingUrl]);
 
   const handleLogout = useCallback(() => {
     setRoom((prevRoom) => {

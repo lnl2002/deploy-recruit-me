@@ -45,3 +45,10 @@ export function formatISOToDateString(isoString: string): string {
 
   return `${day} ${month} ${year}`;
 }
+
+export const formatDateTimeSeperate = (dateTime: string) => {
+  const date = new Date(dateTime);
+  const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const formattedDate = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  return { time, formattedDate };
+};
