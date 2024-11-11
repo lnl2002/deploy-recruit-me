@@ -58,18 +58,30 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
         <div className="flex gap-2 text-themeDark">
           <Select
             defaultSelectedKeys={[filter.status]}
-            className="min-w-[200px]"
+            className="min-w-[250px]"
             value={filter.status}
             onChange={(e) => handleChangeFilter("status", e.target.value)}
           >
             <SelectItem key={"Shortlisted"} value={"Shortlisted"} className="text-themeDark">
               Applicant shortlisted
             </SelectItem>
-            <SelectItem key={"Waiting"} value={"Waiting"} className="text-themeDark">
-              Interview Waiting 
+            <SelectItem key={"Pending Interview Confirmation"} value={"Waiting"} className="text-themeDark">
+              Pending Interview Confirmation
             </SelectItem>
-            <SelectItem key={"Inteviewed"} value={"Inteviewed"} className="text-themeDark">
+            <SelectItem key={"Interview Rescheduled"} value={"Waiting"} className="text-themeDark">
+              Applicant Requests Reschedule
+            </SelectItem>
+            <SelectItem key={"Interview Scheduled"} value={"Waiting"} className="text-themeDark">
+              Interview Waiting
+            </SelectItem>
+            <SelectItem key={"Interviewed"} value={"Inteviewed"} className="text-themeDark">
               Applicant Inteviewed
+            </SelectItem>
+            <SelectItem key={"Accepted"} value={"Inteviewed"} className="text-themeDark">
+              Applicant Accepted
+            </SelectItem>
+            <SelectItem key={"Rejected"} value={"Inteviewed"} className="text-themeDark">
+              Applicant Rejected
             </SelectItem>
           </Select>
           <Select
@@ -91,7 +103,7 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
         {filter.status === "Shortlisted" ? (
           <ApplicantTable _id={jobId} filter={filter}/>
         ) : (
-          <ApplicantScheduledTable _id={jobId} filter={filter}/>
+          <ApplicantScheduledTable _id={jobId} filter={filter} key={`${filter.status}-${filter.sort}`}/>
         )}
       </div>
       <div className="flex justify-center"></div>
@@ -134,7 +146,7 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
 
   const getApplicants = async () => {
     setIsLoading(true);
-    const data = await applyApi.getApplyByJob({ _id, page, limit: 10, status: 'Shortlisted', sort: filter.sort });
+    const data = await applyApi.getApplyByJob({ _id, page, limit: 10, status: '', sort: filter.sort });
     setLoadAgain(false);
     setUsers(data.data);
     setTotalPages(data.totalPages);
@@ -203,7 +215,7 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
                     {formatDateTime(user.createdAt)}
                   </TableCell>
                   <TableCell className="py-4 font-bold">
-                    <Status status={user.status.name} />
+                    <Status status={user.status.name} key={user.status.name}/>
                   </TableCell>
                   <TableCell className="py-4 font-bold">
                     <button

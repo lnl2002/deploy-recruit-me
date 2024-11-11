@@ -147,15 +147,17 @@ export const meetingApi = {
     page,
     sortOrder,
     statusFilter,
+    jobId
   }: {
     limit?: number;
     page?: number;
     sortOrder?: string;
     statusFilter?: string;
+    jobId: string
   }) => {
     try {
       const res = await axios.get(
-        `${BACKEND_URL}/api/v1/meeting-room/list-candidate?page=${page}&limit=${limit}&sortOrder=${sortOrder}&statusFilter=${statusFilter}`
+        `${BACKEND_URL}/api/v1/meeting-room/list-candidate?page=${page}&limit=${limit}&sortOrder=${sortOrder}&statusFilter=${statusFilter}&jobId=${jobId}`
       );
       if (res.status === 200) {
         return res.data.data;

@@ -1,5 +1,7 @@
 import applyApi, { IApply } from "@/api/applyApi";
 import {
+    Avatar,
+    Chip,
   Pagination,
   Spinner,
   Table,
@@ -19,6 +21,8 @@ import ModalCommon from "@/components/Modals/ModalCommon";
 import { CvViewer } from "@/components/CvViewer";
 import Empty from "./empty";
 import { formatDateTime } from "@/utils/formatDateTime";
+import meetingApi from "@/api/meetingApi";
+import { IAccount } from "@/api/accountApi/accountApi";
 
 type ApplicantScheduledTableProps = {
   _id: string;
@@ -56,23 +60,48 @@ export const ApplicantScheduledTable = ({
 
   const getApplicants = async () => {
     setIsLoading(true);
-    const data = await applyApi.getApplyByJob({ _id, page, limit: 10 });
+    const data = await meetingApi.getCandidateListByInterview({
+        limit: 10,
+        page,
+        sortOrder: filter.sort,
+        statusFilter: filter.status,
+        jobId: _id
+    });
     setLoadAgain(false);
     setUsers(data.data);
     setTotalPages(data.totalPages);
     setIsLoading(false);
   };
 
-  const handleOpenModal = async (_id: string) => {
-    await getApplicant(_id);
+  const handleOpenModal = async (_id: string, meetingInfo: {
+    _id: string,
+    candidate: any,
+    participants: any[],
+    rejectCount: number,
+    timeEnd: string
+    timeStart: string
+    url: string
+  }) => {
+    await getApplicant(_id, meetingInfo);
     setIsOpenModal(true);
   };
   const handleCloseModal = () => {
     setIsOpenModal(false);
   };
-  const getApplicant = async (_id: string) => {
+  const getApplicant = async (_id: string, meetingInfo: {
+    _id: string,
+    candidate: any,
+    participants: any[],
+    rejectCount: number,
+    timeEnd: string
+    timeStart: string
+    url: string
+  }) => {
     const data = await applyApi.getApplicationById({ _id });
-    setUser(data);
+    setUser({
+      ...data,
+      meetingInfo
+    });
   };
 
   const onViewCv = async (id: string) => {
@@ -123,15 +152,36 @@ export const ApplicantScheduledTable = ({
                     {user.cv?.firstName} {user.cv?.lastName}
                   </TableCell>
                   <TableCell className="py-4 font-bold">
-                    {formatDateTime(user.createdAt)}
+                    {formatDateTime(user.timeStart)}
+                  </TableCell>
+                  <TableCell className="py-4 font-bold flex flex-wrap gap-2 max-w-[250px]" >
+                    {
+                        user?.participants && user.participants.length > 0 && user.participants?.map((participant: IAccount) =>  (
+                            <Chip classNames={{
+                                content: "flex gap-1 items-center",
+                                base: "py-5"
+                              }}>
+                                <Avatar src={participant.image} alt={participant.name} size="sm"/>
+                                <div>{participant.email}</div>
+                            </Chip>
+                        ))
+                    }
                   </TableCell>
                   <TableCell className="py-4 font-bold">
-                    <Status status={user.status.name} />
+                    <Status status={user.applyStatus?.name} key={user.applyStatus?.name} />
                   </TableCell>
                   <TableCell className="py-4 font-bold">
                     <button
                       className="text-themeOrange rounded-lg transition duration-300 ease-in-out transform hover:scale-105 flex gap-1 items-center"
-                      onClick={() => handleOpenModal(user._id)}
+                      onClick={() => handleOpenModal(user.applyId, {
+                        _id: user._id,
+                        candidate: user.candidate,
+                        participants: user.participants,
+                        rejectCount: user.rejectCount,
+                        timeEnd: user.timeEnd,
+                        timeStart: user.timeStart,
+                        url: user.url
+                      })}
                     >
                       View CV <ArrowRight size="16px" />
                     </button>
@@ -140,6 +190,7 @@ export const ApplicantScheduledTable = ({
               ))
             ) : (
               <TableRow key="1">
+                <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
@@ -153,9 +204,9 @@ export const ApplicantScheduledTable = ({
         <Empty />
       )}
       <ApplicantCard
-        image={user?.createdBy?.image}
+        image={user?.candidate?.image}
         name={`${user?.cv?.firstName || ""} ${user?.cv?.lastName || ""}`}
-        email={user?.cv?.email || ""}
+        email={user?.candidate?.email || ""}
         phoneNumber={formatVietnamPhoneNumber(user?.cv?.phoneNumber || "")}
         gender={user?.cv?.gender?.toUpperCase() || ""}
         address={user?.cv?.address || ""}
@@ -176,6 +227,7 @@ export const ApplicantScheduledTable = ({
           image: user?.createdBy?.image,
           name: `${user?.cv?.firstName || ""} ${user?.cv?.lastName || ""}`,
         }}
+        user={user}
       />
       <ModalCommon size={"5xl"} disclosure={cvViewDisclosure}>
         <CvViewer url={url ?? ""} />

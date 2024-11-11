@@ -166,7 +166,7 @@ export const MyApplications = (): React.JSX.Element => {
                       {formatDateTime(apply.createdAt)}
                     </TableCell>
                     <TableCell className="py-4 font-bold">
-                      <Status status={apply.status.name} />
+                      <Status status={apply.status.name} key={apply.status.name} />
                     </TableCell>
                     <TableCell className="py-4 font-bold">
                       <button

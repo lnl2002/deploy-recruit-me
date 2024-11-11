@@ -5,4 +5,5 @@ export interface IStateProps {
   changeStatus?: ({ status }: { status: string }) => void;
   setLoadAgain?: (loadAgain: boolean) => void
   cv?: any
+  meetingInfo?: any
 }
