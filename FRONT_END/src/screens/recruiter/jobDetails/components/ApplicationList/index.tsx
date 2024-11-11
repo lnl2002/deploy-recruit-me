@@ -184,7 +184,7 @@ const ApplicantTable = ({ _id }: TableProps) => {
                     {formatDateTime(user.createdAt)}
                   </TableCell>
                   <TableCell className="py-4 font-bold">
-                    <Status status={user.status.name} />
+                    <Status status={user.status.name} key={user.status.name}/>
                   </TableCell>
                   <TableCell className="py-4 font-bold">
                     <button

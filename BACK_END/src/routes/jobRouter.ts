@@ -15,6 +15,8 @@ jobRouter.get(
 
 jobRouter.post('/', requireRole(['RECRUITER']), jobController.addJob)
 
+jobRouter.put('/update-status', requireRole(['INTERVIEW_MANAGER']), jobController.updateJobStatus)
+
 jobRouter.delete('/:id', jobController.deleteJob)
 
 export default jobRouter

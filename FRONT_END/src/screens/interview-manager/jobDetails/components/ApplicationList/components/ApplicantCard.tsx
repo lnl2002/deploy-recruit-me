@@ -1,12 +1,17 @@
-import { Avatar, Button, useDisclosure } from "@nextui-org/react";
+import { Avatar, Button, useDisclosure, user } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import Status from "./status";
-import { AlarmClock, ChevronLeft } from "lucide-react";
+import { AlarmClock, ArrowRight, ChevronLeft } from "lucide-react";
 import { IStateProps } from "../types/status";
 import applyApi from "@/api/applyApi";
 import { toast } from "react-toastify";
 import ScheduleInterviewModal from "./BookSchedule";
 import ModalConfirm from "@/components/Modals/ModalConfirm";
+import {
+  formatISOToDateString,
+  formatTimeToHHMM,
+} from "@/utils/formatDateTime";
+import { useRouter } from "next/navigation";
 
 interface ApplicantCardProps {
   name: string;
@@ -23,7 +28,8 @@ interface ApplicantCardProps {
   onClose: () => void;
   applyId: string;
   setLoadAgain: (loadAgain: boolean) => void;
-  cv: any
+  cv: any;
+  user?: any;
 }
 
 const ApplicantCard: React.FC<ApplicantCardProps> = ({
@@ -41,8 +47,11 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
   applyId,
   setLoadAgain,
   image,
-  cv
+  cv,
+  user,
 }) => {
+  console.log({ user });
+
   return (
     <>
       {/* Overlay làm mờ nền khi sidebar mở */}
@@ -116,7 +125,14 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
               </ul>
             </div>
           </div>
-          <State key={state} status={state} applyId={applyId} setLoadAgain={setLoadAgain} cv={cv}/>
+          <State
+            key={state}
+            status={state}
+            applyId={applyId}
+            setLoadAgain={setLoadAgain}
+            cv={cv}
+            meetingInfo={user}
+          />
         </div>
       </div>
     </>
@@ -125,7 +141,13 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
 
 export default ApplicantCard;
 
-const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", setLoadAgain, cv }: IStateProps) => {
+const State: React.FC<IStateProps> = ({
+  status: initialStatus,
+  applyId = "",
+  setLoadAgain,
+  cv,
+  meetingInfo,
+}: IStateProps) => {
   const [status, setStatus] = useState(initialStatus);
   useEffect(() => {
     setStatus(initialStatus);
@@ -142,8 +164,8 @@ const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", set
       toast.error("Something went wrong! pls try again");
       return;
     }
-    toast.success('Change status successfully');
-    setLoadAgain?.(true)
+    toast.success("Change status successfully");
+    setLoadAgain?.(true);
     setStatus(status);
   };
 
@@ -168,21 +190,23 @@ const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", set
           applyId={applyId}
         />
       )}
-      {status === "Interview Pending" && (
+      {status === "Pending Interview Confirmation" && (
         <InterviewPendingStatus
           status={status}
           changeStatus={changeStatus}
           setLoadAgain={setLoadAgain}
           cv={cv}
+          meetingInfo={meetingInfo}
           description="You have scheduled an interview for the candidate. Kindly wait for their confirmation."
         />
       )}
-      {status === "Approval Interview Scheduled" && (
+      {status === "Interview Scheduled" && (
         <ApprovalInterviewScheduleStatus
           status={status}
           changeStatus={changeStatus}
           setLoadAgain={setLoadAgain}
           cv={cv}
+          meetingInfo={meetingInfo}
           description="The interview has been confirmed by both the candidate and the interviewer."
         />
       )}
@@ -192,7 +216,8 @@ const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", set
           changeStatus={changeStatus}
           setLoadAgain={setLoadAgain}
           cv={cv}
-          description="The candidate has declined the current interview. Please review and suggest a new schedule or make a different decision regarding this candidate."
+          meetingInfo={meetingInfo}
+          description="The candidate has declined the current interview. Please review and create a new schedule or make a different decision regarding this candidate."
         />
       )}
       {status === "Interviewed" && (
@@ -201,6 +226,7 @@ const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", set
           changeStatus={changeStatus}
           setLoadAgain={setLoadAgain}
           cv={cv}
+          meetingInfo={meetingInfo}
           description="We are pleased to inform you that your interview was successful. Please wait to hear back from the interviewer."
         />
       )}
@@ -222,27 +248,36 @@ const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", set
           description="We have informed your candidate of your decision."
         />
       )}
-      {!["New", "Shortlisted", "Interview Pending", "Approval Interview Scheduled", "Interview Rescheduled", "Interviewed", "Accepted", "Rejected"].includes(status) && <div>Error</div>}
+      {![
+        "New",
+        "Shortlisted",
+        "Pending Interview Confirmation",
+        "Interview Scheduled",
+        "Interview Rescheduled",
+        "Interviewed",
+        "Accepted",
+        "Rejected",
+      ].includes(status) && <div>Error</div>}
     </>
   );
 };
 
 const NewStatus = ({ status, description, changeStatus }: IStateProps) => {
   const [isConfirm, setIsConfirm] = useState<boolean>(false);
-  const [btnChoosed, setButtonChoosed] = useState<string>('');
+  const [btnChoosed, setButtonChoosed] = useState<string>("");
   const disclosure = useDisclosure();
 
   const handleClickButton = (updateStatus: string) => {
     setButtonChoosed(updateStatus);
-    disclosure.onOpen()
-  }
+    disclosure.onOpen();
+  };
 
   useEffect(() => {
-    if(isConfirm && changeStatus){
-      changeStatus({status: btnChoosed})
+    if (isConfirm && changeStatus) {
+      changeStatus({ status: btnChoosed });
       disclosure.onClose();
     }
-  }, [isConfirm])
+  }, [isConfirm]);
 
   return (
     <div className="flex-grow flex justify-between flex-col">
@@ -250,7 +285,7 @@ const NewStatus = ({ status, description, changeStatus }: IStateProps) => {
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -262,15 +297,15 @@ const NewStatus = ({ status, description, changeStatus }: IStateProps) => {
         <Button
           className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
           radius="full"
-          onClick={() => handleClickButton('Rejected')} // status name in db
+          onClick={() => handleClickButton("Rejected")} // status name in db
         >
           Reject
         </Button>
-        <Button 
+        <Button
           className="bg-themeOrange text-[#fff]"
           radius="full"
-          onClick={() => handleClickButton('Shortlisted')} // status name in db
-          >
+          onClick={() => handleClickButton("Shortlisted")} // status name in db
+        >
           Shortlisting
         </Button>
       </div>
@@ -287,15 +322,42 @@ const NewStatus = ({ status, description, changeStatus }: IStateProps) => {
 const ApprovalInterviewScheduleStatus = ({
   status,
   description,
-  changeStatus
+  changeStatus,
+  meetingInfo,
 }: IStateProps) => {
+  const router = useRouter();
+  const timeStart = meetingInfo?.meetingInfo?.timeStart || "";
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+
+  const scheduledTime = new Date(timeStart);
+
+  useEffect(() => {
+    const checkTime = () => {
+      const currentTime = new Date();
+      setIsButtonDisabled(currentTime < scheduledTime);
+    };
+
+    checkTime();
+
+    const intervalId = setInterval(checkTime, 60000);
+
+    return () => clearInterval(intervalId);
+  }, [scheduledTime]);
+
+  const handleNavigateToAdmin = (url: string) => {
+    const currentTime = new Date();
+    if (currentTime >= scheduledTime) {
+      router.push(url);
+    }
+  };
+
   return (
     <div className="flex-grow flex justify-between flex-col">
       <div className="mb-6">
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -307,22 +369,54 @@ const ApprovalInterviewScheduleStatus = ({
             <AlarmClock />
           </div>
           <div>
-            <strong>12:00</strong>
-            <div>28 December 2024</div>
+            <strong>
+              {meetingInfo &&
+                formatTimeToHHMM(meetingInfo?.meetingInfo?.timeStart as string)}
+            </strong>
+            <div>
+              {meetingInfo &&
+                formatISOToDateString(
+                  meetingInfo?.meetingInfo?.timeStart as string
+                )}
+            </div>
           </div>
         </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4">
+        <Button
+          className={`${
+            isButtonDisabled
+              ? "bg-[#E0E0E1] text-[#86868E] cursor-not-allowed"
+              : "bg-themeOrange text-[#fff]"
+          }`}
+          radius="full"
+          disabled={isButtonDisabled}
+          onClick={() => handleNavigateToAdmin(meetingInfo?.meetingInfo?.url)}
+        >
+          {isButtonDisabled ? (
+            "Not yet time"
+          ) : (
+            <div className="flex justify-center items-center gap-2">
+              Go to Interview room <ArrowRight />
+            </div>
+          )}
+        </Button>
       </div>
     </div>
   );
 };
-const InterviewedStatus = ({ status, description, changeStatus }: IStateProps) => {
+const InterviewedStatus = ({
+  status,
+  description,
+  changeStatus,
+}: IStateProps) => {
   return (
     <div className="flex-grow flex justify-between flex-col">
       <div className="mb-6">
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -340,7 +434,7 @@ const AcceptedStatus = ({ status, description, changeStatus }: IStateProps) => {
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -358,7 +452,7 @@ const RejectedStatus = ({ status, description, changeStatus }: IStateProps) => {
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -369,7 +463,13 @@ const RejectedStatus = ({ status, description, changeStatus }: IStateProps) => {
     </div>
   );
 };
-const ShortlistedStatus = ({ status, description, changeStatus, cv, applyId }: IStateProps) => {
+const ShortlistedStatus = ({
+  status,
+  description,
+  changeStatus,
+  cv,
+  applyId,
+}: IStateProps) => {
   const disclosure = useDisclosure();
 
   const handleSend = (data: any) => {
@@ -382,7 +482,7 @@ const ShortlistedStatus = ({ status, description, changeStatus, cv, applyId }: I
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -391,58 +491,109 @@ const ShortlistedStatus = ({ status, description, changeStatus, cv, applyId }: I
         </p>
       </div>
       <div className="grid grid-cols-1 gap-4">
-        <Button className="bg-themeOrange text-[#fff]" radius="full" onClick={() => disclosure.onOpen()}>
+        <Button
+          className="bg-themeOrange text-[#fff]"
+          radius="full"
+          onClick={() => disclosure.onOpen()}
+        >
           Schedule a interview time
         </Button>
       </div>
-      <ScheduleInterviewModal 
+      <ScheduleInterviewModal
         disclosure={disclosure}
         onClose={() => disclosure.onClose()}
-        onSend={() => console.log('test')}
+        onSend={() => console.log("test")}
         cv={cv}
         changeStatus={changeStatus}
-        applyId={applyId || ''}
-        />
+        applyId={applyId || ""}
+      />
     </div>
   );
 };
-const InterviewPendingStatus = ({ status, description, changeStatus }: IStateProps) => {
+const InterviewPendingStatus = ({
+  status,
+  description,
+  changeStatus,
+  applyId,
+  meetingInfo,
+}: IStateProps) => {
+  const isButtonDisabled = true;
+
   return (
     <div className="flex-grow flex justify-between flex-col">
       <div className="mb-6">
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status} key={status} />
           </p>
         </div>
 
-        <p className="text-gray-500 mt-4 text-[14px] opacity-80">
+        <p className="text-gray-500 mt-4 text-[14px] opacity-80 mb-5">
           {description}
         </p>
+        <div className="flex gap-4 items-center">
+          <div className="bg-[#F6F5F9] rounded-full size-12 flex justify-center items-center">
+            <AlarmClock />
+          </div>
+          <div>
+            <strong>
+              {meetingInfo &&
+                formatTimeToHHMM(meetingInfo?.meetingInfo?.timeStart as string)}
+            </strong>
+            <div>
+              {meetingInfo &&
+                formatISOToDateString(
+                  meetingInfo?.meetingInfo?.timeStart as string
+                )}
+            </div>
+          </div>
+        </div>
       </div>
-      {/* <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <Button
-          className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
+          className={"bg-[#E0E0E1] text-[#86868E] cursor-not-allowed"}
           radius="full"
+          disabled={isButtonDisabled}
         >
-          Decline
+          <div className="flex justify-center items-center gap-2">
+            Go to Interview room <ArrowRight size={"16px"}/>
+          </div>
         </Button>
-        <Button className="bg-themeOrange text-[#fff]" radius="full">
-          Shortlisting
-        </Button>
-      </div> */}
+      </div>
     </div>
   );
 };
-const RescheduleStatus = ({ status, description, changeStatus }: IStateProps) => {
+const RescheduleStatus = ({
+  status,
+  description,
+  changeStatus,
+  cv,
+  applyId
+}: IStateProps) => {
+  const disclosure = useDisclosure()
+  const [isConfirm, setIsConfirm] = useState<boolean>(false);
+  const [btnChoosed, setButtonChoosed] = useState<string>("");
+  const disclosureConfirm = useDisclosure();
+
+  const handleClickButton = (updateStatus: string) => {
+    setButtonChoosed(updateStatus);
+    disclosureConfirm.onOpen();
+  };
+
+  useEffect(() => {
+    if (isConfirm && changeStatus) {
+      changeStatus({ status: btnChoosed });
+      disclosureConfirm.onClose();
+    }
+  }, [isConfirm]);
   return (
     <div className="flex-grow flex justify-between flex-col">
       <div className="mb-6">
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -454,13 +605,29 @@ const RescheduleStatus = ({ status, description, changeStatus }: IStateProps) =>
         <Button
           className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
           radius="full"
+          onClick={() => handleClickButton("Rejected")}
         >
-          Decline
+          Disqualify Candidate
         </Button>
-        <Button className="bg-themeOrange text-[#fff]" radius="full">
+        <Button className="bg-themeOrange text-[#fff]" radius="full" onClick={() => disclosure.onOpen()}>
           Reschedule time
         </Button>
       </div>
+      <ScheduleInterviewModal
+        disclosure={disclosure}
+        onClose={() => disclosure.onClose()}
+        onSend={() => console.log("test")}
+        cv={cv}
+        changeStatus={changeStatus}
+        applyId={applyId || ""}
+      />
+      <ModalConfirm
+        title={`Are you sure you want to change to status </br><strong>${btnChoosed}</strong>?`}
+        description="You can not be undone !!"
+        disclosure={disclosureConfirm}
+        onCloseModal={() => setIsConfirm(false)}
+        onConfirm={() => setIsConfirm(true)}
+      />
     </div>
   );
 };

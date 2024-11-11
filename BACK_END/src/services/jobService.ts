@@ -328,6 +328,42 @@ const jobService = {
             data: jobs,
         }
     },
+    updateJobStatus: async({
+        jobId,
+        status
+    } : {
+        jobId: string
+        status: string
+    }) => {
+        const update = await Job.updateOne({
+            _id: jobId
+        }, {
+            status: status
+        })
+
+        console.log('update', update);
+
+
+        return update
+    },
+    checkAuthorizeUpdateJobStatus: async ({
+        jobId,
+        userId
+    }: {
+        jobId: string
+        userId: string
+    }) => {
+        const data = Job.findOne({
+            _id: jobId,
+            interviewManager: userId
+        })
+
+        if(data) {
+            return true;
+        }
+
+        return false;
+    }
 }
 
 // Helper function to build lookup stages

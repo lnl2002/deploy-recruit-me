@@ -133,7 +133,7 @@ const meetingService = {
         page = 1,
         limit = 1,
         userId,
-        jobId
+        jobId,
     }: {
         sortOrder?: 'asc' | 'desc'
         statusFilter?: string
@@ -197,6 +197,15 @@ const meetingService = {
                 ...(jobId ? [{ $match: { 'jobDetails._id': new mongoose.Types.ObjectId(jobId) } }] : []),
                 {
                     $lookup: {
+                        from: 'cvs', // reference the CV model
+                        localField: 'applyDetails.cv', // field in apply that references CV
+                        foreignField: '_id',
+                        as: 'cvDetails',
+                    },
+                },
+                { $unwind: '$cvDetails' },
+                {
+                    $lookup: {
                         from: 'cvstatuses',
                         localField: 'applyDetails.status',
                         foreignField: '_id',
@@ -222,6 +231,7 @@ const meetingService = {
                         isActive: 1,
                         createdAt: 1,
                         updatedAt: 1,
+                        applyId: '$applyDetails._id',
                         candidate: {
                             _id: '$candidateDetails._id',
                             name: '$candidateDetails.name',
@@ -231,6 +241,17 @@ const meetingService = {
                         job: {
                             _id: '$jobDetails._id',
                             title: '$jobDetails.title',
+                        },
+                        cv: {
+                            _id: '$cvDetails._id',
+                            email: '$cvDetails.email',
+                            lastName: '$cvDetails.lastName',
+                            firstName: '$cvDetails.firstName',
+                            gender: '$cvDetails.gender',
+                            dob: '$cvDetails.dob',
+                            phoneNumber: '$cvDetails.phoneNumber',
+                            address: '$cvDetails.address',
+                            url: '$cvDetails.url',
                         },
                         applyStatus: '$statusDetails',
                         participants: {
@@ -267,10 +288,8 @@ const meetingService = {
 
             const meetings = await MeetingRoom.aggregate(aggregatePipeline as any[])
 
-            const totalMeeting = await MeetingRoom.aggregate([
-                // Match on userId in participants
+            const totalMeetingPipeline = [
                 { $match: { 'participants.participant': new mongoose.Types.ObjectId(userId) } },
-                // Lookup for applyDetails to join applies collection
                 {
                     $lookup: {
                         from: 'applies',
@@ -280,26 +299,41 @@ const meetingService = {
                     },
                 },
                 { $unwind: '$applyDetails' },
-                // Nếu có statusFilter thì cần thêm vào pipeline để lọc theo status
-                ...(statusFilter
-                    ? [
-                        // Lookup for statusDetails to join cvstatuses collection
-                        {
-                            $lookup: {
-                                from: 'cvstatuses',
-                                localField: 'applyDetails.status',
-                                foreignField: '_id',
-                                as: 'statusDetails',
-                            },
-                        },
-                        { $unwind: '$statusDetails' },
-                        // Match theo statusFilter
-                        { $match: { 'statusDetails.name': statusFilter } },
-                    ]
-                    : []),
-                // Final stage to count documents
+                ...(statusId ? [
+                    { $match: { 'applyDetails.status': statusId } }
+                ]: []),
+                {
+                    $lookup: {
+                        from: 'accounts',
+                        localField: 'applyDetails.createdBy',
+                        foreignField: '_id',
+                        as: 'candidateDetails',
+                    },
+                },
+                { $unwind: '$candidateDetails' },
+                {
+                    $lookup: {
+                        from: 'jobs',
+                        localField: 'applyDetails.job',
+                        foreignField: '_id',
+                        as: 'jobDetails',
+                    },
+                },
+                { $unwind: '$jobDetails' },
+                ...(jobId ? [{ $match: { 'jobDetails._id': new mongoose.Types.ObjectId(jobId) } }] : []),
+                {
+                    $lookup: {
+                        from: 'cvs',
+                        localField: 'applyDetails.cv',
+                        foreignField: '_id',
+                        as: 'cvDetails',
+                    },
+                },
+                { $unwind: '$cvDetails' },
                 { $count: 'total' },
-            ])
+            ]
+
+            const totalMeeting = await MeetingRoom.aggregate(totalMeetingPipeline)
 
             return {
                 total: totalMeeting[0]?.total || 0,

@@ -12,6 +12,7 @@ import { useAppDispatch } from "@/store/store";
 import { setJob as saveJob } from "@/store/jobState";
 import { TUnit } from "@/api/unitApi";
 import { TLocation } from "@/api/locationApi";
+import JobStatus from "./components/JobStatus";
 
 //example: /job-details?id=67055dd3e22b9a4790729550
 export const InterviewManagerJobDetails = (): React.JSX.Element => {
@@ -45,7 +46,10 @@ export const InterviewManagerJobDetails = (): React.JSX.Element => {
               radius="full"
               className="w-32 p-1 bg-themeWhite shadow-md"
             />
-            <h1 className="text-themeDark text-3xl font-bold">{job.title}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-themeDark text-3xl font-bold">{job.title}</h1>
+              <JobStatus status={job.status || ''} key={job.status}/>
+            </div>
             <div className="flex gap-1 items-center">
               <span className="text-sm text-blurEffect">
                 {(job.location as Partial<TLocation>)?.city}
