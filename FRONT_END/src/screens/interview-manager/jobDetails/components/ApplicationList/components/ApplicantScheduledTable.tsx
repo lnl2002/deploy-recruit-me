@@ -98,6 +98,11 @@ export const ApplicantScheduledTable = ({
     url: string
   }) => {
     const data = await applyApi.getApplicationById({ _id });
+    console.log('aa', {
+      ...data,
+      meetingInfo
+    });
+    
     setUser({
       ...data,
       meetingInfo
@@ -137,7 +142,7 @@ export const ApplicantScheduledTable = ({
           <TableHeader>
             <TableColumn key="name">CANDIDATE NAME</TableColumn>
             <TableColumn key="role">INTERVIEW TIME</TableColumn>
-            <TableColumn key="role">INTERVIEWERS</TableColumn>
+            <TableColumn key="role">PARTICIPANTS</TableColumn>
             <TableColumn key="status">STATUS</TableColumn>
             <TableColumn key="action">CV</TableColumn>
           </TableHeader>
@@ -204,9 +209,9 @@ export const ApplicantScheduledTable = ({
         <Empty />
       )}
       <ApplicantCard
-        image={user?.candidate?.image}
+        image={user?.meetingInfo?.candidate?.image}
         name={`${user?.cv?.firstName || ""} ${user?.cv?.lastName || ""}`}
-        email={user?.candidate?.email || ""}
+        email={user?.meetingInfo?.candidate?.email || ""}
         phoneNumber={formatVietnamPhoneNumber(user?.cv?.phoneNumber || "")}
         gender={user?.cv?.gender?.toUpperCase() || ""}
         address={user?.cv?.address || ""}

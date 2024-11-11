@@ -166,7 +166,7 @@ const ListJob: React.FC<ListJobProps> = ({
             <div className="flex flex-col">
               {filterValue === "expired" ? (
                 <AvatarGroup isBordered>
-                  {cellValue.map((apply: any) => (
+                  {cellValue?.map((apply: any) => (
                     <Avatar size="md" src={apply.account?.image} />
                   ))}
                 </AvatarGroup>

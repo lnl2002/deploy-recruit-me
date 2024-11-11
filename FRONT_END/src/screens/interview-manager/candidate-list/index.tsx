@@ -154,7 +154,7 @@ export const CandidateList = () => {
               <TableColumn key="name">CANDIDATE NAME</TableColumn>
               <TableColumn key="name">JOB NAME</TableColumn>
               <TableColumn key="role">INTERVIEW TIME</TableColumn>
-              <TableColumn key="status">INTERVIEWERS</TableColumn>
+              <TableColumn key="status">PARTICIPANTS</TableColumn>
               <TableColumn key="status">STATUS</TableColumn>
               <TableColumn key="action">ACTION</TableColumn>
             </TableHeader>

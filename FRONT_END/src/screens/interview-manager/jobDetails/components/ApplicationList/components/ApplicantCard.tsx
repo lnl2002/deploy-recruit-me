@@ -568,7 +568,25 @@ const RescheduleStatus = ({
   status,
   description,
   changeStatus,
+  cv,
+  applyId
 }: IStateProps) => {
+  const disclosure = useDisclosure()
+  const [isConfirm, setIsConfirm] = useState<boolean>(false);
+  const [btnChoosed, setButtonChoosed] = useState<string>("");
+  const disclosureConfirm = useDisclosure();
+
+  const handleClickButton = (updateStatus: string) => {
+    setButtonChoosed(updateStatus);
+    disclosureConfirm.onOpen();
+  };
+
+  useEffect(() => {
+    if (isConfirm && changeStatus) {
+      changeStatus({ status: btnChoosed });
+      disclosureConfirm.onClose();
+    }
+  }, [isConfirm]);
   return (
     <div className="flex-grow flex justify-between flex-col">
       <div className="mb-6">
@@ -587,13 +605,29 @@ const RescheduleStatus = ({
         <Button
           className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
           radius="full"
+          onClick={() => handleClickButton("Rejected")}
         >
           Disqualify Candidate
         </Button>
-        <Button className="bg-themeOrange text-[#fff]" radius="full">
+        <Button className="bg-themeOrange text-[#fff]" radius="full" onClick={() => disclosure.onOpen()}>
           Reschedule time
         </Button>
       </div>
+      <ScheduleInterviewModal
+        disclosure={disclosure}
+        onClose={() => disclosure.onClose()}
+        onSend={() => console.log("test")}
+        cv={cv}
+        changeStatus={changeStatus}
+        applyId={applyId || ""}
+      />
+      <ModalConfirm
+        title={`Are you sure you want to change to status </br><strong>${btnChoosed}</strong>?`}
+        description="You can not be undone !!"
+        disclosure={disclosureConfirm}
+        onCloseModal={() => setIsConfirm(false)}
+        onConfirm={() => setIsConfirm(true)}
+      />
     </div>
   );
 };

@@ -167,7 +167,7 @@ const JobSection: React.FC<ListJobProps> = ({
             <div className="flex flex-col">
               {statusJobFilterIndex === 4 ? (
                 <AvatarGroup isBordered>
-                  {cellValue.map((apply: any) => (
+                  {cellValue?.map((apply: any) => (
                     <Avatar
                       key={apply._id}
                       size="md"

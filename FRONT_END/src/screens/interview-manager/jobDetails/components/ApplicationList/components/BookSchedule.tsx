@@ -93,7 +93,7 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
       toast.error(data?.message || 'Something went wrong. Please try again');
       return
     }
-    changeStatus?.({status: 'Interview Pending'})
+    changeStatus?.({status: 'Pending Interview Confirmation'})
     toast.success('Created successfully')
     getSchedules()
     onClose()
