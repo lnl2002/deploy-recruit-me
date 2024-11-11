@@ -9,8 +9,7 @@ const meetingController = {
     updateMeetingStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { meetingRoomId, participantId, status, title } = req.body
 
-        console.log({title});
-
+        console.log({ title })
 
         // Kiểm tra tính hợp lệ của dữ liệu đầu vào
         if (!meetingRoomId || !participantId || !status) {
@@ -135,10 +134,25 @@ const meetingController = {
                 page: page ? parseInt(page as string, 10) : undefined,
                 limit: limit ? parseInt(limit as string, 10) : undefined,
                 userId,
-                jobId: jobId?.toString() as string
+                jobId: jobId?.toString() as string,
             })
 
             return res.status(200).json(data)
+        } catch (error) {
+            next(error)
+        }
+    },
+    getMeetingRoomByUrl: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        try {
+            const { url } = req.query
+            if (!url) {
+                return res.status(400).json({ message: 'Meeting URL is required' })
+            }
+            const meetingRoom = await meetingService.getMeetingRoom(url as string)
+            if (!meetingRoom) {
+                return res.status(404).json({ message: 'Meeting room not found' })
+            }
+            return res.status(200).json(meetingRoom)
         } catch (error) {
             next(error)
         }

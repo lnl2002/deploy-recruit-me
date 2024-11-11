@@ -103,8 +103,8 @@ export const meetingApi = {
       }
     } catch (error: any) {
       console.error(
-        "Error fetching career list:",
-        error.response.data.data,
+        "Error fetching access-token list:",
+        error.response.data.data.message,
         error.response.status
       );
       return { data: error.response.data.data.message, success: false };
@@ -122,7 +122,7 @@ export const meetingApi = {
         return false;
       }
     } catch (error) {
-      console.error("Error fetching career list:", error);
+      console.error("Error fetching create-room list:", error);
       return false;
     }
   },
@@ -175,6 +175,17 @@ export const meetingApi = {
         total: 0,
         totalPages: 0,
       };
+    }
+  },
+  getMeetingRoomByUrl: async (url: string): Promise<Meeting | null> => {
+    try {
+      const res = await axios.get(
+        `${BACKEND_URL}/api/v1/meeting-room/url?url=${url}`
+      );
+
+      return res.data.data;
+    } catch (error) {
+      return null;
     }
   },
 };
