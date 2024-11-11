@@ -21,7 +21,7 @@ const contactInfo = {
 export const Footer: React.FC<FooterProp> = ({}): React.JSX.Element => {
   return (
     <div className="flex p-8 flex-row justify-center gap-10 border-t border-backgroundDecor200 mt-10">
-      <div className="w-11/12 grid grid-flow-col md:grid-cols-4 sm:grid-cols-1 border-b p-3">
+      <div className="w-3/4 grid grid-flow-col md:grid-cols-3 sm:grid-cols-1 border-b p-3 gap-5">
         <div className="col-span-1 flex flex-col gap-4">
           <div className="w-1/2 flex flex-row gap-4 items-center">
             <Image src={Images.Logo} objectFit="cover" alt="" />
@@ -31,11 +31,11 @@ export const Footer: React.FC<FooterProp> = ({}): React.JSX.Element => {
           </div>
           <div>
             <span className="text-sm text-themeDark">
-              FPT Corporation - A Premier Workplace with Comprehensive Benefits
+              FPT Corporation - A Premier Workplace<br/> with Comprehensive Benefits
             </span>
           </div>
         </div>
-        <div className="col-span-2 flex flex-col gap-4">
+        <div className="col-span-1 flex flex-col gap-4">
           <h4 className="text-themeDark text-sm font-bold">Contact Us</h4>
           <div className="flex gap-2">
             <Phone size={20} color="#999" />

@@ -59,7 +59,6 @@ export const MyApplications = (): React.JSX.Element => {
   async function loadStatuses() {
     const response = await applyApi.fetchStatuses();
     setStatuses(response.data);
-    console.log(response.data);
   }
 
   return (
@@ -142,9 +141,10 @@ export const MyApplications = (): React.JSX.Element => {
           >
             <TableHeader>
               <TableColumn key="name">JOB NAME</TableColumn>
+              <TableColumn key="name">Location</TableColumn>
               <TableColumn key="role">APPLIED TIME</TableColumn>
               <TableColumn key="status">STATUS</TableColumn>
-              <TableColumn key="action">CV</TableColumn>
+              <TableColumn key="action">ACTION</TableColumn>
             </TableHeader>
             <TableBody
               isLoading={isLoading}
@@ -163,6 +163,9 @@ export const MyApplications = (): React.JSX.Element => {
                       </Button>
                     </TableCell>
                     <TableCell className="py-4 font-bold">
+                      {apply.job.address}
+                    </TableCell>
+                    <TableCell className="py-4 font-bold">
                       {formatDateTime(apply.createdAt)}
                     </TableCell>
                     <TableCell className="py-4 font-bold">
@@ -172,10 +175,10 @@ export const MyApplications = (): React.JSX.Element => {
                       <button
                         className="text-themeOrange rounded-lg transition duration-300 ease-in-out transform hover:scale-105 flex gap-1 items-center"
                         onClick={() => {
-                          route.push("/meeting");
+                          route.push("/job-details?id=" + apply.job._id)
                         }}
                       >
-                        Meeting <ArrowRight size="16px" />
+                        View <ArrowRight size="16px" />
                       </button>
                     </TableCell>
                   </TableRow>
