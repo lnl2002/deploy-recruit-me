@@ -129,7 +129,7 @@ const meetingService = {
         page = 1,
         limit = 1,
         userId,
-        jobId
+        jobId,
     }: {
         sortOrder?: 'asc' | 'desc'
         statusFilter?: string

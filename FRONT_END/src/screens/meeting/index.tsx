@@ -8,7 +8,7 @@ import Video, {
   LocalTrackPublication,
 } from "twilio-video";
 import { v4 as uuidv4 } from "uuid";
-import meetingApi from "@/api/meetingApi";
+import meetingApi, { IMeeting } from "@/api/meetingApi";
 // import Room from "./components/Room";
 import Lobby from "./components/Lobby";
 import dynamic from "next/dynamic";
@@ -39,11 +39,11 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
   useEffect(() => {
     // Set room from meeting API
     (async () => {
-      const meetingRoom = await meetingApi.getMeetingRoomByUrl(
+      const data = await meetingApi.getMeetingRoomByUrl(
         FRONTEND_URL + "/meeting/" + params.id
       );
-      if (meetingRoom) {
-        setMeetingUrl(meetingRoom.url);
+      if (data) {
+        setMeetingUrl(data.url);
       } else {
         toast.error("Meeting URL not exists!");
         router.push("/");

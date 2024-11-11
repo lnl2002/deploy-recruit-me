@@ -98,6 +98,29 @@ input {
   background: #fff!important;
 }
 
+.custom-scrollbar-thin::-webkit-scrollbar {
+  width: 2px; 
+  /* Độ rộng của thanh cuộn */
+}
+
+.custom-scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #ffffff;
+  /* Màu của phần kéo thanh cuộn */
+  border-radius: 4px;
+  /* Bo góc của thanh cuộn */
+}
+
+.custom-scrollbar-thin::-webkit-scrollbar-track {
+  background-color: transparent;
+  /* Màu nền phía sau thanh cuộn */
+  border-radius: 4px;
+}
+
+.custom-scrollbar-thin {
+  overflow: auto;  
+}
+
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

@@ -14,7 +14,7 @@ export type Participant = {
   status: "pending" | "approved" | "rejected";
 };
 
-export type Meeting = {
+export interface IMeeting {
   _id: string;
   url: string;
   participants: Participant[];
@@ -24,8 +24,9 @@ export type Meeting = {
   isActive: boolean;
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
+  apply: string;
   __v: number;
-};
+}
 
 export const meetingApi = {
   createSchedule: async ({
@@ -69,7 +70,7 @@ export const meetingApi = {
     interviewerId: string;
     startTime: string;
     endTime: string;
-  }): Promise<Meeting[] | null> => {
+  }): Promise<IMeeting[] | null> => {
     try {
       const res = await axios.get(
         `${BACKEND_URL}/api/v1/meeting-room/schedules?interviewerId=${interviewerId}&startTime=${startTime}&endTime=${endTime}`
@@ -177,7 +178,7 @@ export const meetingApi = {
       };
     }
   },
-  getMeetingRoomByUrl: async (url: string): Promise<Meeting | null> => {
+  getMeetingRoomByUrl: async (url: string): Promise<IMeeting | null> => {
     try {
       const res = await axios.get(
         `${BACKEND_URL}/api/v1/meeting-room/url?url=${url}`
