@@ -16,6 +16,10 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/store/store";
 import { FRONTEND_URL } from "@/utils/env";
+import applyApi, { IApply } from "@/api/applyApi";
+import { TJob } from "@/api/jobApi";
+import { IApplicantReport } from "@/api/applicantReportApi";
+import HeaderMeeting from "./components/HeaderMeeting";
 
 interface PageProps {
   params: {
@@ -29,21 +33,27 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
   // const paramss = params;
   const { isLoggedIn, userInfo } = useAppSelector((state) => state.user);
   const router = useRouter();
+  const [isContactSegment, setIsContactSegment] = useState<boolean>(false);
   const [meetingUrl, setMeetingUrl] = useState<string>("");
+  const [apply, setApply] = useState<IApply | null>(null);
   const [username, setUsername] = useState<string>("");
   const [room, setRoom] = useState<TwilioRoom | null>(null);
   const [connecting, setConnecting] = useState<boolean>(false);
   const [isCameraOn, setIsCameraOn] = useState<boolean>(true);
   const [isMicOn, setIsMicOn] = useState<boolean>(true);
 
+  // call api
   useEffect(() => {
     // Set room from meeting API
     (async () => {
       const data = await meetingApi.getMeetingRoomByUrl(
         FRONTEND_URL + "/meeting/" + params.id
       );
+
       if (data) {
         setMeetingUrl(data.url);
+        const apply = await applyApi.getApplicationById({ _id: data.apply });
+        if (apply) setApply(apply);
       } else {
         toast.error("Meeting URL not exists!");
         router.push("/");
@@ -103,19 +113,21 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
   const handleSubmit = useCallback(async () => {
     setConnecting(true);
     try {
-      const { data, success } = await meetingApi.getAccessToken(
+      if (!username) {
+        toast.error("user name is required");
+        return;
+      }
+      const { data, status } = await meetingApi.getAccessToken(
         username + "6C1B01A16E67" + uuidv4(),
         meetingUrl
       );
 
-      if (!success) {
+      if (status !== 200) {
         if (data === "Invalid token") {
           toast.error("Login session has expired");
           router.push("/login");
           return;
         }
-
-        console.log(data);
 
         toast.error(data);
         return;
@@ -185,6 +197,12 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
 
   return (
     <>
+      <HeaderMeeting
+        jobId={(apply?.job as TJob)?._id ?? ""}
+        setIsContactSegment={setIsContactSegment}
+        isContactSegment={isContactSegment}
+        isOpenPanel={!!room}
+      />
       {room ? (
         <Room
           setIsCameraOn={setIsCameraOn}
@@ -193,6 +211,13 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
           isMicOn={isMicOn}
           room={room}
           handleLogout={handleLogout}
+          job={apply?.job as TJob}
+          applicantReportIds={(
+            apply?.applicantReports as IApplicantReport[]
+          )?.map(
+            (applicantReport) => (applicantReport as IApplicantReport)._id
+          )}
+          isContactSegment={isContactSegment}
         />
       ) : (
         <Lobby

@@ -2,10 +2,11 @@
 
 import React, { useEffect, useRef } from "react";
 import { Mic, MicOff, Video, VideoOff } from "lucide-react";
-import { Button, Input } from "@nextui-org/react";
+import { Button, Input, Tab, Tabs } from "@nextui-org/react";
 import CameraOffView from "./CameraOffView";
-import { useAppSelector } from "@/store/store";
 import CriteriaEvaluation from "./CriteriaEvaluation";
+import { TJob } from "@/api/jobApi";
+import LiveChat from "./LiveChat";
 
 type LobbyProps = {
   username: string;
@@ -79,49 +80,53 @@ const Lobby: React.FC<LobbyProps> = ({
   };
 
   return (
-    <div className="flex-1 justify-center gap-8 my-6 grid grid-cols-5 w-10/12 mx-auto">
-      {/* <div className="w-auto flex flex-col gap-4 items-center">
-        <h2 className="text-themeDark text-2xl font-semibold">Enter a room</h2>
-        <Input
-          label="User name"
-          labelPlacement="outside"
-          variant="bordered"
-          placeholder="Enter your user name"
-          type={"text"}
-          size={"sm"}
-          value={username}
-          onChange={handleUsernameChange}
-          className="min-w-60"
-          classNames={{
-            inputWrapper: "shadow-none border-none rounded-none",
-            input: "text-themeDark",
-            innerWrapper: "border-b-2",
-            label: "text-[14px]",
-          }}
-        />
+    <div className="flex-1 justify-center gap-8 my-6 grid grid-cols-6 w-9/12 mx-auto">
+      <div className="col-span-2">
+        <div className="w-auto flex flex-col gap-4 items-center">
+          <h2 className="text-themeDark text-2xl font-semibold">
+            Enter a room
+          </h2>
+          <Input
+            label="User name"
+            labelPlacement="outside"
+            variant="bordered"
+            placeholder="Enter your user name"
+            type={"text"}
+            size={"sm"}
+            value={username}
+            onChange={handleUsernameChange}
+            className="min-w-60"
+            classNames={{
+              inputWrapper: "shadow-none border-none rounded-none",
+              input: "text-themeDark",
+              innerWrapper: "border-b-2",
+              label: "text-[14px]",
+            }}
+          />
 
-        <Button
-          className="font-bold"
-          type="button"
-          onClick={handleSubmit}
-          color="primary"
-          disabled={connecting}
-          fullWidth={true}
-        >
-          {connecting ? "Connecting..." : "Join"}
-        </Button>
-        <Button
-          className="font-bold"
-          type="button"
-          onClick={createNewRoom}
-          color="primary"
-          disabled={connecting}
-          fullWidth={true}
-        >
-          Create New Room
-        </Button>
-      </div> */}
-      <div className="col-span-3 flex justify-center">
+          <Button
+            className="font-bold"
+            type="button"
+            onClick={handleSubmit}
+            color="primary"
+            disabled={connecting}
+            fullWidth={true}
+          >
+            {connecting ? "Connecting..." : "Join"}
+          </Button>
+          <Button
+            className="font-bold"
+            type="button"
+            onClick={createNewRoom}
+            color="primary"
+            disabled={connecting}
+            fullWidth={true}
+          >
+            Create New Room
+          </Button>
+        </div>
+      </div>
+      <div className="col-span-4 flex justify-center">
         <div className="relative w-[720px] h-[540px] bg-themeDark rounded-2xl overflow-hidden">
           {!isMicOn && (
             <MicOff
@@ -177,9 +182,6 @@ const Lobby: React.FC<LobbyProps> = ({
             <CameraOffView isAudioSubscribe={isMicOn} name={username} />
           )}
         </div>
-      </div>
-      <div className="col-span-2">
-        <CriteriaEvaluation />
       </div>
     </div>
   );

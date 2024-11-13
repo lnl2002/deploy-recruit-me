@@ -4,7 +4,16 @@ import { requireRole } from '../middlewares/auth'
 
 const applicantReportRouter = express.Router()
 
-applicantReportRouter.patch('/:id', applicantReportController.updateApplicantReport)
+applicantReportRouter.get(
+    '/:applyId/apply',
+    requireRole(['RECRUITER', 'INTERVIEWER']),
+    applicantReportController.getApplicantReportByApply,
+)
+applicantReportRouter.patch(
+    '/',
+    requireRole(['RECRUITER', 'INTERVIEWER']),
+    applicantReportController.updateApplicantReport,
+)
 applicantReportRouter.post(
     '/',
     requireRole(['RECRUITER', 'INTERVIEWER', 'INTERVIEW_MANAGER']),

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card } from "@nextui-org/react";
+import { Button, Card, Tab, Tabs } from "@nextui-org/react";
 import { Mic, MicOff, Phone, Video, VideoOff } from "lucide-react";
 import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
@@ -11,6 +11,9 @@ import {
   createLocalAudioTrack,
 } from "twilio-video";
 import CameraOffView from "./CameraOffView";
+import CriteriaEvaluation from "./CriteriaEvaluation";
+import LiveChat from "./LiveChat";
+import { TJob } from "@/api/jobApi";
 // import Participant from "./Participant";
 
 const Participant = dynamic(() => import("./Participant"), { ssr: false });
@@ -22,6 +25,9 @@ interface RoomProps {
   setIsMicOn: (isCameraOn: boolean) => void;
   isCameraOn: boolean;
   isMicOn: boolean;
+  isContactSegment: boolean;
+  applicantReportIds: string[];
+  job: TJob;
 }
 
 const Room: React.FC<RoomProps> = ({
@@ -31,6 +37,9 @@ const Room: React.FC<RoomProps> = ({
   setIsMicOn,
   isCameraOn,
   isMicOn,
+  applicantReportIds,
+  isContactSegment,
+  job,
 }) => {
   const [participants, setParticipants] = useState<TwilioParticipant[]>(
     Array.from(room?.participants.values()) ?? []
@@ -149,8 +158,14 @@ const Room: React.FC<RoomProps> = ({
   });
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center my-6">
-      <div className="flex-1 w-[70vw] flex flex-col items-center justify-center">
+    <div
+      className={`flex-1 ${
+        isContactSegment
+          ? "grid grid-cols-5"
+          : "flex flex-col items-center justify-center"
+      } my-6 w-10/12 mx-auto`}
+    >
+      <div className="flex-1 flex flex-col items-center justify-center col-span-3">
         <div className="w-[720px] flex flex-col gap-4">
           {participantSelected && (
             <div className="relative w-[720px] h-[540px] bg-themeDark rounded-2xl overflow-hidden shadow-lg border-1 border-textSecondary">
@@ -224,6 +239,23 @@ const Room: React.FC<RoomProps> = ({
           </div>
         </div>
       </div>
+      {isContactSegment && (
+        <div className="col-span-2">
+          <div className="flex flex-col items-center justify-start border-2 rounded-lg p-2">
+            <Tabs aria-label="Options" classNames={{ panel: "py-0" }}>
+              <Tab key="note" title="Note">
+                <CriteriaEvaluation
+                  job={job}
+                  applicantReportIds={applicantReportIds}
+                />
+              </Tab>
+              <Tab key="live-chat" title="Live chat">
+                <LiveChat />
+              </Tab>
+            </Tabs>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

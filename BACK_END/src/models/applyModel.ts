@@ -12,7 +12,7 @@ export interface IApply extends Document {
     statusUpdatedBy: mongoose.Types.ObjectId | IAccount[]
     createdBy: mongoose.Types.ObjectId | IAccount
     assigns: mongoose.Types.ObjectId[] | IAccount[]
-    applicantReport: mongoose.Types.ObjectId[] | IApplicantReport[]
+    applicantReports: mongoose.Types.ObjectId[] | IApplicantReport[]
     statusUpdatedAt: Date
 }
 
@@ -44,11 +44,13 @@ const applySchema: Schema = new Schema(
             ref: 'Account',
             required: true,
         },
-        applicantReport: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'ApplicantReport',
-            required: false,
-        },
+        applicantReports: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'ApplicantReport',
+                required: false,
+            },
+        ],
         statusUpdatedAt: { type: Date },
         assigns: [
             {
