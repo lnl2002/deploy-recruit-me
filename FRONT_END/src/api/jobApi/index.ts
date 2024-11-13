@@ -114,6 +114,29 @@ const jobApi = {
       };
     }
   },
+
+  updateJobStatus: async ({
+    jobId,
+    status,
+  }: {
+    jobId: string;
+    status: string;
+  }) => {
+    try {
+      const res = await axios.put(`${BACKEND_URL}/api/v1/jobs/update-status`, {
+        jobId,
+        status,
+      });
+      if (res.status === 200) {
+        return res.data.data;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error("Error update job status:", error);
+      return null;
+    }
+  },
 };
 
 export default jobApi;

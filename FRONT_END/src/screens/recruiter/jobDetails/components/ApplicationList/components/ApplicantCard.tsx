@@ -250,7 +250,7 @@ const NewStatus = ({ status, description, changeStatus }: IStateProps) => {
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status}  key={status}/>
           </p>
         </div>
 
@@ -295,7 +295,7 @@ const ApprovalInterviewScheduleStatus = ({
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status}  key={status}/>
           </p>
         </div>
 
@@ -322,7 +322,7 @@ const InterviewedStatus = ({ status, description, changeStatus }: IStateProps) =
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status}  key={status}/>
           </p>
         </div>
 
@@ -340,7 +340,7 @@ const AcceptedStatus = ({ status, description, changeStatus }: IStateProps) => {
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status}  key={status}/>
           </p>
         </div>
 
@@ -358,7 +358,7 @@ const RejectedStatus = ({ status, description, changeStatus }: IStateProps) => {
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status}  key={status}/>
           </p>
         </div>
 
@@ -382,7 +382,7 @@ const ShortlistedStatus = ({ status, description, changeStatus, cv, applyId }: I
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status}  key={status}/>
           </p>
         </div>
 
@@ -413,7 +413,7 @@ const InterviewPendingStatus = ({ status, description, changeStatus }: IStatePro
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status}  key={status}/>
           </p>
         </div>
 
@@ -442,7 +442,7 @@ const RescheduleStatus = ({ status, description, changeStatus }: IStateProps) =>
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status} />
+            <Status status={status}  key={status}/>
           </p>
         </div>
 

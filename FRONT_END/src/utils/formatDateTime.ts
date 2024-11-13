@@ -16,6 +16,36 @@ export function formatDateTime(dateString: string | Date | undefined | null): st
   }
 }
 
+export function formatTimeToHHMM(isoString: string): string {
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) {
+      return ''
+  }
+
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  
+  return `${hours}:${minutes}`;
+}
+
+export function formatISOToDateString(isoString: string): string {
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) {
+      return ''
+  }
+
+  const day = date.getDate();
+  const year = date.getFullYear();
+
+  const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+  ];
+  const month = monthNames[date.getMonth()];
+
+  return `${day} ${month} ${year}`;
+}
+
 export const formatDateTimeSeperate = (dateTime: string) => {
   const date = new Date(dateTime);
   const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });

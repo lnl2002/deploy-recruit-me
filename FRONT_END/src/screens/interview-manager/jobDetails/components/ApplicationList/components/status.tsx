@@ -19,11 +19,11 @@ const Status: React.FC<Props> = ({ status }: Props) => {
                 return "bg-[#E0E0E1] border-none p-2"; 
               case "Shortlisted":
                 return "bg-[#FCFDDA] border-none p-2";
-              case "Interview Pending":
+              case "Pending Interview Confirmation":
                 return "bg-[#E1F7FC] border-none p-2";
               case "Interview Rescheduled":
                 return "bg-[#FCEAE1] border-none p-2";
-              case "Approval Interview Scheduled":
+              case "Interview Scheduled":
                 return "bg-[#E1F7FC] border-none p-2";
               case "Interviewed":
                 return "bg-[#E1F7FC] border-none p-2";
@@ -41,11 +41,11 @@ const Status: React.FC<Props> = ({ status }: Props) => {
                 return "text-[#000] font-bold";
               case "Shortlisted":
                 return "text-[#EEDB32] font-bold";
-              case "Interview Pending":
+              case "Pending Interview Confirmation":
                 return "text-[#0FB1C5] font-bold";
               case "Interview Rescheduled":
                 return "text-[#F36523] font-bold";
-              case "Approval Interview Scheduled":
+              case "Interview Scheduled":
                 return "text-[#0FB1C5] font-bold";
               case "Interviewed":
                 return "text-[#0FB1C5] font-bold";
@@ -63,11 +63,11 @@ const Status: React.FC<Props> = ({ status }: Props) => {
                 return "bg-[#000]";
               case "Shortlisted":
                 return "bg-[#EEDB32]";
-              case "Interview Pending":
+              case "Pending Interview Confirmation":
                 return "bg-[#0FB1C5]";
               case "Interview Rescheduled":
                 return "bg-[#F36523]";
-              case "Approval Interview Scheduled":
+              case "Interview Scheduled":
                 return "bg-[#0FB1C5]";
               case "Interviewed":
                 return "bg-[#0FB1C5]";
@@ -99,7 +99,7 @@ const getChipColor = (status: string) => {
         bg: "#FCFDDA",
         text: "#EEDB32",
       };
-    case "Interview Pending":
+    case "Pending Interview Confirmation":
       return {
         bg: "#E1F7FC",
         text: "#0FB1C5",
@@ -109,7 +109,7 @@ const getChipColor = (status: string) => {
         bg: "#FCEAE1",
         text: "#F36523",
       };
-    case "Approval Interview Scheduled":
+    case "Interview Scheduled":
       return {
         bg: "#E1F7FC",
         text: "#0FB1C5",

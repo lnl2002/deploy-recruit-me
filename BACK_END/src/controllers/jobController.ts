@@ -505,6 +505,37 @@ const jobController = {
             next(error)
         }
     },
+    updateJobStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        try {
+            const { jobId, status } = req.body
+
+            const userId = req?.user?._id || '';
+
+            if(!userId){
+                return res.status(401).json({message: 'UNAUTHORIZED'})
+            }
+
+            if(!['pending', 'approved', 'published', 'expired', 'reopened', 'rejected'].includes(status)){
+                return res.status(400).json({message: 'BAD REQUEST'})
+            }
+
+            if(!jobService.checkAuthorizeUpdateJobStatus({
+                jobId: jobId.toString() as string,
+                userId
+            })){
+                return res.status(403).json({message: 'You cannot update this job'})
+            }
+
+            const jobs = await jobService.updateJobStatus({
+                jobId: jobId.toString() as string,
+                status: status as string
+            })
+
+            res.status(200).json(jobs)
+        } catch (error) {
+            next(error)
+        }
+    },
 }
 
 export default jobController
