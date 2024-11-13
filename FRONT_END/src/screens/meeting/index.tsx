@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import Video, {
   Room as TwilioRoom,
   LocalVideoTrack,
@@ -33,6 +33,7 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
   // const paramss = params;
   const { isLoggedIn, userInfo } = useAppSelector((state) => state.user);
   const router = useRouter();
+  let mediaStreamRef = useRef<MediaStream | null>(null);
   const [isContactSegment, setIsContactSegment] = useState<boolean>(false);
   const [meetingUrl, setMeetingUrl] = useState<string>("");
   const [apply, setApply] = useState<IApply | null>(null);
@@ -76,6 +77,17 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
         });
         setIsMicOn(microphonePermission.state == "granted");
 
+        // If permissions are granted, get media stream
+        if (
+          cameraPermission.state === "granted" ||
+          microphonePermission.state === "granted"
+        ) {
+          mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({
+            video: cameraPermission.state === "granted",
+            audio: microphonePermission.state === "granted",
+          });
+        }
+
         // Thêm sự kiện lắng nghe khi trạng thái quyền thay đổi
         cameraPermission.onchange = () =>
           setIsCameraOn(cameraPermission.state == "granted");
@@ -85,6 +97,11 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
         console.error("Error checking permissions:", error);
       }
     })();
+    return () => {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
   }, []);
 
   useEffect(() => {
