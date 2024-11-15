@@ -1,4 +1,4 @@
-import { Types } from 'mongoose'
+import mongoose, { Types } from 'mongoose'
 import Apply, { IApply } from '..//models/applyModel'
 
 const applyService = {
@@ -70,6 +70,16 @@ const applyService = {
             totalPages: Math.ceil(totalApplications / limit),
             data: applications,
         }
+    },
+
+    getApplyById: async (id: mongoose.Types.ObjectId): Promise<IApply> => {
+        return await Apply.findById(id)
+            .populate('cv')
+            .populate('job')
+            .populate('status')
+            .populate('assigns')
+            .populate('applicantReports')
+            .populate('statusUpdatedBy')
     },
 }
 

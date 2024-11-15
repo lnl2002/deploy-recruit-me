@@ -7,12 +7,23 @@ import { IDetailCriteria } from '../models/applicantReportModel'
 const applicantReportController = {
     updateApplicantReport: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { id } = req.params
-            const { details, createdBy, comment, isPass } = req.body
+            const { applicantReport, applicantReportIds } = req.body
+            const { details, createdBy, comment, isPass } = applicantReport
+            const account = req.user
             const updateFile: any = {}
 
-            if (!mongoose.Types.ObjectId.isValid(id)) {
-                return res.status(400).json({ message: 'Invalid ID format' })
+            if (!applicantReportIds) {
+                return res.status(400).json({ message: 'ApplicantReportIds is required' })
+            }
+
+            if (!Array.isArray(applicantReportIds)) {
+                return res.status(400).json({ message: 'ApplicantReportIds must be an array' })
+            }
+
+            for (const id of applicantReportIds) {
+                if (!mongoose.Types.ObjectId.isValid(id)) {
+                    return res.status(400).json({ message: 'Invalid applicant report id format' })
+                }
             }
 
             if (details) {
@@ -26,8 +37,11 @@ const applicantReportController = {
                 updateFile.details = details
             }
 
-            const applicantReport = await applicantReportService.getApplicantReport({ _id: id })
-            if (!applicantReport?._id) {
+            const applicantReportResult = await applicantReportService.getApplicantReport({
+                createdBy: account._id,
+                _id: { $in: applicantReportIds },
+            })
+            if (!applicantReportResult?._id) {
                 return res.status(404).json({ message: 'Applicant Report not found' })
             }
 
@@ -54,7 +68,7 @@ const applicantReportController = {
             }
 
             const newApplicantReport = await applicantReportService.updateApplicantReport(
-                new mongoose.Types.ObjectId(id),
+                new mongoose.Types.ObjectId(applicantReportResult?._id as string),
                 updateFile,
             )
 
@@ -76,6 +90,27 @@ const applicantReportController = {
             })
 
             return res.status(200).json(newApplicantReport)
+        } catch (error) {
+            next(error)
+        }
+    },
+    getApplicantReportByApply: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        try {
+            const account = req.user
+            const { applyId } = req.params
+            if (!applyId) {
+                return res.status(400).json({ message: 'Apply ID is required' })
+            }
+
+            if (!mongoose.Types.ObjectId.isValid(applyId)) {
+                return res.status(400).json({ message: 'Invalid ApplyId ID format' })
+            }
+
+            const applicantReport = await applicantReportService.getApplicantReport({
+                apply: applyId,
+                createdBy: account._id,
+            })
+            return res.status(200).json(applicantReport)
         } catch (error) {
             next(error)
         }

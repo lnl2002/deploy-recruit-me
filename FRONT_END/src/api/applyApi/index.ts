@@ -3,13 +3,19 @@ import axios from "axios";
 import { IResponse, ITable } from "../common/type";
 import { TJob } from "../jobApi";
 import JobPosting from "@/type/job";
+import { IAccount } from "../accountApi/accountApi";
+import { IApplicantReport } from "../applicantReportApi";
 
 export interface IApply {
   _id: string;
-  cv: string;
-  job: string;
-  status: string;
-  assigns: string[];
+  cv: string | ICV;
+  job: string | TJob;
+  status: string | any;
+  statusUpdatedBy: string | IAccount[];
+  createdBy: string | IAccount;
+  assigns: string[] | IAccount[];
+  applicantReports: string[] | IApplicantReport[];
+  statusUpdatedAt: Date;
 }
 
 export interface IResposeApply {
@@ -18,7 +24,7 @@ export interface IResposeApply {
   job: JobPosting;
   status: { name: string };
   assigns: string[];
-  createdAt: string
+  createdAt: string;
 }
 
 export interface ICV {
@@ -44,7 +50,7 @@ export interface QApply {
   page?: number;
   limit?: number;
   sortBy?: string | string[];
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export const applyApi = {
@@ -53,7 +59,7 @@ export const applyApi = {
     page,
     limit,
     status,
-    sort
+    sort,
   }: {
     _id: string;
     page: number;
@@ -63,7 +69,9 @@ export const applyApi = {
   }): Promise<ITable<IApply>> => {
     try {
       const res = await axios.get(
-        `${BACKEND_URL}/api/v1/apply/cvs/${_id}?page=${page}&limit=${limit}&status=${status ?? ''}&sort=${sort ?? ''}`
+        `${BACKEND_URL}/api/v1/apply/cvs/${_id}?page=${page}&limit=${limit}&status=${
+          status ?? ""
+        }&sort=${sort ?? ""}`
       );
 
       if (res.status === 200) {
@@ -196,42 +204,52 @@ export const applyApi = {
 
   getCvFileById: async ({ cvId }: { cvId: string }) => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/api/v1/cvs/${cvId}/download`, {
-        responseType: "blob", // Important for downloading files
-      });
+      const response = await axios.get(
+        `${BACKEND_URL}/api/v1/cvs/${cvId}/download`,
+        {
+          responseType: "blob", // Important for downloading files
+        }
+      );
 
-      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], { type: "application/pdf" })
+      );
       return url;
     } catch (error) {
       console.error("Error downloading CV:", error);
-      return "n/a"
+      return "n/a";
       // Handle errors gracefully (e.g., show a user-friendly error message)
     }
   },
 
   getApplicationsById: async (queryParams: QApply = {}) => {
     try {
-      const response = await axios.get<PaginatedApplies>(`${BACKEND_URL}/api/v1/apply`, {
-        params: queryParams, // Include query parameters
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Replace with your token retrieval logic
-        },
-      });
+      const response = await axios.get<PaginatedApplies>(
+        `${BACKEND_URL}/api/v1/apply`,
+        {
+          params: queryParams, // Include query parameters
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Replace with your token retrieval logic
+          },
+        }
+      );
 
       return response.data;
     } catch (error: any) {
       // Handle API errors appropriately, e.g.,
-      console.error('Error fetching applies:', error);
+      console.error("Error fetching applies:", error);
       throw error; // Or re-throw if you want to handle the error at a higher level
     }
   },
 
   fetchStatuses: async () => {
     try {
-      const response = await axios.get<{ name: string, _id: string }[]>(`${BACKEND_URL}/api/v1/apply/statuses/all`);
+      const response = await axios.get<{ name: string; _id: string }[]>(
+        `${BACKEND_URL}/api/v1/apply/statuses/all`
+      );
       return response.data; // Return the array of CV statuses
     } catch (error: any) {
-      console.error('Error fetching statuses:', error);
+      console.error("Error fetching statuses:", error);
       throw error;
     }
   },
@@ -239,17 +257,20 @@ export const applyApi = {
   getApplyInfo: async (jobId: string) => {
     try {
       const accessToken = localStorage.getItem("access_token");
-      const response = await axios.get<{ name: string, _id: string }[]>(`${BACKEND_URL}/api/v1/apply/info/${jobId}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const response = await axios.get<{ name: string; _id: string }[]>(
+        `${BACKEND_URL}/api/v1/apply/info/${jobId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
       return response.data; // Return the array of CV statuses
     } catch (error: any) {
-      console.error('Error fetching statuses:', error);
+      console.error("Error fetching statuses:", error);
       throw error;
     }
-  }
+  },
 };
 
 export default applyApi;

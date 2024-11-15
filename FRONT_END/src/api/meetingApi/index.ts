@@ -1,5 +1,5 @@
 import { BACKEND_URL } from "@/utils/env";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 export interface ICreateMeeting {
   participantIds: string[];
@@ -14,7 +14,7 @@ export type Participant = {
   status: "pending" | "approved" | "rejected";
 };
 
-export type Meeting = {
+export interface IMeeting {
   _id: string;
   url: string;
   participants: Participant[];
@@ -24,14 +24,15 @@ export type Meeting = {
   isActive: boolean;
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
+  apply: string;
   __v: number;
-};
+}
 
 export type MeetingPaticipant = {
-  meetingRoomId: string
-  status: string
-  declineReason?: string
-}
+  meetingRoomId: string;
+  status: string;
+  declineReason?: string;
+};
 
 export const meetingApi = {
   createSchedule: async ({
@@ -75,7 +76,7 @@ export const meetingApi = {
     interviewerId: string;
     startTime: string;
     endTime: string;
-  }): Promise<Meeting[] | null> => {
+  }): Promise<IMeeting[] | null> => {
     try {
       const res = await axios.get(
         `${BACKEND_URL}/api/v1/meeting-room/schedules?interviewerId=${interviewerId}&startTime=${startTime}&endTime=${endTime}`
@@ -93,7 +94,7 @@ export const meetingApi = {
   getAccessToken: async (
     identity: string,
     roomName: string
-  ): Promise<{ data: string; success: boolean }> => {
+  ): Promise<{ data: string; status: number }> => {
     try {
       const res = await axios.post(`${BACKEND_URL}/api/v1/rooms/access-token`, {
         identity,
@@ -102,18 +103,17 @@ export const meetingApi = {
 
       const { data } = res.data;
 
-      if (res.status === 200) {
-        return { data, success: true };
-      } else {
-        return { data: "", success: false };
-      }
+      return { data, status: res.data.status };
     } catch (error: any) {
       console.error(
         "Error fetching access-token list:",
         error.response.data.data.message,
         error.response.status
       );
-      return { data: error.response.data.data.message, success: false };
+      return {
+        data: error.response.data.data.message,
+        status: error.response.status,
+      };
     }
   },
   createRoom: async (roomName: string): Promise<boolean> => {
@@ -185,7 +185,7 @@ export const meetingApi = {
       };
     }
   },
-  getMeetingRoomByUrl: async (url: string): Promise<Meeting | null> => {
+  getMeetingRoomByUrl: async (url: string): Promise<IMeeting | null> => {
     try {
       const res = await axios.get(
         `${BACKEND_URL}/api/v1/meeting-room/url?url=${url}`
@@ -197,39 +197,45 @@ export const meetingApi = {
     }
   },
 
-  getMeetingByApplyId: async (applyId: string): Promise<Meeting | undefined> => {
+  getMeetingByApplyId: async (
+    applyId: string
+  ): Promise<IMeeting | undefined> => {
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/v1/meeting-room/get/${applyId}`);
+      const res = await axios.get(
+        `${BACKEND_URL}/api/v1/meeting-room/get/${applyId}`
+      );
       return res.data;
-
     } catch (error) {
       console.error("Error fetching career list:", error);
-      return undefined
+      return undefined;
     }
   },
 
-  updateMeetingStatus: async ({meetingRoomId, status, declineReason} : MeetingPaticipant): Promise<Meeting | undefined> => {
+  updateMeetingStatus: async ({
+    meetingRoomId,
+    status,
+    declineReason,
+  }: MeetingPaticipant): Promise<IMeeting | undefined> => {
     try {
       const accessToken = localStorage.getItem("access_token");
 
       const res = await axios.put(
         `${BACKEND_URL}/api/v1/meeting-room/update-status`,
         {
-            meetingRoomId,
-            status,
-            declineReason
+          meetingRoomId,
+          status,
+          declineReason,
         },
         {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
         }
-    );
+      );
       return res.data;
-
     } catch (error) {
       console.error("Error fetching career list:", error);
-      return undefined
+      return undefined;
     }
   },
 };

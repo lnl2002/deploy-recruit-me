@@ -1,5 +1,5 @@
 import { BACKEND_URL } from "@/utils/env";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { TLocation } from "../locationApi";
 import { TUnit } from "../unitApi";
 import { TCareer } from "../careerApi";
@@ -24,7 +24,7 @@ const jobApi = {
         return { jobs: [], total: 0 };
       }
     } catch (error) {
-      console.error("Error fetching job list:", error);
+      console.error("Error fetching job list:", (error as AxiosError).status);
       return { jobs: [], total: 0 };
     }
   },
@@ -79,16 +79,16 @@ const jobApi = {
     }
   },
 
-  getJobsByInterviewManager: async({
+  getJobsByInterviewManager: async ({
     limit,
     page,
     status,
-    search
+    search,
   }: {
-    limit: number
-    page: number
-    status?: string
-    search?: string
+    limit: number;
+    page: number;
+    status?: string;
+    search?: string;
   }) => {
     try {
       const res = await axios.get(
@@ -115,20 +115,18 @@ const jobApi = {
     }
   },
 
-  updateJobStatus: async({
+  updateJobStatus: async ({
     jobId,
-    status
-  } : {
-    jobId: string
-    status: string
+    status,
+  }: {
+    jobId: string;
+    status: string;
   }) => {
     try {
-      const res = await axios.put(
-        `${BACKEND_URL}/api/v1/jobs/update-status`, {
-          jobId,
-          status
-        }
-      );
+      const res = await axios.put(`${BACKEND_URL}/api/v1/jobs/update-status`, {
+        jobId,
+        status,
+      });
       if (res.status === 200) {
         return res.data.data;
       } else {
@@ -144,6 +142,7 @@ const jobApi = {
 export default jobApi;
 
 export interface ICriteria {
+  _id?: string;
   criteriaName: string;
   requirement: string;
 }
@@ -176,10 +175,10 @@ export interface TJob {
 }
 
 export enum JobStatus {
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  PUBLISHED = 'published',
-  EXPIRED = 'expired',
-  REOPENED = 'reopened',
-  REJECTED = 'rejected',
+  PENDING = "pending",
+  APPROVED = "approved",
+  PUBLISHED = "published",
+  EXPIRED = "expired",
+  REOPENED = "reopened",
+  REJECTED = "rejected",
 }

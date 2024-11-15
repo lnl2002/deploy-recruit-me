@@ -1,9 +1,9 @@
-import mongoose from 'mongoose'
+import mongoose, { FilterQuery } from 'mongoose'
 import ApplicantReport, { IApplicantReport } from '../models/applicantReportModel'
 
 const applicantReportService = {
-    getApplicantReport: async (query: Partial<IApplicantReport>): Promise<IApplicantReport> => {
-        return await ApplicantReport.findById(query).populate({
+    getApplicantReport: async (query: FilterQuery<IApplicantReport>): Promise<IApplicantReport> => {
+        return await ApplicantReport.findOne(query).populate({
             path: 'createdBy',
             select: '-_id name email image',
             populate: { path: 'role', select: 'roleName -_id' },
