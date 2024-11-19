@@ -42,6 +42,7 @@ export interface IJob extends Document {
     type: string
     status: string
     criterias: IJobCriteria[]
+    rejectReason: string
 }
 
 const jobSchema: Schema = new Schema(
@@ -130,6 +131,9 @@ const jobSchema: Schema = new Schema(
             required: true,
             minlength: 0,
         },
+        rejectReason: {
+            type: String,
+        }
     },
     { timestamps: true },
 )

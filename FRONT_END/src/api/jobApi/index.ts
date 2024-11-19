@@ -118,14 +118,17 @@ const jobApi = {
   updateJobStatus: async ({
     jobId,
     status,
+    rejectReason
   }: {
     jobId: string;
     status: string;
+    rejectReason?: string;
   }) => {
     try {
       const res = await axios.put(`${BACKEND_URL}/api/v1/jobs/update-status`, {
         jobId,
         status,
+        rejectReason
       });
       if (res.status === 200) {
         return res.data.data;
