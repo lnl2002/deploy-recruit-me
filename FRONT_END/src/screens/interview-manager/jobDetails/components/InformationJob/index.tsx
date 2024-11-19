@@ -3,6 +3,7 @@ import { TJob } from "@/api/jobApi";
 import { TUnit } from "@/api/unitApi";
 import JobSection from "@/components/JobSection";
 import JobApplicationCard from "../JobApplicationCard";
+import JobState from "./components/JobState";
 
 type InformationJobProps = {
   job: Partial<TJob>;
@@ -49,6 +50,9 @@ const InformationJob: React.FC<InformationJobProps> = ({
         </div>
       </div>
       <div className="col-span-1 px-8">
+        <div className="p-6 bg-white rounded-2xl shadow-xl border mb-10">
+          <JobState state={job.status || ''} />
+        </div>
         <div className="p-6 bg-white rounded-2xl shadow-xl border">
           <JobApplicationCard
             minSalary={job.minSalary ?? 0}

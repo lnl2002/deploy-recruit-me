@@ -330,19 +330,19 @@ const jobService = {
     },
     updateJobStatus: async({
         jobId,
-        status
+        status,
+        rejectReason
     } : {
         jobId: string
-        status: string
+        status: string,
+        rejectReason?: string
     }) => {
         const update = await Job.updateOne({
             _id: jobId
         }, {
-            status: status
+            status: status,
+            ...((status === "rejected" && rejectReason) ? {rejectReason} : {})
         })
-
-        console.log('update', update);
-
 
         return update
     },
