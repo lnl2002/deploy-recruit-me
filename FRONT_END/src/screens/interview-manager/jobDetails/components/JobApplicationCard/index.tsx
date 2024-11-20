@@ -1,8 +1,4 @@
-import jobApi from "@/api/jobApi";
-import ModalConfirm from "@/components/Modals/ModalConfirm";
-import { RootState, useAppSelector } from "@/store/store";
 import formatSalary from "@/utils/formatSalary";
-import { Button, useDisclosure } from "@nextui-org/react";
 import {
   AlarmClock,
   Clock4,
@@ -12,7 +8,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
 
 type JobApplicationCardProps = {
   minSalary: number;
@@ -34,50 +29,7 @@ const JobApplicationCard: React.FC<JobApplicationCardProps> = ({
   type,
 }): React.JSX.Element => {
   const router = useRouter()
-  const job = useAppSelector((state: RootState) => state.job.job);
   const [rankSalary, setRankSalary] = useState<string>("Negotiable");
-  const [isConfirm, setIsConfirm] = useState<boolean>(false);
-  const [btnChoosed, setButtonChoosed] = useState<string>("");
-  const disclosure = useDisclosure();
-
-  const handleClickButton = (updateStatus: string) => {
-    setButtonChoosed(updateStatus);
-    disclosure.onOpen();
-  };
-
-  console.log(job);
-  
-
-  useEffect(() => {
-    if (isConfirm && ["approved", "rejected"].includes(btnChoosed) && job?._id) {
-      handleUpdateStatus({
-        jobId: job._id,
-        status: btnChoosed
-      })
-    }
-  }, [isConfirm]);
-
-  const handleUpdateStatus = async ({
-    jobId,
-    status
-  } : {
-    jobId: string,
-    status: string
-  }) => {
-    const data = await jobApi.updateJobStatus({
-      jobId,
-      status
-    })
-
-    if(!data){
-      toast.error('Something went wrong. Please try again');
-      return;
-    }
-
-    disclosure.onClose();
-    toast.success('Change status successfully');
-    window.location.reload(); 
-  }
 
   useEffect(() => {
     if (minSalary === 0 && maxSalary === 0) {
@@ -151,30 +103,6 @@ const JobApplicationCard: React.FC<JobApplicationCardProps> = ({
           </div>
         </div>
       </div>
-      {
-        job && job.status === "pending" && (
-          <div className="mt-8 grid grid-cols-2 gap-4">
-            <Button
-              radius="full"
-              className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
-              onClick={() => handleClickButton("approved")} 
-            >
-              Approve
-            </Button>
-            <Button radius="full" className="bg-themeOrange text-[#fff]" onClick={() => handleClickButton("rejected")} >
-              Reject
-            </Button>
-          </div>
-        )
-      }
-      
-      <ModalConfirm
-        title={`Are you sure you want to change to status </br><strong>${btnChoosed === "approved" ? "Approve" : (btnChoosed === "rejected" ? "Reject" : "Error")}</strong>?`}
-        description="You can not be undone !!"
-        disclosure={disclosure}
-        onCloseModal={() => setIsConfirm(false)}
-        onConfirm={() => setIsConfirm(true)}
-      />
     </div>
   );
 };

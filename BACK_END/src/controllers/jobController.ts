@@ -500,7 +500,7 @@ const jobController = {
     },
     updateJobStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { jobId, status } = req.body
+            const { jobId, status, rejectReason } = req.body
 
             const userId = req?.user?._id || ''
 
@@ -510,6 +510,14 @@ const jobController = {
 
             if (!['pending', 'approved', 'published', 'expired', 'reopened', 'rejected'].includes(status)) {
                 return res.status(400).json({ message: 'BAD REQUEST' })
+            }
+
+            if(status === 'rejected' && !rejectReason){
+                return res.status(400).json({message: 'Reject reason is required'})
+            }
+
+            if(status === 'rejected' && !rejectReason){
+                return res.status(400).json({message: 'Reject reason is required'})
             }
 
             if (
@@ -523,7 +531,8 @@ const jobController = {
 
             const jobs = await jobService.updateJobStatus({
                 jobId: jobId.toString() as string,
-                status: status as string,
+                status: status as string,,
+                rejectReason: rejectReason.toString() as string
             })
 
             res.status(200).json(jobs)

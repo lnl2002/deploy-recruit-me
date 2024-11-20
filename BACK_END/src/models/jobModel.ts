@@ -32,6 +32,7 @@ export interface IJob extends Document {
     isActive: boolean
     type: string
     status: string
+    rejectReason: string
 }
 
 const jobSchema: Schema = new Schema(
@@ -119,6 +120,9 @@ const jobSchema: Schema = new Schema(
             type: String,
             required: true,
             enum: ['pending', 'approved', 'published', 'expired', 'reopened', 'rejected'],
+        },
+        rejectReason: {
+            type: String,
         },
     },
     { timestamps: true },

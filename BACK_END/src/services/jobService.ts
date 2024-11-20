@@ -333,17 +333,24 @@ const jobService = {
             data: jobs,
         }
     },
-    updateJobStatus: async ({ jobId, status }: { jobId: string; status: string }) => {
+    updateJobStatus: async ({
+        jobId,
+        status,
+        rejectReason,
+    }: {
+        jobId: string
+        status: string
+        rejectReason?: string
+    }) => {
         const update = await Job.updateOne(
             {
                 _id: jobId,
             },
             {
                 status: status,
+                ...(status === 'rejected' && rejectReason ? { rejectReason } : {}),
             },
         )
-
-        console.log('update', update)
 
         return update
     },

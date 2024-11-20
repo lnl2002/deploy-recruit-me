@@ -146,7 +146,7 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
 
   const getApplicants = async () => {
     setIsLoading(true);
-    const data = await applyApi.getApplyByJob({ _id, page, limit: 10, status: '', sort: filter.sort });
+    const data = await applyApi.getApplyByJob({ _id, page, limit: 10, status: 'Shortlisted', sort: filter.sort });
     setLoadAgain(false);
     setUsers(data.data);
     setTotalPages(data.totalPages);
