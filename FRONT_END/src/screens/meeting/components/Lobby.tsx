@@ -2,11 +2,8 @@
 
 import React, { useEffect, useRef } from "react";
 import { Mic, MicOff, Video, VideoOff } from "lucide-react";
-import { Button, Input, Tab, Tabs } from "@nextui-org/react";
+import { Button, Input } from "@nextui-org/react";
 import CameraOffView from "./CameraOffView";
-import CriteriaEvaluation from "./CriteriaEvaluation";
-import { TJob } from "@/api/jobApi";
-import LiveChat from "./LiveChat";
 
 type LobbyProps = {
   username: string;
@@ -45,8 +42,8 @@ const Lobby: React.FC<LobbyProps> = ({
           videoRef.current.srcObject = videoStream.current;
           videoRef.current.play();
         }
-      } catch (err) {
-        console.log("Error accessing camera: ");
+      } catch (err: any) {
+        console.log("Error accessing camera: ", err.message);
       }
     })();
     return () => {
@@ -54,6 +51,7 @@ const Lobby: React.FC<LobbyProps> = ({
         videoStream?.current.getTracks().forEach((track) => {
           track.stop();
         });
+        videoStream.current = null;
       }
     };
   }, [isCameraOn]);
@@ -63,6 +61,7 @@ const Lobby: React.FC<LobbyProps> = ({
       videoStream?.current.getVideoTracks().forEach((track) => {
         track.stop();
       });
+      videoStream.current = null;
     }
     setIsCameraOn(false);
   };

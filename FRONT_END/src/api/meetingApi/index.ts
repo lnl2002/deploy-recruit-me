@@ -118,15 +118,11 @@ export const meetingApi = {
   },
   createRoom: async (roomName: string): Promise<boolean> => {
     try {
-      const res = await axios.post(`${BACKEND_URL}/api/v1/rooms/create-room`, {
+      await axios.post(`${BACKEND_URL}/api/v1/rooms/create-room`, {
         roomName,
       });
 
-      if (res.status === 200) {
-        return true;
-      } else {
-        return false;
-      }
+      return true;
     } catch (error) {
       console.error("Error fetching create-room list:", error);
       return false;
@@ -153,13 +149,13 @@ export const meetingApi = {
     page,
     sortOrder,
     statusFilter,
-    jobId
+    jobId,
   }: {
     limit?: number;
     page?: number;
     sortOrder?: string;
     statusFilter?: string;
-    jobId: string
+    jobId: string;
   }) => {
     try {
       const res = await axios.get(

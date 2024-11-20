@@ -9,7 +9,6 @@ import Video, {
 } from "twilio-video";
 import { v4 as uuidv4 } from "uuid";
 import meetingApi, { IMeeting } from "@/api/meetingApi";
-// import Room from "./components/Room";
 import Lobby from "./components/Lobby";
 import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
@@ -20,6 +19,9 @@ import applyApi, { IApply } from "@/api/applyApi";
 import { TJob } from "@/api/jobApi";
 import { IApplicantReport } from "@/api/applicantReportApi";
 import HeaderMeeting from "./components/HeaderMeeting";
+import { useDisclosure } from "@nextui-org/react";
+import EndMeeting from "./components/EndMeeting";
+import { disconnect } from "process";
 
 interface PageProps {
   params: {
@@ -30,10 +32,9 @@ interface PageProps {
 const Room = dynamic(() => import("./components/Room"), { ssr: false });
 
 export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
-  // const paramss = params;
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { isLoggedIn, userInfo } = useAppSelector((state) => state.user);
   const router = useRouter();
-  let mediaStreamRef = useRef<MediaStream | null>(null);
   const [isContactSegment, setIsContactSegment] = useState<boolean>(false);
   const [meetingUrl, setMeetingUrl] = useState<string>("");
   const [apply, setApply] = useState<IApply | null>(null);
@@ -76,31 +77,15 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
           name: "microphone" as PermissionName,
         });
         setIsMicOn(microphonePermission.state == "granted");
-
-        // If permissions are granted, get media stream
-        if (
-          cameraPermission.state === "granted" ||
-          microphonePermission.state === "granted"
-        ) {
-          mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({
-            video: cameraPermission.state === "granted",
-            audio: microphonePermission.state === "granted",
-          });
-        }
-
-        // Thêm sự kiện lắng nghe khi trạng thái quyền thay đổi
-        cameraPermission.onchange = () =>
-          setIsCameraOn(cameraPermission.state == "granted");
-        microphonePermission.onchange = () =>
-          setIsMicOn(microphonePermission.state == "granted");
       } catch (error) {
         console.error("Error checking permissions:", error);
       }
     })();
+  }, []);
+
+  useEffect(() => {
     return () => {
-      if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
-      }
+      setRoom((prev) => disconnectRoom(prev));
     };
   }, []);
 
@@ -169,36 +154,49 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
     }
   }, [username, isMicOn, isCameraOn, meetingUrl]);
 
-  const handleLogout = useCallback(() => {
-    setRoom((prevRoom) => {
-      if (prevRoom) {
-        prevRoom.localParticipant.tracks.forEach(
-          (trackPub: LocalTrackPublication) => {
-            const track = trackPub.track;
-            if (track) {
-              if (
-                track instanceof LocalAudioTrack ||
-                track instanceof LocalVideoTrack
-              ) {
-                track.stop();
-              }
-            }
+  const disconnectRoom = (room: TwilioRoom | null) => {
+    if (room) {
+      room.localParticipant.tracks.forEach(
+        (trackPub: LocalTrackPublication) => {
+          const track = trackPub.track;
+          if (
+            track &&
+            (track instanceof LocalAudioTrack ||
+              track instanceof LocalVideoTrack)
+          ) {
+            track.stop();
           }
-        );
-        prevRoom.disconnect();
-        console.log(prevRoom.sid);
+        }
+      );
+      room.disconnect();
+    }
+    return null;
+  };
 
-        return null;
-      }
-      return prevRoom;
-    });
-  }, [room]);
+  const handleLogout = useCallback(() => {
+    if (userInfo?.role === "INTERVIEW_MANAGER") {
+      onOpen();
+    } else {
+      setRoom((prevRoom) => disconnectRoom(prevRoom));
+      router.push("/");
+    }
+  }, [userInfo, onOpen]);
+
+  const onEndMeeting = useCallback(async () => {
+    if (room?.sid && isOpen) {
+      setRoom((prevRoom) => disconnectRoom(prevRoom));
+      await meetingApi.endMeeting(room.sid);
+      setIsCameraOn(false);
+      onOpenChange();
+      router.push("/");
+    }
+  }, [room, isOpen, meetingApi, onOpenChange]);
 
   useEffect(() => {
     if (room) {
       const tidyUp = (event: Event) => {
         if (!(event as PageTransitionEvent).persisted) {
-          handleLogout();
+          onEndMeeting();
         }
       };
 
@@ -210,7 +208,7 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
         window.removeEventListener("beforeunload", tidyUp);
       };
     }
-  }, [room, handleLogout]);
+  }, [room, onEndMeeting]);
 
   return (
     <>
@@ -249,6 +247,11 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
           connecting={connecting}
         />
       )}
+      <EndMeeting
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        onEndMeeting={onEndMeeting}
+      />
     </>
   );
 };
