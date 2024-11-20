@@ -512,12 +512,12 @@ const jobController = {
                 return res.status(400).json({ message: 'BAD REQUEST' })
             }
 
-            if(status === 'rejected' && !rejectReason){
-                return res.status(400).json({message: 'Reject reason is required'})
+            if (status === 'rejected' && !rejectReason) {
+                return res.status(400).json({ message: 'Reject reason is required' })
             }
 
-            if(status === 'rejected' && !rejectReason){
-                return res.status(400).json({message: 'Reject reason is required'})
+            if (status === 'rejected' && !rejectReason) {
+                return res.status(400).json({ message: 'Reject reason is required' })
             }
 
             if (
@@ -531,8 +531,8 @@ const jobController = {
 
             const jobs = await jobService.updateJobStatus({
                 jobId: jobId.toString() as string,
-                status: status as string,,
-                rejectReason: rejectReason.toString() as string
+                status: status as string,
+                rejectReason: rejectReason.toString() as string,
             })
 
             res.status(200).json(jobs)
