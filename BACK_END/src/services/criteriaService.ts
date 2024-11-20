@@ -18,6 +18,11 @@ const criteriaService = {
             { $project: { name: 1, career: '$career.name' } },
         ])
     },
+    addCriteria: async (criteria: Partial<ICriteria>): Promise<ICriteria> => {
+        // return await Criteria.find(filterQuery).populate('career').lean()
+
+        return await Criteria.create(criteria)
+    },
 }
 
 export default criteriaService

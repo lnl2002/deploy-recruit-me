@@ -5,7 +5,7 @@ import accountService from '../services/accountService'
 import unitService from '../services/unitService'
 import careerService from '../services/careerService'
 import { IRole } from '../models/roleModel'
-import { IJob, IJobCriteria } from '../models/jobModel'
+import { IJob } from '../models/jobModel'
 import locationService from '../services/locationService'
 
 const jobController = {
@@ -74,6 +74,7 @@ const jobController = {
                     account: 'objectId',
                     location: 'objectId',
                     interviewManager: 'objectId',
+                    groupCriteria: 'objectId',
                     address: 'string',
                     timestamp: 'date',
                     expiredDate: 'date',
@@ -335,7 +336,7 @@ const jobController = {
                 expiredDate,
                 type,
                 location,
-                criterias,
+                groupCriteria,
             } = req.body
 
             const account = req.user
@@ -384,20 +385,8 @@ const jobController = {
                 return res.status(400).json({ message: 'Type is required' })
             }
 
-            if (!criterias) {
-                return res.status(400).json({ message: 'Criterias is required' })
-            }
-
-            if (!Array.isArray(criterias)) {
-                return res.status(400).json({ message: 'Criterias must be array' })
-            }
-
-            const checkEmpty = (criterias as IJobCriteria[]).some((criteria) => {
-                return !criteria.criteriaName.trim() || !criteria.requirement.trim()
-            })
-
-            if (checkEmpty) {
-                return res.status(400).json({ message: 'Criteria name and criteria requirement can not be empty' })
+            if (!groupCriteria) {
+                return res.status(400).json({ message: 'Group Criteria is required' })
             }
 
             const expirationDate = new Date(expiredDate)
@@ -407,6 +396,10 @@ const jobController = {
 
             if (!Types.ObjectId.isValid(interviewManager)) {
                 return res.status(400).json({ message: 'Invalid interview manager ID format' })
+            }
+
+            if (!Types.ObjectId.isValid(groupCriteria)) {
+                return res.status(400).json({ message: 'Invalid group criteria ID format' })
             }
 
             if (!Types.ObjectId.isValid(unit)) {
@@ -464,7 +457,7 @@ const jobController = {
                 isActive: false,
                 isDelete: false,
                 status: 'pending',
-                criterias: criterias,
+                groupCriteria: groupCriteria,
                 type: type,
             })
             return res.json(newJob)
@@ -477,8 +470,8 @@ const jobController = {
             const { page, limit, status, search } = req.query
 
             let listStatus = []
-            if(status){
-                listStatus = (status as string).split(',');
+            if (status) {
+                listStatus = (status as string).split(',')
             }
 
             const interviewManagerId = req?.user?._id || ''
@@ -491,11 +484,11 @@ const jobController = {
 
             // Chuyển đổi các giá trị query sang định dạng số nếu có
             const filterOptions = {
-                interviewManagerId: interviewManagerId as string,
+                interviewManagerId: interviewManagerId,
                 page: parseInt(page as string, 10) || 1,
                 limit: parseInt(limit as string, 10) || 10,
                 status: listStatus as string[],
-                search: search.toString()
+                search: search as string,
             }
 
             const jobs = await jobService.getJobsByInterviewManager(filterOptions)
@@ -509,26 +502,28 @@ const jobController = {
         try {
             const { jobId, status } = req.body
 
-            const userId = req?.user?._id || '';
+            const userId = req?.user?._id || ''
 
-            if(!userId){
-                return res.status(401).json({message: 'UNAUTHORIZED'})
+            if (!userId) {
+                return res.status(401).json({ message: 'UNAUTHORIZED' })
             }
 
-            if(!['pending', 'approved', 'published', 'expired', 'reopened', 'rejected'].includes(status)){
-                return res.status(400).json({message: 'BAD REQUEST'})
+            if (!['pending', 'approved', 'published', 'expired', 'reopened', 'rejected'].includes(status)) {
+                return res.status(400).json({ message: 'BAD REQUEST' })
             }
 
-            if(!jobService.checkAuthorizeUpdateJobStatus({
-                jobId: jobId.toString() as string,
-                userId
-            })){
-                return res.status(403).json({message: 'You cannot update this job'})
+            if (
+                !jobService.checkAuthorizeUpdateJobStatus({
+                    jobId: jobId.toString() as string,
+                    userId,
+                })
+            ) {
+                return res.status(403).json({ message: 'You cannot update this job' })
             }
 
             const jobs = await jobService.updateJobStatus({
                 jobId: jobId.toString() as string,
-                status: status as string
+                status: status as string,
             })
 
             res.status(200).json(jobs)

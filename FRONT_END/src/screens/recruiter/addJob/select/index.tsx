@@ -13,6 +13,7 @@ interface IAutocompleteComponentProps<T extends object> {
   itemToLabel: (item: T) => string;
   inputWrapperClass?: string;
   className?: string;
+  props?: any;
 }
 
 function AutocompleteComponent<T extends object>({
@@ -27,6 +28,7 @@ function AutocompleteComponent<T extends object>({
   itemToLabel,
   inputWrapperClass = "",
   className = "",
+  props = {},
 }: IAutocompleteComponentProps<T>) {
   return (
     <Autocomplete
@@ -46,6 +48,7 @@ function AutocompleteComponent<T extends object>({
       onSelectionChange={onSelectionChange}
       isInvalid={isInvalid}
       errorMessage={errorMessage}
+      {...props}
     >
       {items.map((item) => (
         <AutocompleteItem className="text-themeDark" key={itemToKey(item)}>

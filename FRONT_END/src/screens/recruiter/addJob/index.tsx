@@ -7,6 +7,12 @@ import {
   CardBody,
   Button,
   DateValue,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
 } from "@nextui-org/react";
 import { DatePicker } from "@nextui-org/date-picker";
 import {
@@ -18,7 +24,7 @@ import {
   MapPin,
   SquareMinus,
 } from "lucide-react";
-import { Key, useEffect, useState } from "react";
+import { Fragment, Key, useEffect, useState } from "react";
 import unitApi, { TUnit } from "@/api/unitApi";
 import accountApi, { IAccount } from "@/api/accountApi/accountApi";
 import jobApi, { TJob } from "@/api/jobApi";
@@ -30,7 +36,8 @@ import TextareaComponent from "./textarea";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useAppSelector } from "@/store/store";
-import criteriaApi, { ICritera } from "@/api/criteriaApi";
+import groupCriteriaApi, { IGroupCriteria } from "@/api/groupCriteriaApi";
+import { ICriteria, ICriteriaDetails } from "@/api/criteriaApi";
 
 const CustomEditor = dynamic(() => import("./custom"), {
   ssr: false,
@@ -51,6 +58,7 @@ const requiredFields = [
   "expiredDate",
   "address",
   "type",
+  "groupCriteria",
 ];
 
 interface JobType {
@@ -58,12 +66,7 @@ interface JobType {
   name: string;
 }
 
-interface ICriteraDetails {
-  criteriaName: string;
-  errorMessageName?: string;
-  requirement: string;
-  errorMessageRequirement?: string;
-}
+const LEVELs = ["BASIC", "BEGINER", "INTERMEDIATE", "ADVANCED", "EXPERT"];
 
 const types: JobType[] = [
   { _id: "fulltime", name: "Fulltime" },
@@ -80,14 +83,13 @@ export const AddJob = (): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState("Job Description");
   const [formValue, setFormValue] = useState<Partial<TJob>>({});
   const [formValueError, setFormValueError] = useState<Partial<TJob>>({});
-  const [unitList, setUnitList] = useState<Partial<TUnit[]> | []>([]);
-  const [criteriaList, setCriteriaList] = useState<Partial<ICritera[]>>([]);
+  const [unitList, setUnitList] = useState<TUnit[]>([]);
+  const [groupCriterias, setGroupCriterias] = useState<IGroupCriteria[]>([]);
+  const [criterias, setCriterias] = useState<ICriteria[]>([]);
   const [unit, setUnit] = useState<Partial<TUnit>>({});
-  const [careerList, setCareerList] = useState<Partial<TCareer[]> | []>([]);
-  const [accountList, setAccountList] = useState<Partial<IAccount[]> | []>([]);
+  const [careerList, setCareerList] = useState<TCareer[]>([]);
+  const [accountList, setAccountList] = useState<IAccount[]>([]);
   const [dateSelected, setDateSelected] = useState<DateValue | null>();
-  const [amountCriteria, setAmountCriteria] = useState<number>(1);
-  const [criteriaArray, setCriteriaArray] = useState<ICriteraDetails[]>([]);
 
   useEffect(() => {
     if (userInfo?.role !== "RECRUITER") {
@@ -121,74 +123,32 @@ export const AddJob = (): React.JSX.Element => {
 
   useEffect(() => {
     (async () => {
-      if (!formValue?.career) return;
+      if (!formValue?.unit) return;
 
-      const params = `?career=${formValue?.career as string}`;
-      const { criterias } = await criteriaApi.getCareerList(params);
-
-      setCriteriaList(criterias);
-    })();
-  }, [formValue?.career]);
-
-  useEffect(() => {
-    console.log(formValue);
-  }, [formValue]);
-
-  useEffect(() => {
-    setCriteriaArray((prev) =>
-      Array.from({ length: amountCriteria }).map((_, index) => ({
-        criteriaName: prev[index]?.criteriaName ?? "",
-        errorMessageName: prev[index]?.errorMessageName ?? "",
-        requirement: prev[index]?.requirement ?? "",
-        errorMessageRequirement: prev[index]?.errorMessageRequirement ?? "",
-      }))
-    );
-  }, [amountCriteria]);
-
-  const handleRequirementChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    const { value } = event.target;
-    setCriteriaArray((prev) =>
-      prev.map((item, i) =>
-        i === index
-          ? { ...item, requirement: value, errorMessageName: "" }
-          : item
-      )
-    );
-  };
-
-  const onSelectionCriteriaChange = (
-    key: Key | null,
-    criteriaIndex: number
-  ) => {
-    const value = key?.toString();
-    const obj: any = {};
-    if (value) {
-      obj.criteriaName = value;
-      obj.errorMessageName = "";
-      const checkExist = criteriaArray.some(
-        (criteria, index) =>
-          criteria.criteriaName === value && index !== criteriaIndex
+      const params = `?unit=${formValue?.unit as string}`;
+      const { groupCriterias } = await groupCriteriaApi.getGroupCriterias(
+        params
       );
-      if (checkExist) {
-        obj.errorMessageName = "This criterion is already added";
-      }
-    } else {
-      obj.criteriaName = "";
-      obj.errorMessageName = "";
-    }
 
-    setCriteriaArray((prev) =>
-      prev.map((item, i) => (i === criteriaIndex ? { ...item, ...obj } : item))
-    );
-  };
+      setGroupCriterias(groupCriterias);
+    })();
+  }, [formValue?.unit]);
 
-  const handleDeleteCriteria = (index: number) => {
-    setCriteriaArray((prev) => prev.filter((_, i) => i !== index));
-    setAmountCriteria((prev) => prev - 1);
-  };
+  useEffect(() => {
+    (async () => {
+      if (!formValue?.groupCriteria) return;
+
+      const { groupCriteria } = await groupCriteriaApi.getGroupCriteria(
+        formValue?.groupCriteria as string
+      );
+
+      if (groupCriteria) setCriterias(groupCriteria.criterias as ICriteria[]);
+    })();
+  }, [formValue?.groupCriteria]);
+
+  useEffect(() => {
+    console.log(criterias);
+  }, [criterias]);
 
   const handleOnChange = (value: string, label: string) => {
     setFormValue(
@@ -295,36 +255,12 @@ export const AddJob = (): React.JSX.Element => {
       }
     }
 
-    setCriteriaArray((prevArr) =>
-      prevArr.map((field) => ({
-        ...field,
-        errorMessageName: !field.criteriaName.trim()
-          ? "Criteria name is required."
-          : "",
-        errorMessageRequirement: !field.requirement.trim()
-          ? "Requirement is required."
-          : "",
-      }))
-    );
-
-    const emptyFieldCriteriaQtt = criteriaArray.some(
-      (criteria) =>
-        !criteria.criteriaName.trim() || !criteria.requirement.trim()
-    );
-    if (criteriaArray.length === 0) {
-      toast.warning("Please add at least one criteria");
-      return;
-    }
-
-    if (missingFields.length > 0 || emptyFieldCriteriaQtt) {
+    if (missingFields.length > 0) {
       toast.warning("Please add all missing fields");
       return;
     }
 
-    const { job: newJob } = await jobApi.addJob({
-      ...formValue,
-      criterias: criteriaArray,
-    });
+    const { job: newJob } = await jobApi.addJob(formValue);
 
     if (newJob?._id) {
       toast.success("Add job successfully");
@@ -368,7 +304,7 @@ export const AddJob = (): React.JSX.Element => {
                         errorMessage={formValueError.title}
                       />
                       <AutocompleteComponent
-                        items={unitList as TUnit[]}
+                        items={unitList}
                         label="Unit"
                         placeholder="Select a unit"
                         selectedKey={formValue.unit as string | null}
@@ -386,7 +322,7 @@ export const AddJob = (): React.JSX.Element => {
                       />
                       {accountList.length > 0 && (
                         <AutocompleteComponent
-                          items={accountList as IAccount[]}
+                          items={accountList}
                           label="Interview Manager"
                           placeholder="Select a unit"
                           selectedKey={
@@ -651,68 +587,67 @@ export const AddJob = (): React.JSX.Element => {
               <Tab key="Job Criteria" title="3. Job Criteria">
                 <Card className="min-h-72">
                   <CardBody className="mt-5 gap-3">
-                    {Array.from({ length: amountCriteria }).map((_, index) => (
-                      <div className="flex flex-row gap-5 mt-5" key={index}>
-                        <div className="flex items-center">
-                          <Button
-                            isIconOnly={true}
-                            radius="full"
-                            className="bg-themeWhite"
-                            onPress={() => handleDeleteCriteria(index)}
-                          >
-                            <CircleMinus size={18} color="#f70707" />
-                          </Button>
+                    <AutocompleteComponent
+                      items={groupCriterias}
+                      label="Criteria Name"
+                      placeholder="Select Criteria Name"
+                      selectedKey={formValue.groupCriteria as string | null}
+                      onSelectionChange={(value: Key | null) => {
+                        onSelectedChange("criteria", value);
+                      }}
+                      isInvalid={!!formValueError.groupCriteria}
+                      errorMessage={formValueError.groupCriteria as string}
+                      itemToKey={(criteria) => criteria._id}
+                      itemToLabel={(criteria) => criteria.name}
+                      inputWrapperClass={
+                        formValueError.groupCriteria
+                          ? "border-0 bg-[#fee7ef]"
+                          : ""
+                      }
+                    />
+                    {criterias.map((criteria) => (
+                      <Fragment key={criteria?._id}>
+                        <div className="px-4 pb-1 pt-2">
+                          <span className="font-semibold">
+                            {criteria?.name}
+                          </span>
                         </div>
-                        <AutocompleteComponent
-                          items={criteriaList as ICritera[]}
-                          label={`Criterion ${index + 1}`}
-                          placeholder="Select a criterion"
-                          selectedKey={
-                            criteriaArray[index]?.criteriaName as string | null
-                          }
-                          onSelectionChange={(key: Key | null) =>
-                            onSelectionCriteriaChange(key, index)
-                          }
-                          isInvalid={!!criteriaArray[index]?.errorMessageName}
-                          errorMessage={criteriaArray[index]?.errorMessageName}
-                          itemToKey={(criteria) => criteria.name}
-                          itemToLabel={(criteria) => criteria.name}
-                          inputWrapperClass={
-                            criteriaArray[index]?.errorMessageName
-                              ? "border-0 bg-[#fee7ef]"
-                              : ""
-                          }
-                        />
-                        <TextareaComponent
-                          label={`Requirements ${index + 1}`}
-                          name="requirements"
-                          labelPlacement="outside"
-                          placeholder="Add Job requirements"
-                          value={criteriaArray[index]?.requirement}
-                          onChange={(
-                            event: React.ChangeEvent<HTMLInputElement>
-                          ) => handleRequirementChange(event, index)}
-                          isDisabled={!criteriaArray[index]?.criteriaName}
-                          classNames={{ label: "pb-[4px]" }}
-                          isInvalid={
-                            !!criteriaArray[index]?.errorMessageRequirement
-                          }
-                          errorMessage={
-                            criteriaArray[index]?.errorMessageRequirement
-                          }
-                        />
-                      </div>
+                        <Table
+                          hideHeader={true}
+                          className="table-fixed"
+                          aria-label="Vertical Header table"
+                        >
+                          <TableHeader>
+                            <TableColumn>LEVEL</TableColumn>
+                            <TableColumn>CRITERIA</TableColumn>
+                            <TableColumn>WEIGHT</TableColumn>
+                          </TableHeader>
+                          <TableBody>
+                            {LEVELs.map((level) => (
+                              <TableRow key={level}>
+                                <TableCell className="font-bold">
+                                  {level}
+                                </TableCell>
+                                <TableCell>
+                                  {(
+                                    criteria[
+                                      level.toLowerCase() as keyof ICriteria
+                                    ] as ICriteriaDetails
+                                  )?.detail ?? ""}
+                                </TableCell>
+                                <TableCell className="w-16">
+                                  {(
+                                    criteria[
+                                      level.toLowerCase() as keyof ICriteria
+                                    ] as ICriteriaDetails
+                                  )?.weight ?? ""}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </Fragment>
                     ))}
-                    <Button
-                      size="sm"
-                      onPress={() => setAmountCriteria((prev) => prev + 1)}
-                      className="w-fit bg-blurEffectWhite mt-6 mb-3"
-                      startContent={<CirclePlus color="#f16e21" size={20} />}
-                    >
-                      <p className="text-themeOrange text-md">
-                        Add new Criterion
-                      </p>
-                    </Button>
                   </CardBody>
                 </Card>
                 <div className="flex items-center justify-between mb-4 relative mt-[32px] w-full">

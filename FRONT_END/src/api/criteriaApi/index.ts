@@ -2,15 +2,13 @@ import { BACKEND_URL } from "@/utils/env";
 import axios from "axios";
 
 const criteriaApi = {
-  getCareerList: async (params: string): Promise<{ criterias: ICritera[] }> => {
+  getCareerList: async (
+    params: string
+  ): Promise<{ criterias: ICriteria[] }> => {
     try {
       const res = await axios.get(`${BACKEND_URL}/api/v1/criterias${params}`);
 
-      if (res.status === 200) {
-        return { criterias: res.data.data };
-      } else {
-        return { criterias: [] };
-      }
+      return { criterias: res.data.data };
     } catch (error) {
       return { criterias: [] };
     }
@@ -19,8 +17,19 @@ const criteriaApi = {
 
 export default criteriaApi;
 
-export interface ICritera {
+export interface ICriteriaDetails {
   _id: string;
+  detail: string;
+  weight: string;
+}
+
+export interface ICriteria extends Document {
+  _id: string;
+  career?: string;
   name: string;
-  career: string;
+  basic: ICriteriaDetails;
+  beginer: ICriteriaDetails;
+  intermediate: ICriteriaDetails;
+  advanced: ICriteriaDetails;
+  expert: ICriteriaDetails;
 }
