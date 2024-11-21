@@ -36,7 +36,7 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
   const { isLoggedIn, userInfo } = useAppSelector((state) => state.user);
   const router = useRouter();
   const [isContactSegment, setIsContactSegment] = useState<boolean>(false);
-  const [meetingUrl, setMeetingUrl] = useState<string>("");
+  const [meetingURL, setMeetingURL] = useState<string>("");
   const [apply, setApply] = useState<IApply | null>(null);
   const [username, setUsername] = useState<string>("");
   const [room, setRoom] = useState<TwilioRoom | null>(null);
@@ -53,9 +53,11 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
       );
 
       if (data) {
-        setMeetingUrl(data.url);
+        setMeetingURL(data.url);
         const apply = await applyApi.getApplicationById({ _id: data.apply });
-        if (apply) setApply(apply);
+        if (apply) {
+          setApply(apply);
+        }
       } else {
         toast.error("Meeting URL not exists!");
         router.push("/");
@@ -104,13 +106,13 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
     []
   );
 
-  const createNewRoom = async () => {
+  const createNewRoom = useCallback(async () => {
     try {
-      await meetingApi.createRoom(meetingUrl);
+      await meetingApi.createRoom(meetingURL);
     } catch (error) {
       console.log(error);
     }
-  };
+  }, [meetingURL]);
 
   const handleSubmit = useCallback(async () => {
     setConnecting(true);
@@ -121,7 +123,7 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
       }
       const { data, status } = await meetingApi.getAccessToken(
         username + "6C1B01A16E67" + uuidv4(),
-        meetingUrl
+        meetingURL
       );
 
       if (status !== 200) {
@@ -136,12 +138,10 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
       }
 
       const connectedRoom = await Video.connect(data, {
-        name: meetingUrl,
+        name: meetingURL,
         audio: isMicOn,
         video: isCameraOn,
       });
-
-      console.log(connectedRoom.sid);
 
       // setRoomSid(connectedRoom.sid);
       setRoom(connectedRoom);
@@ -152,7 +152,7 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
     } finally {
       setConnecting(false);
     }
-  }, [username, isMicOn, isCameraOn, meetingUrl]);
+  }, [username, isMicOn, isCameraOn, meetingURL]);
 
   const disconnectRoom = (room: TwilioRoom | null) => {
     if (room) {
@@ -186,11 +186,15 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
     if (room?.sid && isOpen) {
       setRoom((prevRoom) => disconnectRoom(prevRoom));
       await meetingApi.endMeeting(room.sid);
+      await applyApi.updateApplyStatus({
+        applyId: apply?._id as string,
+        newStatus: "Interviewed",
+      });
       setIsCameraOn(false);
       onOpenChange();
       router.push("/");
     }
-  }, [room, isOpen, meetingApi, onOpenChange]);
+  }, [room, isOpen, meetingApi, onOpenChange, apply?._id]);
 
   useEffect(() => {
     if (room) {
@@ -229,9 +233,7 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
           job={apply?.job as TJob}
           applicantReportIds={(
             apply?.applicantReports as IApplicantReport[]
-          )?.map(
-            (applicantReport) => (applicantReport as IApplicantReport)._id
-          )}
+          )?.map((applicantReport) => applicantReport._id)}
           isContactSegment={isContactSegment}
         />
       ) : (
