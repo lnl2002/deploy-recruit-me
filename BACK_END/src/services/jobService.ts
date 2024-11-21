@@ -270,6 +270,11 @@ const jobService = {
             .populate('account')
             .populate('interviewManager')
             .populate('location')
+            .populate({
+                path: 'groupCriteria',
+                select: '-unit',
+                populate: { path: 'criterias' },
+            })
             .lean()
             .exec()
 
@@ -296,7 +301,7 @@ const jobService = {
         page = 1,
         limit = 10,
         status,
-        search
+        search,
     }: {
         interviewManagerId: string
         page?: number
@@ -309,17 +314,17 @@ const jobService = {
         const totalJobs = await Job.countDocuments({
             interviewManager: interviewManagerId,
             ...(status && status.length > 0 ? { status: { $in: status } } : {}),
-            ...(search ? {title: search.toString()} : {})
+            ...(search ? { title: search.toString() } : {}),
         })
         const jobs = await Job.find({
             interviewManager: interviewManagerId,
             ...(status && status.length > 0 ? { status: { $in: status } } : {}),
-            ...(search ? { title: { $regex: search.toString(), $options: 'i' } } : {})
+            ...(search ? { title: { $regex: search.toString(), $options: 'i' } } : {}),
         })
-            .populate("unit")
+            .populate('unit')
             .skip(skip)
             .limit(limit)
-            .sort({createdAt: -1})
+            .sort({ createdAt: -1 })
 
         return {
             total: totalJobs,
@@ -328,42 +333,39 @@ const jobService = {
             data: jobs,
         }
     },
-    updateJobStatus: async({
+    updateJobStatus: async ({
         jobId,
         status,
-        rejectReason
-    } : {
+        rejectReason,
+    }: {
         jobId: string
-        status: string,
+        status: string
         rejectReason?: string
     }) => {
-        const update = await Job.updateOne({
-            _id: jobId
-        }, {
-            status: status,
-            ...((status === "rejected" && rejectReason) ? {rejectReason} : {})
-        })
+        const update = await Job.updateOne(
+            {
+                _id: jobId,
+            },
+            {
+                status: status,
+                ...(status === 'rejected' && rejectReason ? { rejectReason } : {}),
+            },
+        )
 
         return update
     },
-    checkAuthorizeUpdateJobStatus: async ({
-        jobId,
-        userId
-    }: {
-        jobId: string
-        userId: string
-    }) => {
+    checkAuthorizeUpdateJobStatus: async ({ jobId, userId }: { jobId: string; userId: string }) => {
         const data = Job.findOne({
             _id: jobId,
-            interviewManager: userId
+            interviewManager: userId,
         })
 
-        if(data) {
-            return true;
+        if (data) {
+            return true
         }
 
-        return false;
-    }
+        return false
+    },
 }
 
 // Helper function to build lookup stages
