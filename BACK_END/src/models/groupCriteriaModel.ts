@@ -1,7 +1,8 @@
 import mongoose, { Document, Schema } from 'mongoose'
+import { ICriteria } from './criteriaModel'
 
 export interface IGroupCriteria extends Document {
-    criterias: mongoose.Types.ObjectId[]
+    criterias: mongoose.Types.ObjectId[] | ICriteria[]
     unit: mongoose.Types.ObjectId
     name: string
 }

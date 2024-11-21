@@ -39,7 +39,7 @@ const JobDetails = (): React.JSX.Element => {
       const { job } = await jobApi.getJobById(jobId as string);
       setJob(job);
       const applyInfo = await applyApi.getApplyInfo(jobId as string);
-      dispatcher(setApplyInfo(applyInfo.data))
+      dispatcher(setApplyInfo(applyInfo?.data || null))
     })();
   }, [jobId]);
 
