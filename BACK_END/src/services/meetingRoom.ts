@@ -231,6 +231,7 @@ const meetingService = {
                         isActive: 1,
                         createdAt: 1,
                         updatedAt: 1,
+                        apply: '$applyDetails',
                         applyId: '$applyDetails._id',
                         candidate: {
                             _id: '$candidateDetails._id',

@@ -23,6 +23,8 @@ import Empty from "./empty";
 import { formatDateTime } from "@/utils/formatDateTime";
 import meetingApi from "@/api/meetingApi";
 import { IAccount } from "@/api/accountApi/accountApi";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import AIScoreModal, { Criterion } from "./DetailScore";
 
 type ApplicantScheduledTableProps = {
   _id: string;
@@ -36,6 +38,7 @@ export const ApplicantScheduledTable = ({
   filter
 }: ApplicantScheduledTableProps) => {
   const cvViewDisclosure = useDisclosure();
+  const scoreDetailDisclosure = useDisclosure();
   const [url, setUrl] = useState("");
 
   const [page, setPage] = useState(1);
@@ -45,6 +48,7 @@ export const ApplicantScheduledTable = ({
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [user, setUser] = useState<IApply | any>();
   const [loadAgain, setLoadAgain] = useState(false);
+  const [criterias, setCriterias] = useState<Criterion[]>([]);
 
   useEffect(() => {
     if (_id) {
@@ -88,7 +92,7 @@ export const ApplicantScheduledTable = ({
   const handleCloseModal = () => {
     setIsOpenModal(false);
   };
-  const getApplicant = async (_id: string, meetingInfo: {
+  const getApplicant = async (_id: string, meetingInfo?: {
     _id: string,
     candidate: any,
     participants: any[],
@@ -98,11 +102,6 @@ export const ApplicantScheduledTable = ({
     url: string
   }) => {
     const data = await applyApi.getApplicationById({ _id });
-    console.log('aa', {
-      ...data,
-      meetingInfo
-    });
-    
     setUser({
       ...data,
       meetingInfo
@@ -115,6 +114,12 @@ export const ApplicantScheduledTable = ({
     const url = await applyApi.getCvFileById({ cvId: id });
     setUrl(url ?? "");
   };
+
+  const handleOpenScore = async (criteria: Criterion[], userId: string) => {
+    setCriterias(criteria)
+    await getApplicant(userId);
+    scoreDetailDisclosure.onOpen()
+  }
 
   return (
     <div>
@@ -144,6 +149,7 @@ export const ApplicantScheduledTable = ({
             <TableColumn key="role">INTERVIEW TIME</TableColumn>
             <TableColumn key="role">PARTICIPANTS</TableColumn>
             <TableColumn key="status">STATUS</TableColumn>
+            <TableColumn key="cvScore">AI Score</TableColumn>
             <TableColumn key="action">CV</TableColumn>
           </TableHeader>
           <TableBody
@@ -175,6 +181,13 @@ export const ApplicantScheduledTable = ({
                   <TableCell className="py-4 font-bold">
                     <Status status={user.applyStatus?.name} key={user.applyStatus?.name} />
                   </TableCell>
+                  <TableCell className="py-4 font-bold text-themeOrange cursor-pointer" onClick={() => handleOpenScore(user?.apply?.cvScore?.detailScore, user.applyId)}>
+                    {user?.apply?.cvScore?.averageScore || (
+                      <div className="flex gap-2 items-center">
+                        <LoadingSpinner/> Caculating...
+                      </div>
+                    )} 
+                  </TableCell>
                   <TableCell className="py-4 font-bold">
                     <button
                       className="text-themeOrange rounded-lg transition duration-300 ease-in-out transform hover:scale-105 flex gap-1 items-center"
@@ -195,6 +208,7 @@ export const ApplicantScheduledTable = ({
               ))
             ) : (
               <TableRow key="1">
+                <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
@@ -237,6 +251,13 @@ export const ApplicantScheduledTable = ({
       <ModalCommon size={"5xl"} disclosure={cvViewDisclosure}>
         <CvViewer url={url ?? ""} />
       </ModalCommon>
+      <AIScoreModal
+        isOpen={scoreDetailDisclosure.isOpen}
+        onOpenChange={scoreDetailDisclosure.onOpenChange}
+        criteria={criterias}
+        onViewCv={() => onViewCv(user?.cv._id)}
+        name={`${user?.cv?.firstName || ""} ${user?.cv?.lastName || ""}`}
+      />
     </div>
   );
 };

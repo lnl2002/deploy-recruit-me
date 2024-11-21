@@ -159,7 +159,7 @@ export const meetingApi = {
     page?: number;
     sortOrder?: string;
     statusFilter?: string;
-    jobId: string
+    jobId?: string
   }) => {
     try {
       const res = await axios.get(

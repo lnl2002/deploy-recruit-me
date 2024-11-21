@@ -44,6 +44,7 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
 
   const handleLogout = () => {
     dispatch(logout()); // Dispatch để đăng xuất người dùng
+    window.location.href = '/login'
   };
 
   return (
