@@ -25,14 +25,35 @@ import ApplicantCard from "./components/ApplicantCard";
 import { formatVietnamPhoneNumber } from "@/utils/formatPhone";
 import ModalCommon from "@/components/Modals/ModalCommon";
 import { CvViewer } from "@/components/CvViewer";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import AIScoreModal, { Criterion } from "@/screens/interview-manager/jobDetails/components/ApplicationList/components/DetailScore";
 
 const ApplicationList: React.FC<{ jobId: string }> = ({
   jobId,
 }: {
   jobId: string;
 }) => {
+  const [filter, setFilter] = useState({
+    status: "",
+    sort: "desc"
+  })
+
+  const handleChangeFilter = (name: string, value: string) => {
+    setFilter({
+      ...filter,
+      [name]: value
+    })
+  }
+
   return (
     <div className="">
+      <div className="mb-5 flex justify-center">
+        <img
+          src="../autoscan.png"
+          alt="Auto Scan"
+          className="w-full cursor-pointer "
+        />
+      </div>
       <div className="flex justify-between items-center mb-4">
         <div>
           <Input
@@ -43,41 +64,58 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
           />
         </div>
         <div className="flex gap-2 text-themeDark">
-          <Select
-            isRequired
-            defaultSelectedKeys={["all"]}
-            className="min-w-[150px]"
+        <Select
+            defaultSelectedKeys={[filter.status]}
+            className="min-w-[250px]"
+            value={filter.status}
+            onChange={(e) => handleChangeFilter("status", e.target.value)}
           >
-            <SelectItem key={"all"} className="text-themeDark">
+            <SelectItem key={""} value={""} className="text-themeDark">
               All status
+            </SelectItem>
+            <SelectItem key={"New"} value={"New"} className="text-themeDark">
+              New
+            </SelectItem>
+            <SelectItem key={"Shortlisted"} value={"Shortlisted"} className="text-themeDark">
+              Applicant shortlisted
+            </SelectItem>
+            <SelectItem key={"Pending Interview Confirmation"} value={"Pending Interview Confirmation"} className="text-themeDark">
+              Pending Interview Confirmation
+            </SelectItem>
+            <SelectItem key={"Interview Rescheduled"} value={"Interview Rescheduled"} className="text-themeDark">
+              Applicant Requests Reschedule
+            </SelectItem>
+            <SelectItem key={"Interview Scheduled"} value={"Interview Scheduled"} className="text-themeDark">
+              Interview Waiting
+            </SelectItem>
+            <SelectItem key={"Interviewed"} value={"Inteviewed"} className="text-themeDark">
+              Applicant Inteviewed
+            </SelectItem>
+            <SelectItem key={"Accepted"} value={"Accepted"} className="text-themeDark">
+              Applicant Accepted
+            </SelectItem>
+            <SelectItem key={"Rejected"} value={"Rejected"} className="text-themeDark">
+              Applicant Rejected
             </SelectItem>
           </Select>
           <Select
-            isRequired
-            defaultSelectedKeys={["newest"]}
+            defaultSelectedKeys={["desc"]}
             className="min-w-[170px] text-themeDark"
+            value={filter.sort}
+            onChange={(e) => handleChangeFilter("sort", e.target.value)}
           >
-            <SelectItem key={"newest"} className="text-themeDark">
+            <SelectItem key={"desc"} value={"desc"} className="text-themeDark">
               Sort by newest
             </SelectItem>
-            <SelectItem key={"lastest"} className="text-themeDark">
+            <SelectItem key={"asc"} value={"asc"} className="text-themeDark">
               Sort by latest
-            </SelectItem>
-            <SelectItem key={"score"} className="text-themeDark">
-              Sort by score
             </SelectItem>
           </Select>
         </div>
       </div>
-      <div className="mb-5">
-        <img
-          src="../autoscan.svg"
-          alt="Auto Scan"
-          className="w-full cursor-pointer"
-        />
-      </div>
+      
       <div>
-        <ApplicantTable _id={jobId} />
+        <ApplicantTable _id={jobId} filter={filter} key={`${filter.status}-${filter.sort}`}/>
       </div>
       <div className="flex justify-center"></div>
     </div>
@@ -88,9 +126,14 @@ export default ApplicationList;
 
 type TableProps = {
   _id: string;
+  filter: {
+    status: string
+    sort: string
+  }
 };
-const ApplicantTable = ({ _id }: TableProps) => {
+const ApplicantTable = ({ _id, filter }: TableProps) => {
   const cvViewDisclosure = useDisclosure();
+  const scoreDetailDisclosure = useDisclosure();
   const [url, setUrl] = useState("");
 
   const [page, setPage] = useState(1);
@@ -100,6 +143,7 @@ const ApplicantTable = ({ _id }: TableProps) => {
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [user, setUser] = useState<IApply | any>();
   const [loadAgain, setLoadAgain] = useState(false);
+  const [criterias, setCriterias] = useState<Criterion[]>([]);
 
   useEffect(() => {
     if (_id) {
@@ -115,7 +159,7 @@ const ApplicantTable = ({ _id }: TableProps) => {
 
   const getApplicants = async () => {
     setIsLoading(true);
-    const data = await applyApi.getApplyByJob({ _id, page, limit: 10 });
+    const data = await applyApi.getApplyByJob({ _id, page, limit: 10, status: filter.status, sort: filter.sort });
     setLoadAgain(false)
     setUsers(data.data);
     setTotalPages(data.totalPages);
@@ -140,6 +184,12 @@ const ApplicantTable = ({ _id }: TableProps) => {
     const url = await applyApi.getCvFileById({ cvId: id });
     setUrl(url ?? "");
   };
+
+  const handleOpenScore = async (criteria: Criterion[], userId: string) => {
+    setCriterias(criteria)
+    await getApplicant(userId);
+    scoreDetailDisclosure.onOpen()
+  }
 
   return (
     <div>
@@ -168,6 +218,7 @@ const ApplicantTable = ({ _id }: TableProps) => {
             <TableColumn key="name">CANDIDATE NAME</TableColumn>
             <TableColumn key="role">APPLIED TIME</TableColumn>
             <TableColumn key="status">STATUS</TableColumn>
+            <TableColumn key="cvScore">AI Score</TableColumn>
             <TableColumn key="action">CV</TableColumn>
           </TableHeader>
           <TableBody
@@ -186,6 +237,13 @@ const ApplicantTable = ({ _id }: TableProps) => {
                   <TableCell className="py-4 font-bold">
                     <Status status={user.status.name} key={user.status.name}/>
                   </TableCell>
+                  <TableCell className="py-4 font-bold text-themeOrange cursor-pointer" onClick={() => handleOpenScore(user?.cvScore?.detailScore, user._id)}>
+                    {user?.cvScore?.averageScore || (
+                      <div className="flex gap-2 items-center">
+                        <LoadingSpinner/> Caculating...
+                      </div>
+                    )} 
+                  </TableCell>
                   <TableCell className="py-4 font-bold">
                     <button
                       className="text-themeOrange rounded-lg transition duration-300 ease-in-out transform hover:scale-105 flex gap-1 items-center"
@@ -198,6 +256,7 @@ const ApplicantTable = ({ _id }: TableProps) => {
               ))
             ) : (
               <TableRow key="1">
+                <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
@@ -238,6 +297,13 @@ const ApplicantTable = ({ _id }: TableProps) => {
       <ModalCommon size={"5xl"} disclosure={cvViewDisclosure}>
         <CvViewer url={url ?? ""} />
       </ModalCommon>
+      <AIScoreModal
+        isOpen={scoreDetailDisclosure.isOpen}
+        onOpenChange={scoreDetailDisclosure.onOpenChange}
+        criteria={criterias}
+        onViewCv={() => onViewCv(user?.cv._id)}
+        name={`${user?.cv?.firstName || ""} ${user?.cv?.lastName || ""}`}
+      />
     </div>
   );
 };
