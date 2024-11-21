@@ -5,6 +5,7 @@ import { TUnit } from "../unitApi";
 import { TCareer } from "../careerApi";
 import { IAccount } from "../accountApi/accountApi";
 import { IApply } from "../applyApi";
+import { IGroupCriteria } from "../groupCriteriaApi";
 
 const jobApi = {
   getJobList: async (
@@ -144,12 +145,6 @@ const jobApi = {
 
 export default jobApi;
 
-export interface ICriteria {
-  _id?: string;
-  criteriaName: string;
-  requirement: string;
-}
-
 export interface TJob {
   _id: string;
   title: string;
@@ -173,7 +168,7 @@ export interface TJob {
   updatedAt: string;
   applies: string[] | Partial<IApply>[];
   status: JobStatus;
-  criterias: ICriteria[];
+  groupCriteria?: string | IGroupCriteria;
   __v: number;
 }
 
