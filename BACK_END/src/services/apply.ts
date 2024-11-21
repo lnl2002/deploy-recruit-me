@@ -1,5 +1,10 @@
 import mongoose, { Types } from 'mongoose'
 import Apply, { IApply } from '..//models/applyModel'
+import fs from 'fs'
+import Job from '../models/jobModel'
+import { textract } from '../configs/aws-config'
+import Gemini from '../configs/gemini-config'
+import { IGroupCriteria } from '~/models/groupCriteriaModel'
 
 const applyService = {
     updateStatus: async ({
@@ -81,6 +86,84 @@ const applyService = {
             .populate('applicantReports')
             .populate('statusUpdatedBy')
     },
+
+    // S3 textract
+    extractTextFromPdf: async (filePath: string, jobId: string, applyId: string): Promise<string> => {
+        const fileContent = fs.readFileSync(filePath)
+
+        const params = {
+            Document: {
+                Bytes: fileContent,
+            },
+        }
+
+        try {
+            const job = await Job.findById(jobId).select('_id groupCriteria').populate({
+                path: 'groupCriteria',
+                populate: {
+                    path: 'criterias',
+                    model: 'Criteria',
+                },
+            })
+
+            if (!job) {
+                throw new Error(`Job ${jobId} not found`)
+            }
+
+            const criterias = JSON.stringify((job.groupCriteria as IGroupCriteria).criterias)
+
+            const response = await textract.detectDocumentText(params).promise()
+
+            const extractedText = response.Blocks?.filter((block) => block.BlockType === 'LINE') // Lấy các dòng text
+                .map((block) => block.Text) // Trích xuất text
+                .join('\n') // Ghép thành chuỗi
+
+            const gemini = new Gemini()
+            const result = await gemini.processCV({
+                cvContent: extractedText,
+                criteriaContent: criterias,
+            })
+            const score = JSON.parse(result)
+            const averageScore = calculateAverageScore(score)
+
+            await Apply.updateOne(
+                {
+                    _id: applyId,
+                },
+                {
+                    cvScore: {
+                        averageScore: averageScore,
+                        detailScore: score,
+                    },
+                },
+            )
+
+            return JSON.parse(result)
+        } catch (error) {
+            console.error('Error extracting text:', error)
+        }
+    },
+}
+
+const calculateAverageScore = (criteria: { score: string }[]): string => {
+    let totalAchieved = 0 // Tổng điểm đạt được
+    let totalPossible = 0 // Tổng điểm tối đa
+
+    for (const criterion of criteria) {
+        const [achieved, possible] = criterion.score.split('/').map(Number)
+        totalAchieved += achieved
+        totalPossible += possible
+    }
+
+    const ave = totalPossible > 0 ? (totalAchieved / totalPossible) * 10 : 0
+    // Tính trung bình theo công thức: (tổng đạt được / tổng tối đa) * 10
+    return roundToTwoDecimals(ave)
+}
+
+const roundToTwoDecimals = (num: number): string => {
+    const factor = Math.pow(10, 2) // Nhân với 10^2 để xử lý phần thập phân
+    const rounded = Math.round(num * factor) / factor // Làm tròn với Math.round
+    return `${rounded.toString()}/10` // Trả về chuỗi để hiển thị đúng
 }
 
 export default applyService

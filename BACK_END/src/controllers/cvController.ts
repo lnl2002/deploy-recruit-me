@@ -32,6 +32,10 @@ const cvController = {
 
       const { file } = req;
 
+    //   // caculate cv score with job
+    //   cvService.extractTextFromPdf(file.path, jobId);
+
+
       // Mã hóa file
       const key = Buffer.from(process.env.ENCRYPTION_KEY, "hex");
       const iv = Buffer.from(process.env.INITIALIZATION_KEY, "hex");

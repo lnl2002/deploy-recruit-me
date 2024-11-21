@@ -26,6 +26,8 @@ import { formatVietnamPhoneNumber } from "@/utils/formatPhone";
 import ModalCommon from "@/components/Modals/ModalCommon";
 import { CvViewer } from "@/components/CvViewer";
 import { ApplicantScheduledTable } from "./components/ApplicantScheduledTable";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import AIScoreModal, { Criterion } from "./components/DetailScore";
 
 const ApplicationList: React.FC<{ jobId: string }> = ({
   jobId,
@@ -46,6 +48,13 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
 
   return (
     <div className="">
+      <div className="mb-5 flex justify-center">
+        <img
+          src="../autoscan.png"
+          alt="Auto Scan"
+          className="w-full cursor-pointer "
+        />
+      </div>
       <div className="flex justify-between items-center mb-4">
         <div>
           <Input
@@ -122,6 +131,7 @@ type TableProps = {
 };
 const ApplicantTable = ({ _id, filter }: TableProps) => {
   const cvViewDisclosure = useDisclosure();
+  const scoreDetailDisclosure = useDisclosure();
   const [url, setUrl] = useState("");
 
   const [page, setPage] = useState(1);
@@ -131,6 +141,7 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [user, setUser] = useState<IApply | any>();
   const [loadAgain, setLoadAgain] = useState(false);
+  const [criterias, setCriterias] = useState<Criterion[]>([]);
 
   useEffect(() => {
     if (_id) {
@@ -172,6 +183,12 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
     setUrl(url ?? "");
   };
 
+  const handleOpenScore = async (criteria: Criterion[], userId: string) => {
+    setCriterias(criteria)
+    await getApplicant(userId);
+    scoreDetailDisclosure.onOpen()
+  }
+
   return (
     <div>
       {users && users.length > 0 ? (
@@ -199,6 +216,7 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
             <TableColumn key="name">CANDIDATE NAME</TableColumn>
             <TableColumn key="role">APPLIED TIME</TableColumn>
             <TableColumn key="status">STATUS</TableColumn>
+            <TableColumn key="cvScore">AI Score</TableColumn>
             <TableColumn key="action">CV</TableColumn>
           </TableHeader>
           <TableBody
@@ -217,6 +235,13 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
                   <TableCell className="py-4 font-bold">
                     <Status status={user.status.name} key={user.status.name}/>
                   </TableCell>
+                  <TableCell className="py-4 font-bold text-themeOrange cursor-pointer" onClick={() => handleOpenScore(user?.cvScore?.detailScore, user._id)}>
+                    {user?.cvScore?.averageScore || (
+                      <div className="flex gap-2 items-center">
+                        <LoadingSpinner/> Caculating...
+                      </div>
+                    )} 
+                  </TableCell>
                   <TableCell className="py-4 font-bold">
                     <button
                       className="text-themeOrange rounded-lg transition duration-300 ease-in-out transform hover:scale-105 flex gap-1 items-center"
@@ -229,6 +254,7 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
               ))
             ) : (
               <TableRow key="1">
+                <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
@@ -269,6 +295,13 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
       <ModalCommon size={"5xl"} disclosure={cvViewDisclosure}>
         <CvViewer url={url ?? ""} />
       </ModalCommon>
+      <AIScoreModal
+        isOpen={scoreDetailDisclosure.isOpen}
+        onOpenChange={scoreDetailDisclosure.onOpenChange}
+        criteria={criterias}
+        onViewCv={() => onViewCv(user?.cv._id)}
+        name={`${user?.cv?.firstName || ""} ${user?.cv?.lastName || ""}`}
+      />
     </div>
   );
 };
