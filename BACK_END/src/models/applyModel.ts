@@ -14,6 +14,15 @@ export interface IApply extends Document {
     assigns: mongoose.Types.ObjectId[] | IAccount[]
     applicantReports: mongoose.Types.ObjectId[] | IApplicantReport[]
     statusUpdatedAt: Date
+    cvScore?: {
+        averageScore: string
+        detailScore: {
+            criterionId: mongoose.Types.ObjectId
+            criterion: string
+            score: string
+            explanation: string
+        }[]
+    }
 }
 
 const applySchema: Schema = new Schema(
@@ -58,6 +67,17 @@ const applySchema: Schema = new Schema(
                 ref: 'Account',
             },
         ],
+        cvScore: {
+            averageScore: { type: String, required: false },
+            detailScore: [
+                {
+                    criterionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Criteria', required: true },
+                    criterion: { type: String, required: true },
+                    score: { type: String, required: true },
+                    explanation: { type: String, required: true },
+                },
+            ],
+        },
     },
     { timestamps: true },
 )

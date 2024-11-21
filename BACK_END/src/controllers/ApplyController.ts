@@ -1,11 +1,11 @@
 import { Request, Response } from 'express'
 import Apply, { IApply } from '../models/applyModel'
-import CV from '../models/cvModel'
-import Job from '../models/jobModel'
-import CVStatus, { ICVStatus } from '../models/cvStatusModel'
+import CVStatus from '../models/cvStatusModel'
 import applyService from '../services/apply'
 import { AppError } from '../constants/AppError'
 import mongoose from 'mongoose'
+import CV from '../models/cvModel'
+import Job from '../models/jobModel'
 
 const ApplyController = {
     // Create a new application
@@ -13,6 +13,7 @@ const ApplyController = {
         try {
             // 1. Extract data from the request body
             const { cvId, jobId } = req.body
+            const { file } = req
 
             // 3. Find the CV, Job, and default CVStatus
             const [cv, job, defaultStatus] = await Promise.all([
@@ -27,6 +28,8 @@ const ApplyController = {
                 defaultStatusId: defaultStatus._id,
                 createdBy: req.user._id,
             })
+
+            applyService.extractTextFromPdf(file.path, jobId, savedApply._id.toString())
 
             // 7. Send a success response
             res.status(201).json({

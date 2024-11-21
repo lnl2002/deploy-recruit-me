@@ -127,13 +127,20 @@ export const applyApi = {
         // CV created successfully!
         const cvId = cvResponse.data.cv._id;
 
+        const formData = new FormData();
+
+        formData.append("cv", cvData.cv);
+        formData.append("cvId", cvId);
+        formData.append("jobId", jobId);
+
         // 4. Send the job application request
         const applyResponse = await axios.post(
           `${BACKEND_URL}/api/v1/apply/apply-job`,
-          { cvId, jobId },
+          formData,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "multipart/form-data",
             },
           }
         );
@@ -268,7 +275,7 @@ export const applyApi = {
       return response.data; // Return the array of CV statuses
     } catch (error: any) {
       console.error("Error fetching statuses:", error);
-      throw error;
+      // throw error;
     }
   },
 };
