@@ -4,6 +4,7 @@ import fs from 'fs'
 import Job from '../models/jobModel'
 import { textract } from '../configs/aws-config'
 import Gemini from '../configs/gemini-config'
+import { IGroupCriteria } from '~/models/groupCriteriaModel'
 
 const applyService = {
     updateStatus: async ({
@@ -89,7 +90,6 @@ const applyService = {
     // S3 textract
     extractTextFromPdf: async (filePath: string, jobId: string, applyId: string): Promise<string> => {
         const fileContent = fs.readFileSync(filePath)
-        const tieuChi = fs.readFileSync('D:/Ky9/OCR image to text/recruit_me.criterias.json', 'utf8')
 
         const params = {
             Document: {
@@ -98,10 +98,19 @@ const applyService = {
         }
 
         try {
-            const job = await Job.findById(jobId);
-            if(!job) {
+            const job = await Job.findById(jobId).select('_id groupCriteria').populate({
+                path: 'groupCriteria',
+                populate: {
+                    path: 'criterias',
+                    model: 'Criteria',
+                },
+            })
+
+            if (!job) {
                 throw new Error(`Job ${jobId} not found`)
             }
+
+            const criterias = JSON.stringify((job.groupCriteria as IGroupCriteria).criterias)
 
             const response = await textract.detectDocumentText(params).promise()
 
@@ -112,21 +121,22 @@ const applyService = {
             const gemini = new Gemini()
             const result = await gemini.processCV({
                 cvContent: extractedText,
-                criteriaContent: tieuChi,
+                criteriaContent: criterias,
             })
             const score = JSON.parse(result)
             const averageScore = calculateAverageScore(score)
-            console.log({ averageScore })
-            console.log(score)
 
-            await Apply.updateOne({
-                _id: applyId
-            }, {
-                cvScore: {
-                    averageScore: averageScore,
-                    detailScore: score
-                }
-            })
+            await Apply.updateOne(
+                {
+                    _id: applyId,
+                },
+                {
+                    cvScore: {
+                        averageScore: averageScore,
+                        detailScore: score,
+                    },
+                },
+            )
 
             return JSON.parse(result)
         } catch (error) {

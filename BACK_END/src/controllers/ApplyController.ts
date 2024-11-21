@@ -29,6 +29,7 @@ const ApplyController = {
                 createdBy: req.user._id,
             })
 
+            //OCR and calculate apply score
             applyService.extractTextFromPdf(file.path, jobId, savedApply._id.toString())
 
             // 7. Send a success response
