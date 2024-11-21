@@ -516,10 +516,6 @@ const jobController = {
                 return res.status(400).json({ message: 'Reject reason is required' })
             }
 
-            if (status === 'rejected' && !rejectReason) {
-                return res.status(400).json({ message: 'Reject reason is required' })
-            }
-
             if (
                 !jobService.checkAuthorizeUpdateJobStatus({
                     jobId: jobId.toString() as string,
