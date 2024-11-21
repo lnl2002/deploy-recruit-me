@@ -20,7 +20,7 @@ const Participant = dynamic(() => import("./Participant"), { ssr: false });
 
 interface RoomProps {
   room: TwilioRoom;
-  handleLogout?: () => void;
+  handleLogout: () => void;
   setIsCameraOn: (isCameraOn: boolean) => void;
   setIsMicOn: (isCameraOn: boolean) => void;
   isCameraOn: boolean;
@@ -106,12 +106,18 @@ const Room: React.FC<RoomProps> = ({
       );
     };
 
+    const disconnected = () => {
+      console.log("The room has been completed.");
+    };
+
     room?.on("participantConnected", participantConnected);
     room?.on("participantDisconnected", participantDisconnected);
+    room?.on("disconnected", handleLogout);
 
     return () => {
       room?.off("participantConnected", participantConnected);
       room?.off("participantDisconnected", participantDisconnected);
+      room?.off("disconnected", handleLogout);
     };
   }, [room]);
 

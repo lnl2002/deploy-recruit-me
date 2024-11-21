@@ -42,8 +42,15 @@ const Lobby: React.FC<LobbyProps> = ({
           videoRef.current.srcObject = videoStream.current;
           videoRef.current.play();
         }
-      } catch (err: any) {
-        console.log("Error accessing camera: ", err.message);
+      } catch (error: any) {
+        if (
+          error.name === "NotReadableError" ||
+          error.name === "TrackStartError"
+        ) {
+          setIsCameraOn(false);
+          setIsMicOn(false);
+        }
+        console.log("Error accessing camera: ", error.message, ",", error.name);
       }
     })();
     return () => {
