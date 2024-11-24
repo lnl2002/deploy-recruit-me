@@ -8,9 +8,8 @@ import { v4 as uuid } from 'uuid'
 const meetingController = {
     updateMeetingStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { meetingRoomId, status, title, declineReason } = req.body
-        const participantId = new mongoose.Types.ObjectId(req.user._id);
-        console.log({ title });
-
+        const participantId = new mongoose.Types.ObjectId(req.user._id)
+        console.log({ title })
 
         // Kiểm tra tính hợp lệ của dữ liệu đầu vào
         if (!meetingRoomId || !participantId || !status) {
@@ -26,7 +25,7 @@ const meetingController = {
                 meetingRoomId: meetingRoomId,
                 participantId: participantId,
                 status: status as IMeetingApproveStatus,
-                declineReason: declineReason
+                declineReason: declineReason,
             })
 
             return res.status(200).json({ message: 'Status updated successfully' })
@@ -161,22 +160,42 @@ const meetingController = {
     },
 
     getMeetingRoomByApplyId: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { applyId } = req.params;
+        const { applyId } = req.params
 
         if (!isValidObjectId(applyId)) {
-            return res.status(400).json({ message: 'Invalid applyId' });
+            return res.status(400).json({ message: 'Invalid applyId' })
         }
 
         try {
-            const meetingRoom = await meetingService.getMeetingRoomByApplyId(applyId);
+            const meetingRoom = await meetingService.getMeetingRoomByApplyId(applyId)
 
             if (!meetingRoom) {
-                return res.status(404).json({ message: 'Meeting room not found' });
+                return res.status(404).json({ message: 'Meeting room not found' })
             }
 
-            return res.status(200).json(meetingRoom);
+            return res.status(200).json(meetingRoom)
         } catch (error) {
-            next(error);
+            next(error)
+        }
+    },
+
+    getMeetingRoomsByJobId: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        const { jobId } = req.params
+
+        if (!isValidObjectId(jobId)) {
+            return res.status(400).json({ message: 'Invalid applyId' })
+        }
+
+        try {
+            const meetingRooms = await meetingService.getMeetingsRoomByJobId(jobId)
+
+            if (!meetingRooms) {
+                return res.status(404).json({ message: 'Meeting room not found' })
+            } 
+
+            return res.status(200).json(meetingRooms)
+        } catch (error) {
+            next(error)
         }
     },
 }
