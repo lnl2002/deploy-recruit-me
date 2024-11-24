@@ -1,20 +1,22 @@
 import { Button, Textarea } from "@nextui-org/react";
 import { useEffect, useRef, useState } from "react";
-import { TJob } from "@/api/jobApi";
+import { useAppSelector } from "@/store/store";
 import applicantReportApi, { IDetailCriteria } from "@/api/applicantReportApi";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import applyApi, { ICVScore } from "@/api/applyApi";
 
 type CriteriaEvaluationProps = {
-  job: TJob;
+  cvScore: ICVScore;
   applicantReportIds: string[];
 };
 
 const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
-  job,
+  cvScore,
   applicantReportIds,
 }): React.JSX.Element => {
   const router = useRouter();
+  const { userInfo } = useAppSelector((state) => state.user);
   const targetRef = useRef<HTMLDivElement | null>(null);
   const [detailsCriteria, setDetailsCriteria] = useState<IDetailCriteria[]>([]);
   const [criteriaIndex, setCriteriaIndex] = useState<number>(0);
@@ -23,6 +25,10 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
 
   //update
   useEffect(() => {
+    const roles = ["RECRUITER", "INTERVIEWER", "INTERVIEW_MANAGER"];
+    const isAllowed = roles.some((role) => userInfo?.role === role);
+    if (!isAllowed || detailsCriteria.length === 0) return;
+
     const intervalId = setInterval(
       async () => {
         const { data, status } = await applicantReportApi.updateApplicantReport(
@@ -53,22 +59,34 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
   }, [detailsCriteria, updateApplicantReportSegment]);
 
   useEffect(() => {
-    if (!job) return;
+    (async () => {
+      const { applicantReport } =
+        (await applyApi.getApplicationsByUser()) ?? {};
 
-    const { criterias } = job;
-
-    setDetailsCriteria(
-      criterias.map((criteria) => ({
-        criteriaName: criteria.criteriaName,
-        comment: "",
-      }))
-    );
-  }, [job]);
+      if (applicantReport) {
+        const { details } = applicantReport;
+        setDetailsCriteria(
+          details.map((detail) => ({
+            criteriaName: detail.criteriaName,
+            comment: detail.comment || "",
+          }))
+        );
+      } else {
+        const { detailScore } = cvScore;
+        setDetailsCriteria(
+          detailScore.map((detail) => ({
+            criteriaName: detail.criterion,
+            comment: "",
+          }))
+        );
+      }
+    })();
+  }, [cvScore]);
 
   const handleScrollToElement = (index: number) => {
     if (targetRef.current) {
       const elementHeight =
-        targetRef.current.scrollHeight / job.criterias.length;
+        targetRef.current.scrollHeight / cvScore.detailScore.length;
       targetRef.current.scrollTo({
         top: elementHeight * index,
         behavior: "smooth",
@@ -92,16 +110,16 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
     );
   };
 
-  if (!job) {
+  if (!cvScore) {
     return <p>Loading...</p>;
   }
 
   return (
     <div className="max-h-[75vh] flex flex-col gap-8 p-2">
       <div className="bg-themeOrange h-1/4 px-2 rounded-lg custom-scrollbar-thin">
-        {job?.criterias?.map((criteria, index) => (
+        {detailsCriteria.map((detail, index) => (
           <Button
-            key={criteria?._id}
+            key={detail?._id + detail.criteriaName}
             className={`block truncate ${
               criteriaIndex === index
                 ? "bg-themeWhite text-themeDark"
@@ -112,7 +130,7 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
             onPress={() => handleScrollToElement(index)}
           >
             <p className="text-md font-bold">
-              {index + 1}. {criteria.criteriaName}
+              {index + 1}. {detail.criteriaName}
             </p>
           </Button>
         ))}
@@ -121,16 +139,17 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
         ref={targetRef}
         className="flex flex-col gap-4 overflow-hidden h-3/4"
       >
-        {job?.criterias.map((criteria, index) => (
-          <div key={criteria._id}>
+        {detailsCriteria.map((detail, index) => (
+          <div key={detail._id + detail.criteriaName}>
             <p className="text-themeDark text-md font-bold">
-              {index + 1}. {criteria.criteriaName}
+              {index + 1}. {detail.criteriaName}
             </p>
             <div>
               <Textarea
                 onValueChange={(value: string) => {
                   handleCommentChange(index, value);
                 }}
+                value={detail.comment}
                 minRows={4}
                 fullWidth={true}
                 variant="bordered"
@@ -141,6 +160,9 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
                     index === criteriaIndex ? "border-themeOrange" : "",
                 }}
               />
+              <p className="text-sm text-blurEffect text-end px-4">
+                {cvScore.detailScore[index].score}
+              </p>
             </div>
           </div>
         ))}

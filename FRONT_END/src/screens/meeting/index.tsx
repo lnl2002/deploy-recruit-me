@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Video, {
   Room as TwilioRoom,
   LocalVideoTrack,
@@ -8,20 +8,19 @@ import Video, {
   LocalTrackPublication,
 } from "twilio-video";
 import { v4 as uuidv4 } from "uuid";
-import meetingApi, { IMeeting } from "@/api/meetingApi";
+import meetingApi from "@/api/meetingApi";
 import Lobby from "./components/Lobby";
 import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/store/store";
 import { FRONTEND_URL } from "@/utils/env";
-import applyApi, { IApply } from "@/api/applyApi";
+import applyApi, { IApply, ICVScore } from "@/api/applyApi";
 import { TJob } from "@/api/jobApi";
 import { IApplicantReport } from "@/api/applicantReportApi";
 import HeaderMeeting from "./components/HeaderMeeting";
 import { useDisclosure } from "@nextui-org/react";
 import EndMeeting from "./components/EndMeeting";
-import { disconnect } from "process";
 
 interface PageProps {
   params: {
@@ -87,9 +86,9 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
 
   useEffect(() => {
     return () => {
-      setRoom((prev) => disconnectRoom(prev));
+      disconnectRoom(room);
     };
-  }, []);
+  }, [room]);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -173,14 +172,19 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
     return null;
   };
 
-  const handleLogout = useCallback(() => {
-    if (userInfo?.role === "INTERVIEW_MANAGER") {
-      onOpen();
-    } else {
-      setRoom((prevRoom) => disconnectRoom(prevRoom));
-      router.push("/");
-    }
-  }, [userInfo, onOpen]);
+  const handleLogout = useCallback(
+    (isDisconnected?: boolean) => {
+      const roles = ["INTERVIEWER", "INTERVIEW_MANAGER"];
+      const isAllowed = roles.some((role) => userInfo?.role === role);
+      if (isAllowed && !isDisconnected) {
+        onOpen();
+      } else {
+        setRoom((prevRoom) => disconnectRoom(prevRoom));
+        router.push("/");
+      }
+    },
+    [userInfo]
+  );
 
   const onEndMeeting = useCallback(async () => {
     if (room?.sid && isOpen) {
@@ -194,25 +198,23 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
       onOpenChange();
       router.push("/");
     }
-  }, [room, isOpen, meetingApi, onOpenChange, apply?._id]);
+  }, [room, isOpen, meetingApi, apply?._id]);
 
   useEffect(() => {
-    if (room) {
-      const tidyUp = (event: Event) => {
-        if (!(event as PageTransitionEvent).persisted) {
-          onEndMeeting();
-        }
-      };
+    const tidyUp = (event: Event) => {
+      if (!(event as PageTransitionEvent).persisted) {
+        disconnectRoom(room);
+      }
+    };
 
-      window.addEventListener("pagehide", tidyUp);
-      window.addEventListener("beforeunload", tidyUp);
+    window.addEventListener("pagehide", tidyUp);
+    window.addEventListener("beforeunload", tidyUp);
 
-      return () => {
-        window.removeEventListener("pagehide", tidyUp);
-        window.removeEventListener("beforeunload", tidyUp);
-      };
-    }
-  }, [room, onEndMeeting]);
+    return () => {
+      window.removeEventListener("pagehide", tidyUp);
+      window.removeEventListener("beforeunload", tidyUp);
+    };
+  }, [room]);
 
   return (
     <>
@@ -230,7 +232,7 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
           isMicOn={isMicOn}
           room={room}
           handleLogout={handleLogout}
-          job={apply?.job as TJob}
+          cvScore={apply?.cvScore as ICVScore}
           applicantReportIds={(
             apply?.applicantReports as IApplicantReport[]
           )?.map((applicantReport) => applicantReport._id)}
@@ -249,11 +251,13 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
           connecting={connecting}
         />
       )}
-      <EndMeeting
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        onEndMeeting={onEndMeeting}
-      />
+      {isOpen && (
+        <EndMeeting
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          onEndMeeting={onEndMeeting}
+        />
+      )}
     </>
   );
 };

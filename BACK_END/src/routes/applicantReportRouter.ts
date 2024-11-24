@@ -9,9 +9,16 @@ applicantReportRouter.get(
     requireRole(['RECRUITER', 'INTERVIEWER']),
     applicantReportController.getApplicantReportByApply,
 )
+
+applicantReportRouter.get(
+    '/user',
+    requireRole(['RECRUITER', 'INTERVIEWER', 'INTERVIEW_MANAGER']),
+    applicantReportController.getApplicantReportByUser,
+)
+
 applicantReportRouter.patch(
     '/',
-    requireRole(['RECRUITER', 'INTERVIEWER']),
+    requireRole(['RECRUITER', 'INTERVIEWER', 'INTERVIEW_MANAGER']),
     applicantReportController.updateApplicantReport,
 )
 applicantReportRouter.post(

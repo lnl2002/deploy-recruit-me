@@ -3,6 +3,7 @@
 import { TCareer } from "@/api/careerApi";
 import jobApi, { TJob } from "@/api/jobApi";
 import JobSection from "@/components/JobSection";
+import { useAppSelector } from "@/store/store";
 import { Button } from "@nextui-org/react";
 import {
   ChevronLeft,
@@ -11,7 +12,7 @@ import {
   PanelRightOpen,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type HeaderMeetingProps = {
   setIsContactSegment: (value: boolean) => void;
@@ -27,6 +28,7 @@ const HeaderMeeting: React.FC<HeaderMeetingProps> = ({
   isOpenPanel,
 }): React.JSX.Element => {
   const router = useRouter();
+  const { userInfo } = useAppSelector((state) => state.user);
   const [job, setJob] = useState<Partial<TJob>>({});
 
   useEffect(() => {
@@ -36,6 +38,11 @@ const HeaderMeeting: React.FC<HeaderMeetingProps> = ({
       setJob(job);
     })();
   }, [jobId]);
+
+  const isAllowed = useMemo(() => {
+    const roles = ["RECRUITER", "INTERVIEWER", "INTERVIEW_MANAGER"];
+    return roles.some((role) => userInfo?.role === role);
+  }, [userInfo]);
 
   return (
     <div className="w-10/12 mx-auto flex justify-between items-center mt-8">
@@ -56,7 +63,7 @@ const HeaderMeeting: React.FC<HeaderMeetingProps> = ({
           />
         </div>
       </div>
-      {isOpenPanel && (
+      {isOpenPanel && isAllowed && (
         <Button
           onPress={() => setIsContactSegment(!isContactSegment)}
           isIconOnly={true}
