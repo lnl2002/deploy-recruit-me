@@ -234,6 +234,18 @@ export const meetingApi = {
       return undefined;
     }
   },
+
+  getAllMeetingRoomsByJobId: async (jobId: string): Promise<
+    IMeeting | undefined
+  > => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/v1/meeting-room/get-all/${jobId}`);
+      return res.data;
+    } catch (error) {
+      console.error("Error fetching meeting room list:", error);
+      return undefined;
+    }
+  },
 };
 
 export default meetingApi;

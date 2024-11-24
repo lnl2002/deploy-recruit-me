@@ -11,7 +11,7 @@ export const HrLayout = ({ children }: HrLayoutProp): React.JSX.Element => {
   return (
     <div className="flex-1 flex flex-col w-full fixed-container bg-themeWhite">
       <Header role={Role.Recruiter}></Header>
-      {children}
+      <div className="min-h-screen">{children}</div>
       <Footer></Footer>
     </div>
   );

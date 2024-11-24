@@ -8,9 +8,9 @@ type MainLayoutProp = {
 
 export const MainLayout = ({ children }: MainLayoutProp): React.JSX.Element => {
   return (
-    <div className="w-full fixed-container bg-themeWhite">
+    <div className="w-full fixed-container bg-themeWhite h-full">
       <Header></Header>
-      {children}
+      <div className="min-h-screen">{children}</div>
       <Footer></Footer>
     </div>
   );
