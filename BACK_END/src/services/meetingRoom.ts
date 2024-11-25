@@ -3,7 +3,7 @@ import MeetingRoom, { IMeetingApproveStatus, IMeetingRoom, IParticipantStatus } 
 import Account from '../models/accountModel'
 import { IRole } from '../models/roleModel'
 import CVStatus from '../models/cvStatusModel'
-import { IApply } from '~/models/applyModel'
+import { IApply } from '../models/applyModel'
 
 interface UpdateMeetingStatusInput {
     meetingRoomId: mongoose.Types.ObjectId
