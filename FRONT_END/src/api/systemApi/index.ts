@@ -13,14 +13,14 @@ const systemApi = {
         return res.data.data;
       } else {
         return {
-          response: "Some error occur, we can anser you right now.",
+          response: "Some error occur, we can answer you right now.",
           data: {},
         };
       }
     } catch (error) {
       console.error("Error fetching units list:", error);
       return {
-        response: "Some error occur, we can anser you right now.",
+        response: "Some error occur, we can answer you right now.",
         data: {},
       };
     }

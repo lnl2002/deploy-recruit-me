@@ -7,9 +7,9 @@ import { InterviewManagerListJob } from "@/screens";
 export default function ContactUsPage() {
   return (
     <div
-      className="flex flex-col w-screen h-screen"
+      className="flex flex-col"
       style={{
-        background: `url("../../background-login.png")`,
+        background: `url('/background-login.png')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}

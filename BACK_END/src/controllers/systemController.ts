@@ -25,7 +25,7 @@ export const systemController = {
             const cleanedResult = respond.response.text().replace('```json', '').replace('```', '')
             return res.status(200).json(JSON.parse(cleanedResult));
         } catch (error: unknown) {
-            next(error)
+            // next(error)
             return res.status(400).json({ message: 'Email not sent' });
         }
     },
