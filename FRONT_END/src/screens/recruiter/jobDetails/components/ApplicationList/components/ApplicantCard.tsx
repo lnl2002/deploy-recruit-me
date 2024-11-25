@@ -168,7 +168,7 @@ const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", set
           applyId={applyId}
         />
       )}
-      {status === "Interview Pending" && (
+      {status === "Pending Interview Confirmation" && (
         <InterviewPendingStatus
           status={status}
           changeStatus={changeStatus}
@@ -177,7 +177,7 @@ const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", set
           description="You have scheduled an interview for the candidate. Kindly wait for their confirmation."
         />
       )}
-      {status === "Approval Interview Scheduled" && (
+      {status === "Interview Scheduled" && (
         <ApprovalInterviewScheduleStatus
           status={status}
           changeStatus={changeStatus}
@@ -222,7 +222,16 @@ const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", set
           description="We have informed your candidate of your decision."
         />
       )}
-      {!["New", "Shortlisted", "Interview Pending", "Approval Interview Scheduled", "Interview Rescheduled", "Interviewed", "Accepted", "Rejected"].includes(status) && <div>Error</div>}
+      {![
+        "New",
+        "Shortlisted",
+        "Pending Interview Confirmation",
+        "Interview Scheduled",
+        "Interview Rescheduled",
+        "Interviewed",
+        "Accepted",
+        "Rejected",
+      ].includes(status) && <div>Error</div>}
     </>
   );
 };

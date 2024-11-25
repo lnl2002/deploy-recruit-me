@@ -290,6 +290,7 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
           ...user?.cv,
           image: user?.createdBy?.image,
           name: `${user?.cv?.firstName || ""} ${user?.cv?.lastName || ""}`,
+          candidateId: user?.createdBy?._id
         }}
       />
       <ModalCommon size={"5xl"} disclosure={cvViewDisclosure}>
