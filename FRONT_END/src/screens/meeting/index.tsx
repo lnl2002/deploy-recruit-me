@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Video, {
   Room as TwilioRoom,
   LocalVideoTrack,
@@ -8,18 +8,19 @@ import Video, {
   LocalTrackPublication,
 } from "twilio-video";
 import { v4 as uuidv4 } from "uuid";
-import meetingApi, { IMeeting } from "@/api/meetingApi";
-// import Room from "./components/Room";
+import meetingApi from "@/api/meetingApi";
 import Lobby from "./components/Lobby";
 import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/store/store";
 import { FRONTEND_URL } from "@/utils/env";
-import applyApi, { IApply } from "@/api/applyApi";
+import applyApi, { IApply, ICVScore } from "@/api/applyApi";
 import { TJob } from "@/api/jobApi";
 import { IApplicantReport } from "@/api/applicantReportApi";
 import HeaderMeeting from "./components/HeaderMeeting";
+import { useDisclosure } from "@nextui-org/react";
+import EndMeeting from "./components/EndMeeting";
 
 interface PageProps {
   params: {
@@ -30,12 +31,11 @@ interface PageProps {
 const Room = dynamic(() => import("./components/Room"), { ssr: false });
 
 export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
-  // const paramss = params;
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { isLoggedIn, userInfo } = useAppSelector((state) => state.user);
   const router = useRouter();
-  let mediaStreamRef = useRef<MediaStream | null>(null);
   const [isContactSegment, setIsContactSegment] = useState<boolean>(false);
-  const [meetingUrl, setMeetingUrl] = useState<string>("");
+  const [meetingURL, setMeetingURL] = useState<string>("");
   const [apply, setApply] = useState<IApply | null>(null);
   const [username, setUsername] = useState<string>("");
   const [room, setRoom] = useState<TwilioRoom | null>(null);
@@ -52,9 +52,11 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
       );
 
       if (data) {
-        setMeetingUrl(data.url);
+        setMeetingURL(data.url);
         const apply = await applyApi.getApplicationById({ _id: data.apply });
-        if (apply) setApply(apply);
+        if (apply) {
+          setApply(apply);
+        }
       } else {
         toast.error("Meeting URL not exists!");
         router.push("/");
@@ -76,33 +78,17 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
           name: "microphone" as PermissionName,
         });
         setIsMicOn(microphonePermission.state == "granted");
-
-        // If permissions are granted, get media stream
-        if (
-          cameraPermission.state === "granted" ||
-          microphonePermission.state === "granted"
-        ) {
-          mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({
-            video: cameraPermission.state === "granted",
-            audio: microphonePermission.state === "granted",
-          });
-        }
-
-        // Thêm sự kiện lắng nghe khi trạng thái quyền thay đổi
-        cameraPermission.onchange = () =>
-          setIsCameraOn(cameraPermission.state == "granted");
-        microphonePermission.onchange = () =>
-          setIsMicOn(microphonePermission.state == "granted");
       } catch (error) {
         console.error("Error checking permissions:", error);
       }
     })();
-    return () => {
-      if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
-      }
-    };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      disconnectRoom(room);
+    };
+  }, [room]);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -119,13 +105,13 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
     []
   );
 
-  const createNewRoom = async () => {
+  const createNewRoom = useCallback(async () => {
     try {
-      await meetingApi.createRoom(meetingUrl);
+      await meetingApi.createRoom(meetingURL);
     } catch (error) {
       console.log(error);
     }
-  };
+  }, [meetingURL]);
 
   const handleSubmit = useCallback(async () => {
     setConnecting(true);
@@ -136,7 +122,7 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
       }
       const { data, status } = await meetingApi.getAccessToken(
         username + "6C1B01A16E67" + uuidv4(),
-        meetingUrl
+        meetingURL
       );
 
       if (status !== 200) {
@@ -151,12 +137,10 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
       }
 
       const connectedRoom = await Video.connect(data, {
-        name: meetingUrl,
+        name: meetingURL,
         audio: isMicOn,
         video: isCameraOn,
       });
-
-      console.log(connectedRoom.sid);
 
       // setRoomSid(connectedRoom.sid);
       setRoom(connectedRoom);
@@ -167,50 +151,70 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
     } finally {
       setConnecting(false);
     }
-  }, [username, isMicOn, isCameraOn, meetingUrl]);
+  }, [username, isMicOn, isCameraOn, meetingURL]);
 
-  const handleLogout = useCallback(() => {
-    setRoom((prevRoom) => {
-      if (prevRoom) {
-        prevRoom.localParticipant.tracks.forEach(
-          (trackPub: LocalTrackPublication) => {
-            const track = trackPub.track;
-            if (track) {
-              if (
-                track instanceof LocalAudioTrack ||
-                track instanceof LocalVideoTrack
-              ) {
-                track.stop();
-              }
-            }
+  const disconnectRoom = (room: TwilioRoom | null) => {
+    if (room) {
+      room.localParticipant.tracks.forEach(
+        (trackPub: LocalTrackPublication) => {
+          const track = trackPub.track;
+          if (
+            track &&
+            (track instanceof LocalAudioTrack ||
+              track instanceof LocalVideoTrack)
+          ) {
+            track.stop();
           }
-        );
-        prevRoom.disconnect();
-        console.log(prevRoom.sid);
+        }
+      );
+      room.disconnect();
+    }
+    return null;
+  };
 
-        return null;
+  const handleLogout = useCallback(
+    (isDisconnected?: boolean) => {
+      const roles = ["INTERVIEWER", "INTERVIEW_MANAGER"];
+      const isAllowed = roles.some((role) => userInfo?.role === role);
+      if (isAllowed && !isDisconnected) {
+        onOpen();
+      } else {
+        setRoom((prevRoom) => disconnectRoom(prevRoom));
+        router.push("/");
       }
-      return prevRoom;
-    });
-  }, [room]);
+    },
+    [userInfo]
+  );
+
+  const onEndMeeting = useCallback(async () => {
+    if (room?.sid && isOpen) {
+      setRoom((prevRoom) => disconnectRoom(prevRoom));
+      await meetingApi.endMeeting(room.sid);
+      await applyApi.updateApplyStatus({
+        applyId: apply?._id as string,
+        newStatus: "Interviewed",
+      });
+      setIsCameraOn(false);
+      onOpenChange();
+      router.push("/");
+    }
+  }, [room, isOpen, meetingApi, apply?._id]);
 
   useEffect(() => {
-    if (room) {
-      const tidyUp = (event: Event) => {
-        if (!(event as PageTransitionEvent).persisted) {
-          handleLogout();
-        }
-      };
+    const tidyUp = (event: Event) => {
+      if (!(event as PageTransitionEvent).persisted) {
+        disconnectRoom(room);
+      }
+    };
 
-      window.addEventListener("pagehide", tidyUp);
-      window.addEventListener("beforeunload", tidyUp);
+    window.addEventListener("pagehide", tidyUp);
+    window.addEventListener("beforeunload", tidyUp);
 
-      return () => {
-        window.removeEventListener("pagehide", tidyUp);
-        window.removeEventListener("beforeunload", tidyUp);
-      };
-    }
-  }, [room, handleLogout]);
+    return () => {
+      window.removeEventListener("pagehide", tidyUp);
+      window.removeEventListener("beforeunload", tidyUp);
+    };
+  }, [room]);
 
   return (
     <>
@@ -228,12 +232,10 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
           isMicOn={isMicOn}
           room={room}
           handleLogout={handleLogout}
-          job={apply?.job as TJob}
+          cvScore={apply?.cvScore as ICVScore}
           applicantReportIds={(
             apply?.applicantReports as IApplicantReport[]
-          )?.map(
-            (applicantReport) => (applicantReport as IApplicantReport)._id
-          )}
+          )?.map((applicantReport) => applicantReport._id)}
           isContactSegment={isContactSegment}
         />
       ) : (
@@ -247,6 +249,13 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
           handleSubmit={handleSubmit}
           createNewRoom={createNewRoom}
           connecting={connecting}
+        />
+      )}
+      {isOpen && (
+        <EndMeeting
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          onEndMeeting={onEndMeeting}
         />
       )}
     </>

@@ -5,6 +5,7 @@ import { TJob } from "../jobApi";
 import JobPosting from "@/type/job";
 import { IAccount } from "../accountApi/accountApi";
 import { IApplicantReport } from "../applicantReportApi";
+import { ICriteria } from "../criteriaApi";
 
 export interface IApply {
   _id: string;
@@ -16,6 +17,18 @@ export interface IApply {
   assigns: string[] | IAccount[];
   applicantReports: string[] | IApplicantReport[];
   statusUpdatedAt: Date;
+  cvScore?: ICVScore | null;
+}
+
+export interface ICVScore {
+  averageScore: string;
+  detailScore: {
+    _id: string;
+    criterionId: string | ICriteria;
+    criterion: string;
+    score: string;
+    explanation: string;
+  }[];
 }
 
 export interface IResposeApply {
@@ -246,6 +259,22 @@ export const applyApi = {
       // Handle API errors appropriately, e.g.,
       console.error("Error fetching applies:", error);
       throw error; // Or re-throw if you want to handle the error at a higher level
+    }
+  },
+
+  getApplicationsByUser: async (): Promise<{
+    applicantReport: IApplicantReport;
+  } | null> => {
+    try {
+      const response = await axios.get(
+        `${BACKEND_URL}/api/v1/applicant-reports/user`
+      );
+
+      return { applicantReport: response.data.data };
+    } catch (error: any) {
+      // Handle API errors appropriately, e.g.,
+      console.error("Error fetching applie:", error);
+      return null;
     }
   },
 

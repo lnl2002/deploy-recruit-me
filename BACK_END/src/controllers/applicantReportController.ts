@@ -115,6 +115,23 @@ const applicantReportController = {
             next(error)
         }
     },
+
+    getApplicantReportByUser: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        try {
+            const account = req.user
+            const applicantReport = await applicantReportService.getApplicantReport({
+                createdBy: account._id,
+            })
+
+            if (!applicantReport) {
+                return res.status(404).json({ message: 'Applicant Report not found' })
+            }
+
+            return res.status(200).json(applicantReport)
+        } catch (error) {
+            next(error)
+        }
+    },
 }
 
 export default applicantReportController

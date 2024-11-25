@@ -3,6 +3,7 @@ import MeetingRoom, { IMeetingApproveStatus, IMeetingRoom, IParticipantStatus } 
 import Account from '../models/accountModel'
 import { IRole } from '../models/roleModel'
 import CVStatus from '../models/cvStatusModel'
+import { IApply } from '~/models/applyModel'
 
 interface UpdateMeetingStatusInput {
     meetingRoomId: mongoose.Types.ObjectId
@@ -18,7 +19,12 @@ interface InterviewScheduleParams {
 }
 
 const meetingService = {
-    updateMeetingStatus: async ({ meetingRoomId, participantId, status, declineReason }: UpdateMeetingStatusInput): Promise<void> => {
+    updateMeetingStatus: async ({
+        meetingRoomId,
+        participantId,
+        status,
+        declineReason,
+    }: UpdateMeetingStatusInput): Promise<void> => {
         // Tìm meeting room
         const meetingRoom = await MeetingRoom.findById(meetingRoomId)
 
@@ -86,9 +92,9 @@ const meetingService = {
     }): Promise<
         | IMeetingRoom
         | {
-            isError: boolean
-            message: string
-        }
+              isError: boolean
+              message: string
+          }
     > => {
         // Lấy danh sách participant IDs
         const participantIds = participants.map((p) => p.participant.toString())
@@ -300,9 +306,7 @@ const meetingService = {
                     },
                 },
                 { $unwind: '$applyDetails' },
-                ...(statusId ? [
-                    { $match: { 'applyDetails.status': statusId } }
-                ]: []),
+                ...(statusId ? [{ $match: { 'applyDetails.status': statusId } }] : []),
                 {
                     $lookup: {
                         from: 'accounts',
@@ -352,6 +356,28 @@ const meetingService = {
     },
     getMeetingRoomByApplyId: async (applyId: string): Promise<IMeetingRoom> => {
         return await MeetingRoom.findOne({ apply: applyId })
+    },
+
+    getMeetingsRoomByJobId: async (jobId: string): Promise<IMeetingRoom[] | null> => {
+        try {
+            // First, find the apply documents that match the jobId
+            const applies = await mongoose.model<IApply>('Apply').find({ job: jobId })
+
+            if (!applies || applies.length === 0) {
+                return null // No applies found for this jobId
+            }
+
+            // Extract the apply IDs
+            const applyIds = applies.map((apply) => apply._id)
+
+            // Now, find the meeting rooms associated with those apply IDs
+            const meetingRooms = await mongoose.model<IMeetingRoom>('MeetingRoom').find({ apply: { $in: applyIds } })
+
+            return meetingRooms
+        } catch (error) {
+            console.error('Error finding meeting rooms by jobId:', error)
+            return null
+        }
     },
 }
 
