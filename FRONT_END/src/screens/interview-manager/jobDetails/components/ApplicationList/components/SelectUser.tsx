@@ -16,6 +16,9 @@ const SelectUser: React.FC<SelectUserProps> = ({users, setParticipants}) => {
   useEffect(() => {
     if(users)
       setParticipants(users.map(user => user._id))
+
+    console.log('users', users);
+    
   }, [])
   return (
     <Select

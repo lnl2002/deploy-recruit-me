@@ -16,7 +16,7 @@ const MeetingPage: React.FC<PageProps> = ({ params }) => {
     <div
       className="w-screen h-screen overflow-auto"
       style={{
-        background: `url("./background-login.png")`,
+        background: `url('/background-login.png')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}

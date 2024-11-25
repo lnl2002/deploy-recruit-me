@@ -39,6 +39,7 @@ import React, {
 } from "react";
 import { MessageCircle, Send, X } from "lucide-react";
 import systemApi from "@/api/systemApi";
+import Markdown from "react-markdown"
 
 export default function ChatBox({
     onClose,
@@ -143,7 +144,7 @@ export default function ChatBox({
                       : "bg-white border border-textSecondary text-textSecondary"
                   }`}
                 >
-                  <p>{msg.content}</p>
+                  <Markdown>{msg.content}</Markdown>
                 </div>
               </div>
             </div>

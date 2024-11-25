@@ -20,7 +20,7 @@ import SelectUser from "./SelectUser";
 import { now, getLocalTimeZone, CalendarDate, ZonedDateTime, CalendarDateTime, Time } from "@internationalized/date";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import meetingApi, { Meeting } from "@/api/meetingApi";
+import meetingApi, { IMeeting } from "@/api/meetingApi";
 import { toast } from "react-toastify";
 import applyApi from "@/api/applyApi";
 
@@ -85,6 +85,11 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
       applyId
     })
     setIsLoading(false);
+
+    applyApi.updateApplyStatus({
+      applyId: applyId,
+      newStatus: 'Pending Interview Confirmation'
+    })
     
     if(!data){
       toast.error('Something went wrong. Please try again');
@@ -113,7 +118,7 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
   }
 
   const getSchedules = async () => {
-    const result: Meeting[] = [];
+    const result: IMeeting[] = [];
     for(const participantId of participants){
       const date = (new Date(interviewDate.year, interviewDate.month - 1, interviewDate.day)).toISOString();
 
@@ -187,7 +192,10 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
               onChange={(e) => setInterviewers(e.target.value)}
             /> */}
             <SelectUser 
-              users={[cv, jobInfo?.interviewManager]}
+              users={[{
+                ...cv,
+                _id: cv.candidateId
+              }, jobInfo?.interviewManager]}
               setParticipants={setParticipants}
               />
             <Spacer y={8} />

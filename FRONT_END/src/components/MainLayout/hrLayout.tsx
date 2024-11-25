@@ -10,7 +10,7 @@ type HrLayoutProp = {
 
 export const HrLayout = ({ children }: HrLayoutProp): React.JSX.Element => {
   return (
-    <div className="flex-1 flex flex-col w-full fixed-container bg-themeWhite">
+    <div className="flex-1 flex flex-col w-full fixed-container ">
       <Header role={Role.Recruiter}></Header>
       <div className="min-h-screen">{children}</div>
       <Footer></Footer>

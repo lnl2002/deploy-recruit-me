@@ -528,7 +528,7 @@ const jobController = {
             const jobs = await jobService.updateJobStatus({
                 jobId: jobId.toString() as string,
                 status: status as string,
-                rejectReason: rejectReason.toString() as string,
+                rejectReason: rejectReason?.toString() as string,
             })
 
             res.status(200).json(jobs)
