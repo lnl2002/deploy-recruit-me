@@ -9,6 +9,7 @@ router.get('/schedules', meetingController.getInterviewSchedules)
 router.get('/list-candidate',  requireRole(['INTERVIEWER', 'INTERVIEW_MANAGER']), meetingController.getListCandidates)
 router.get('/url', meetingController.getMeetingRoomByUrl)
 router.get('/get/:applyId', meetingController.getMeetingRoomByApplyId)
+router.get('/get-all/:jobId', meetingController.getMeetingRoomsByJobId)
 
 // POST
 router.post('/create', meetingController.createMeetingRoom)
