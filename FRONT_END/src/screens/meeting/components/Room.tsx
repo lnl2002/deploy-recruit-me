@@ -13,21 +13,21 @@ import {
 import CameraOffView from "./CameraOffView";
 import CriteriaEvaluation from "./CriteriaEvaluation";
 import LiveChat from "./LiveChat";
-import { TJob } from "@/api/jobApi";
+import { ICVScore } from "@/api/applyApi";
 // import Participant from "./Participant";
 
 const Participant = dynamic(() => import("./Participant"), { ssr: false });
 
 interface RoomProps {
   room: TwilioRoom;
-  handleLogout: () => void;
+  handleLogout: (value?: boolean) => void;
   setIsCameraOn: (isCameraOn: boolean) => void;
   setIsMicOn: (isCameraOn: boolean) => void;
   isCameraOn: boolean;
   isMicOn: boolean;
   isContactSegment: boolean;
   applicantReportIds: string[];
-  job: TJob;
+  cvScore: ICVScore;
 }
 
 const Room: React.FC<RoomProps> = ({
@@ -39,7 +39,7 @@ const Room: React.FC<RoomProps> = ({
   isMicOn,
   applicantReportIds,
   isContactSegment,
-  job,
+  cvScore,
 }) => {
   const [participants, setParticipants] = useState<TwilioParticipant[]>(
     Array.from(room?.participants.values()) ?? []
@@ -106,18 +106,18 @@ const Room: React.FC<RoomProps> = ({
       );
     };
 
-    const disconnected = () => {
-      console.log("The room has been completed.");
+    const disconnectedRoom = () => {
+      handleLogout(true);
     };
 
     room?.on("participantConnected", participantConnected);
     room?.on("participantDisconnected", participantDisconnected);
-    room?.on("disconnected", handleLogout);
+    room?.on("disconnected", disconnectedRoom);
 
     return () => {
       room?.off("participantConnected", participantConnected);
       room?.off("participantDisconnected", participantDisconnected);
-      room?.off("disconnected", handleLogout);
+      room?.off("disconnected", disconnectedRoom);
     };
   }, [room]);
 
@@ -217,7 +217,7 @@ const Room: React.FC<RoomProps> = ({
                 )}
                 <Button
                   isIconOnly
-                  onClick={handleLogout}
+                  onClick={() => handleLogout(false)}
                   className="cursor-pointer p-3 rounded-full bg-themeWhite"
                 >
                   <Phone size={24} color="#D91E2A" />
@@ -251,13 +251,13 @@ const Room: React.FC<RoomProps> = ({
             <Tabs aria-label="Options" classNames={{ panel: "py-0" }}>
               <Tab key="note" title="Note">
                 <CriteriaEvaluation
-                  job={job}
+                  cvScore={cvScore}
                   applicantReportIds={applicantReportIds}
                 />
               </Tab>
-              <Tab key="live-chat" title="Live chat">
+              {/* <Tab key="live-chat" title="Live chat">
                 <LiveChat />
-              </Tab>
+              </Tab> */}
             </Tabs>
           </div>
         </div>
