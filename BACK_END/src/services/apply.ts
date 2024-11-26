@@ -1,10 +1,10 @@
 import mongoose, { Types } from 'mongoose'
 import Apply, { IApply } from '..//models/applyModel'
-import fs from 'fs'
 import Job from '../models/jobModel'
 import { textract } from '../configs/aws-config'
 import Gemini from '../configs/gemini-config'
-import { IGroupCriteria } from '~/models/groupCriteriaModel'
+import { IGroupCriteria } from '../models/groupCriteriaModel'
+import { pollTextractJob, uploadPdfToS3 } from '../utils/uploadPdfToS3'
 
 const applyService = {
     updateStatus: async ({
@@ -89,14 +89,6 @@ const applyService = {
 
     // S3 textract
     extractTextFromPdf: async (filePath: string, jobId: string, applyId: string): Promise<string> => {
-        const fileContent = fs.readFileSync(filePath)
-
-        const params = {
-            Document: {
-                Bytes: fileContent,
-            },
-        }
-
         try {
             const job = await Job.findById(jobId).select('_id groupCriteria').populate({
                 path: 'groupCriteria',
@@ -112,11 +104,26 @@ const applyService = {
 
             const criterias = JSON.stringify((job.groupCriteria as IGroupCriteria).criterias)
 
-            const response = await textract.detectDocumentText(params).promise()
+             // Tải file PDF lên S3
+            const s3Key = await uploadPdfToS3(filePath);
 
-            const extractedText = response.Blocks?.filter((block) => block.BlockType === 'LINE') // Lấy các dòng text
-                .map((block) => block.Text) // Trích xuất text
-                .join('\n') // Ghép thành chuỗi
+            const startResponse = await textract.startDocumentTextDetection({
+                DocumentLocation: {
+                    S3Object: {
+                        Bucket: process.env.S3_BUCKET_TEXTRACT_NAME,
+                        Name: s3Key,
+                    },
+                },
+            }).promise();
+
+            if (!startResponse.JobId) {
+                throw new Error('Failed to start text detection job');
+            }
+
+            const textractJobId = startResponse.JobId;
+
+            // Chờ job Textract hoàn tất
+            const extractedText = await pollTextractJob(textractJobId);
 
             const gemini = new Gemini()
             const result = await gemini.processCV({
