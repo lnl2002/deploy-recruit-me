@@ -4,7 +4,7 @@ import Job from '../models/jobModel'
 import { textract } from '../configs/aws-config'
 import Gemini from '../configs/gemini-config'
 import { IGroupCriteria } from '../models/groupCriteriaModel'
-import { pollTextractJob, uploadPdfToS3 } from '../utils/uploadPdfToS3'
+import { deleteS3File, pollTextractJob, uploadPdfToS3 } from '../utils/uploadPdfToS3'
 
 const applyService = {
     updateStatus: async ({
@@ -88,7 +88,7 @@ const applyService = {
     },
 
     // S3 textract
-    extractTextFromPdf: async (filePath: string, jobId: string, applyId: string): Promise<string> => {
+    extractTextFromPdf: async (cvContent: string, jobId: string, applyId: string): Promise<string> => {
         try {
             const job = await Job.findById(jobId).select('_id groupCriteria').populate({
                 path: 'groupCriteria',
@@ -104,30 +104,9 @@ const applyService = {
 
             const criterias = JSON.stringify((job.groupCriteria as IGroupCriteria).criterias)
 
-             // Tải file PDF lên S3
-            const s3Key = await uploadPdfToS3(filePath);
-
-            const startResponse = await textract.startDocumentTextDetection({
-                DocumentLocation: {
-                    S3Object: {
-                        Bucket: process.env.S3_BUCKET_TEXTRACT_NAME,
-                        Name: s3Key,
-                    },
-                },
-            }).promise();
-
-            if (!startResponse.JobId) {
-                throw new Error('Failed to start text detection job');
-            }
-
-            const textractJobId = startResponse.JobId;
-
-            // Chờ job Textract hoàn tất
-            const extractedText = await pollTextractJob(textractJobId);
-
             const gemini = new Gemini()
             const result = await gemini.processCV({
-                cvContent: extractedText,
+                cvContent: cvContent,
                 criteriaContent: criterias,
             })
             const score = JSON.parse(result)
@@ -150,6 +129,53 @@ const applyService = {
             console.error('Error extracting text:', error)
         }
     },
+
+    textractPdf: async(filePath: string) => {
+        try {
+             // Tải file PDF lên S3
+            const s3Key = await uploadPdfToS3(filePath);
+
+            const startResponse = await textract.startDocumentTextDetection({
+                DocumentLocation: {
+                    S3Object: {
+                        Bucket: process.env.S3_BUCKET_TEXTRACT_NAME,
+                        Name: s3Key,
+                    },
+                },
+            }).promise();
+
+            console.log("tải lên s3");
+
+
+            if (!startResponse.JobId) {
+                throw new Error('Failed to start text detection job');
+            }
+
+            const textractJobId = startResponse.JobId;
+
+            // Chờ job Textract hoàn tất
+            const extractedText = await pollTextractJob(textractJobId);
+
+            console.log("done textract");
+
+            // xóa file trên s3
+            deleteS3File({
+                fileName: s3Key
+            })
+
+            //use gemini
+            const gemini = new Gemini()
+            const result = await gemini.analyzeCV({
+                cvContent: extractedText,
+            })
+
+            console.log("done gemini");
+
+            return JSON.parse(result)
+        } catch (error) {
+            console.error('Error extracting text:', error)
+        }
+    }
 }
 
 const calculateAverageScore = (criteria: { score: string }[]): string => {
