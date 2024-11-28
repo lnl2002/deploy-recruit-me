@@ -90,25 +90,12 @@ const applyService = {
     },
 
     // S3 textract
-    extractTextFromPdf: async (
-        cvContent: string,
-        filePath: string,
-        jobId: string,
-        applyId: string,
-    ): Promise<string> => {
-        const fileContent = fs.readFileSync(filePath)
-
-        const params = {
-            Document: {
-                Bytes: fileContent,
-            },
-        }
-
+    extractTextFromPdf: async (cvContent: string, jobId: string, applyId: string): Promise<string> => {
         try {
             const job = await Job.findById(jobId)
-                .select('_id groupCriteria')
+                .select('_id criterias')
                 .populate({
-                    path: 'groupCriteria',
+                    path: 'criterias',
                     populate: {
                         path: 'criterias',
                         model: 'Criteria',
@@ -119,7 +106,8 @@ const applyService = {
                 throw new Error(`Job ${jobId} not found`)
             }
 
-            const criterias = JSON.stringify((job.groupCriteria as IGroupCriteria).criterias)
+            // update
+            const criterias = JSON.stringify(job.criterias)
 
             const gemini = new Gemini()
             const result = await gemini.processCV({

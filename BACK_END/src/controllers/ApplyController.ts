@@ -13,7 +13,7 @@ const ApplyController = {
         try {
             // 1. Extract data from the request body
             const { cvId, jobId, cvInfo } = req.body
-            const cvContent = JSON.stringify(cvInfo);
+            const cvContent = JSON.stringify(cvInfo)
 
             // 3. Find the CV, Job, and default CVStatus
             const [cv, job, defaultStatus] = await Promise.all([
@@ -213,16 +213,16 @@ const ApplyController = {
 
     analyzeCV: async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { file } = req;
-            const result = await applyService.textractPdf(file.path);
+            const { file } = req
+            const result = await applyService.textractPdf(file.path)
             res.status(200).json({
-                data: result
+                data: result,
             })
         } catch (error) {
-            console.log("analyzeCV error:", error);
-            next(error);
+            console.log('analyzeCV error:', error)
+            next(error)
         }
-    }
+    },
 }
 
 export default ApplyController
