@@ -4,7 +4,8 @@ import fs from 'fs'
 import Job from '../models/jobModel'
 import { textract } from '../configs/aws-config'
 import Gemini from '../configs/gemini-config'
-import { IGroupCriteria } from '~/models/groupCriteriaModel'
+import { IGroupCriteria } from '../models/groupCriteriaModel'
+import { ICriteria } from '../models/criteriaModel'
 
 const applyService = {
     updateStatus: async ({
@@ -98,19 +99,21 @@ const applyService = {
         }
 
         try {
-            const job = await Job.findById(jobId).select('_id groupCriteria').populate({
-                path: 'groupCriteria',
-                populate: {
-                    path: 'criterias',
-                    model: 'Criteria',
-                },
-            })
+            const job = await Job.findById(jobId)
+                .select('_id groupCriteria')
+                .populate({
+                    path: 'groupCriteria',
+                    populate: {
+                        path: 'criterias',
+                        model: 'Criteria',
+                    },
+                })
 
             if (!job) {
                 throw new Error(`Job ${jobId} not found`)
             }
 
-            const criterias = JSON.stringify((job.groupCriteria as IGroupCriteria).criterias)
+            const criterias = JSON.stringify((job.criterias as ICriteria[])[0].name)
 
             const response = await textract.detectDocumentText(params).promise()
 

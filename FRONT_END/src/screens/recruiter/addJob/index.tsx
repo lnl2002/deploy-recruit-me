@@ -13,6 +13,9 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  Accordion,
+  AccordionItem,
+  Checkbox,
 } from "@nextui-org/react";
 import { DatePicker } from "@nextui-org/date-picker";
 import {
@@ -23,6 +26,7 @@ import {
   DollarSign,
   MapPin,
   SquareMinus,
+  X,
 } from "lucide-react";
 import { Fragment, Key, useEffect, useState } from "react";
 import unitApi, { TUnit } from "@/api/unitApi";
@@ -38,6 +42,8 @@ import { toast } from "react-toastify";
 import { useAppSelector } from "@/store/store";
 import groupCriteriaApi, { IGroupCriteria } from "@/api/groupCriteriaApi";
 import { ICriteria, ICriteriaDetails } from "@/api/criteriaApi";
+import { title } from "process";
+import CriteriaDetail from "./criteriaDetail";
 
 const CustomEditor = dynamic(() => import("./custom"), {
   ssr: false,
@@ -58,7 +64,6 @@ const requiredFields = [
   "expiredDate",
   "address",
   "type",
-  "groupCriteria",
 ];
 
 interface JobType {
@@ -77,6 +82,11 @@ const types: JobType[] = [
   { _id: "remote-parttime", name: "Remote Parttime" },
 ];
 
+type TCriteriaSelected = {
+  groupCriteriaId: string;
+  criteria: ICriteria;
+};
+
 export const AddJob = (): React.JSX.Element => {
   const router = useRouter();
   const { userInfo } = useAppSelector((state) => state.user);
@@ -85,11 +95,19 @@ export const AddJob = (): React.JSX.Element => {
   const [formValueError, setFormValueError] = useState<Partial<TJob>>({});
   const [unitList, setUnitList] = useState<TUnit[]>([]);
   const [groupCriterias, setGroupCriterias] = useState<IGroupCriteria[]>([]);
+  const [groupCriteriasSelected, setGroupCriteriasSelected] =
+    useState<string>("");
   const [criterias, setCriterias] = useState<ICriteria[]>([]);
+  const [criteriasSelected, setCriteriasSelected] = useState<
+    TCriteriaSelected[]
+  >([]);
   const [unit, setUnit] = useState<Partial<TUnit>>({});
   const [careerList, setCareerList] = useState<TCareer[]>([]);
   const [accountList, setAccountList] = useState<IAccount[]>([]);
-  const [dateSelected, setDateSelected] = useState<DateValue | null>();
+  const [dateStartSelected, setDateStartSelected] =
+    useState<DateValue | null>();
+  const [dateExpriredSelected, setDateExpriredSelected] =
+    useState<DateValue | null>();
 
   useEffect(() => {
     if (userInfo?.role !== "RECRUITER") {
@@ -106,6 +124,10 @@ export const AddJob = (): React.JSX.Element => {
       setCareerList(careers);
     })();
   }, []);
+
+  useEffect(() => {
+    console.log(criteriasSelected);
+  }, [criteriasSelected]);
 
   useEffect(() => {
     (async () => {
@@ -136,19 +158,15 @@ export const AddJob = (): React.JSX.Element => {
 
   useEffect(() => {
     (async () => {
-      if (!formValue?.groupCriteria) return;
+      if (!groupCriteriasSelected) return;
 
       const { groupCriteria } = await groupCriteriaApi.getGroupCriteria(
-        formValue?.groupCriteria as string
+        groupCriteriasSelected
       );
 
       if (groupCriteria) setCriterias(groupCriteria.criterias as ICriteria[]);
     })();
-  }, [formValue?.groupCriteria]);
-
-  useEffect(() => {
-    console.log(criterias);
-  }, [criterias]);
+  }, [groupCriteriasSelected]);
 
   const handleOnChange = (value: string, label: string) => {
     setFormValue(
@@ -175,38 +193,90 @@ export const AddJob = (): React.JSX.Element => {
     );
   };
 
-  const onDateChange = (value: DateValue) => {
-    const date = new Date();
-    date.setFullYear(value.year);
-    date.setMonth(value.month - 1);
-    date.setDate(value.day);
+  const onDateChange =
+    (field: "startDate" | "expiredDate") => (value: DateValue) => {
+      // Chuyển đổi giá trị được chọn thành Date
+      const date = new Date(value.year, value.month - 1, value.day); // Không có thời gian
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Đặt thời gian hiện tại về đầu ngày
 
-    if (new Date().getTime() > date.getTime()) {
-      setFormValueError((pre) => ({
-        ...pre,
-        expiredDate: "Please select a date after current!",
+      // Kiểm tra nếu ngày đã chọn là ngày trong quá khứ
+      if (today.getTime() > date.getTime()) {
+        setFormValueError((prev) => ({
+          ...prev,
+          [field]: "Please select a date after the current date!",
+        }));
+        setFormValue((prev) => ({
+          ...prev,
+          [field]: "",
+        }));
+        if (field === "startDate") {
+          setDateStartSelected(null);
+        } else {
+          setDateExpriredSelected(null);
+        }
+        return;
+      }
+
+      // Kiểm tra logic giữa startDate và expiredDate
+      if (field === "startDate") {
+        if (formValue.expiredDate) {
+          const expiredDate = new Date(formValue.expiredDate);
+          expiredDate.setHours(0, 0, 0, 0);
+          if (date.getTime() > expiredDate.getTime()) {
+            setFormValueError((prev) => ({
+              ...prev,
+              startDate: "Start date cannot be after expiration date!",
+            }));
+            setFormValue((prev) => ({
+              ...prev,
+              startDate: "",
+            }));
+            setDateStartSelected(null);
+            return;
+          }
+        }
+      } else if (field === "expiredDate") {
+        if (formValue.startDate) {
+          const startDate = new Date(formValue.startDate);
+          startDate.setHours(0, 0, 0, 0); // Đặt về đầu ngày
+          if (date.getTime() <= startDate.getTime()) {
+            setFormValueError((prev) => ({
+              ...prev,
+              expiredDate:
+                "Expiration date cannot be before or equal start date!",
+            }));
+            setFormValue((prev) => ({
+              ...prev,
+              expiredDate: "",
+            }));
+            setDateExpriredSelected(null);
+            return;
+          }
+        }
+      }
+
+      // Xóa lỗi nếu ngày hợp lệ
+      setFormValueError((prev) => ({
+        ...prev,
+        [field]: "",
       }));
-      setFormValue((pre) => ({
-        ...pre,
-        expiredDate: "",
-      }));
-      setDateSelected(null);
-      return;
-    }
 
-    setFormValueError((pre) => ({
-      ...pre,
-      expiredDate: "",
-    }));
+      // Cập nhật giá trị ngày
+      setFormValue(
+        (prev): Partial<TJob> => ({
+          ...prev,
+          [field]: date.toISOString(),
+        })
+      );
 
-    setFormValue(
-      (pre): Partial<TJob> => ({
-        ...pre,
-        expiredDate: date.toISOString(),
-      })
-    );
-    setDateSelected(value);
-  };
+      // Cập nhật giá trị selected
+      if (field === "startDate") {
+        setDateStartSelected(value);
+      } else {
+        setDateExpriredSelected(value);
+      }
+    };
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value, name } = event.target;
@@ -237,6 +307,11 @@ export const AddJob = (): React.JSX.Element => {
   };
 
   const handleSubmit = async () => {
+    if (criteriasSelected.length === 0) {
+      toast.warning("Please select at least one criteria");
+      return;
+    }
+
     const missingFields = requiredFields.filter(
       (field) => !formValue[field as keyof TJob]
     );
@@ -260,13 +335,57 @@ export const AddJob = (): React.JSX.Element => {
       return;
     }
 
-    const { job: newJob } = await jobApi.addJob(formValue);
+    const criteriaIds = criteriasSelected.map(
+      (criteria) => criteria.criteria._id
+    );
+
+    const { job: newJob } = await jobApi.addJob({
+      ...formValue,
+      criterias: criteriaIds,
+    });
 
     if (newJob?._id) {
       toast.success("Add job successfully");
       router.push("/recruiter/list-job");
     } else toast.error("Error creating job!");
   };
+
+  const handleSelectedCriterias =
+    (criteria: ICriteria, groupCriteriaId: string) => (isSelected: boolean) => {
+      if (isSelected) {
+        setCriteriasSelected((prevs) => [
+          ...prevs,
+          { criteria, groupCriteriaId },
+        ]);
+      } else {
+        setCriteriasSelected((prevs) =>
+          prevs.filter(
+            (criteriaPrev) =>
+              !(
+                criteriaPrev.criteria._id === criteria._id &&
+                criteriaPrev.groupCriteriaId === groupCriteriaId
+              )
+          )
+        );
+      }
+    };
+
+  const handleDeleteSelectedCriterias =
+    (criteria: ICriteria, groupCriteriaId: string) => () => {
+      setCriteriasSelected((prevs) => {
+        const newArr = prevs.filter(
+          (criteriaPrev) =>
+            !(
+              criteriaPrev.criteria._id === criteria._id &&
+              criteriaPrev.groupCriteriaId === groupCriteriaId
+            )
+        );
+        if (newArr.length === 0) {
+          setActiveTab("Job Criteria");
+        }
+        return newArr;
+      });
+    };
 
   return (
     <div className="flex-grow flex flex-col items-center justify-center">
@@ -320,32 +439,30 @@ export const AddJob = (): React.JSX.Element => {
                         }
                         className="mt-[32px]"
                       />
-                      {accountList.length > 0 && (
-                        <AutocompleteComponent
-                          items={accountList}
-                          label="Interview Manager"
-                          placeholder="Select a unit"
-                          selectedKey={
-                            formValue.interviewManager as string | null
-                          }
-                          // onSelectionChange={onSelectionAccountChange}
-                          onSelectionChange={(value: Key | null) => {
-                            onSelectedChange("interviewManager", value);
-                          }}
-                          isInvalid={!!formValueError.interviewManager}
-                          errorMessage={
-                            formValueError.interviewManager as string
-                          }
-                          itemToKey={(item) => item._id}
-                          itemToLabel={(item) => item.name}
-                          inputWrapperClass={
-                            formValueError.interviewManager
-                              ? "border-0 bg-[#fee7ef]"
-                              : ""
-                          }
-                          className="mt-[32px]"
-                        />
-                      )}
+                      {/* {accountList.length > 0 && ( */}
+                      <AutocompleteComponent
+                        items={accountList}
+                        props={{ isDisabled: accountList.length === 0 }}
+                        label="Interview Manager"
+                        placeholder="Select a unit"
+                        selectedKey={
+                          formValue.interviewManager as string | null
+                        }
+                        onSelectionChange={(value: Key | null) => {
+                          onSelectedChange("interviewManager", value);
+                        }}
+                        isInvalid={!!formValueError.interviewManager}
+                        errorMessage={formValueError.interviewManager as string}
+                        itemToKey={(item) => item._id}
+                        itemToLabel={(item) => item.name}
+                        inputWrapperClass={
+                          formValueError.interviewManager
+                            ? "border-0 bg-[#fee7ef]"
+                            : ""
+                        }
+                        className="mt-[32px]"
+                      />
+                      {/* )} */}
                       <CustomEditor
                         handleChange={handleOnChange}
                         label="Description"
@@ -378,8 +495,8 @@ export const AddJob = (): React.JSX.Element => {
                     radius="full"
                     className="bg-gradient-to-tr from-themeOrange to-blurEffectGold text-themeWhite shadow-lg w-[174px] h-[44px]"
                     onClick={() => {
-                      if (!formValue.unit) {
-                        toast.warning("Please select a unit");
+                      if (!formValue.interviewManager) {
+                        toast.warning("Please select a interview manager");
                         return;
                       }
                       setActiveTab("Job Extra");
@@ -398,7 +515,7 @@ export const AddJob = (): React.JSX.Element => {
                         <TextareaComponent
                           label="Work Address"
                           name="address"
-                          maxRows={1}
+                          maxRows={2}
                           labelPlacement="outside"
                           placeholder="Enter Work address of job"
                           value={formValue.address?.toString()}
@@ -413,27 +530,10 @@ export const AddJob = (): React.JSX.Element => {
                           isInvalid={!!formValueError.address}
                           errorMessage={formValueError.address}
                         />
-                        <AutocompleteComponent
-                          items={types as { _id: string; name: string }[]}
-                          label="Job Type"
-                          placeholder="Select Job type"
-                          selectedKey={formValue.type as string | null}
-                          // onSelectionChange={onSelectionTypeChange}
-                          onSelectionChange={(value: Key | null) => {
-                            onSelectedChange("type", value);
-                          }}
-                          isInvalid={!!formValueError.type}
-                          errorMessage={formValueError.type as string}
-                          itemToKey={(type) => type._id}
-                          itemToLabel={(type) => type.name}
-                          inputWrapperClass={
-                            formValueError.type ? "border-0 bg-[#fee7ef]" : ""
-                          }
-                        />
                       </div>
                       <div className="flex w-full flex-wrap md:flex-nowrap gap-4 mt-[32px]">
                         <AutocompleteComponent
-                          items={careerList as TCareer[]}
+                          items={careerList}
                           label="Career"
                           placeholder="Select Career"
                           selectedKey={formValue.career as string | null}
@@ -485,11 +585,37 @@ export const AddJob = (): React.JSX.Element => {
                             formValueError.numberPerson?.toString() ?? ""
                           }
                         />
+                        <AutocompleteComponent
+                          items={types as { _id: string; name: string }[]}
+                          label="Job Type"
+                          placeholder="Select Job type"
+                          selectedKey={formValue.type as string | null}
+                          onSelectionChange={(value: Key | null) => {
+                            onSelectedChange("type", value);
+                          }}
+                          isInvalid={!!formValueError.type}
+                          errorMessage={formValueError.type as string}
+                          itemToKey={(type) => type._id}
+                          itemToLabel={(type) => type.name}
+                          inputWrapperClass={
+                            formValueError.type ? "border-0 bg-[#fee7ef]" : ""
+                          }
+                        />
+                      </div>
+                      <div className="flex w-full flex-wrap md:flex-nowrap gap-4 mt-[32px]">
+                        <DatePicker
+                          label="Start date"
+                          labelPlacement="outside"
+                          value={dateStartSelected}
+                          onChange={onDateChange("startDate")}
+                          isInvalid={!!formValueError.startDate}
+                          errorMessage={formValueError.startDate}
+                        />
                         <DatePicker
                           label="Expired date"
                           labelPlacement="outside"
-                          value={dateSelected}
-                          onChange={onDateChange}
+                          value={dateExpriredSelected}
+                          onChange={onDateChange("expiredDate")}
                           isInvalid={!!formValueError.expiredDate}
                           errorMessage={formValueError.expiredDate}
                         />
@@ -589,65 +715,41 @@ export const AddJob = (): React.JSX.Element => {
                   <CardBody className="mt-5 gap-3">
                     <AutocompleteComponent
                       items={groupCriterias}
-                      label="Criteria Name"
-                      placeholder="Select Criteria Name"
-                      selectedKey={formValue.groupCriteria as string | null}
+                      label="Group Criteria"
+                      placeholder="Select Group Criteria"
+                      selectedKey={groupCriteriasSelected as string | null}
                       onSelectionChange={(value: Key | null) => {
-                        onSelectedChange("criteria", value);
+                        setGroupCriteriasSelected(value?.toString() as string);
                       }}
-                      isInvalid={!!formValueError.groupCriteria}
-                      errorMessage={formValueError.groupCriteria as string}
                       itemToKey={(criteria) => criteria._id}
                       itemToLabel={(criteria) => criteria.name}
-                      inputWrapperClass={
-                        formValueError.groupCriteria
-                          ? "border-0 bg-[#fee7ef]"
-                          : ""
-                      }
                     />
-                    {criterias.map((criteria) => (
-                      <Fragment key={criteria?._id}>
-                        <div className="px-4 pb-1 pt-2">
-                          <span className="font-semibold">
-                            {criteria?.name}
-                          </span>
-                        </div>
-                        <Table
-                          hideHeader={true}
-                          className="table-fixed"
-                          aria-label="Vertical Header table"
+                    <Accordion>
+                      {criterias.map((criteria) => (
+                        <AccordionItem
+                          key={criteria._id}
+                          aria-label={criteria?.name}
+                          title={criteria?.name}
+                          startContent={
+                            <Checkbox
+                              isSelected={criteriasSelected.some(
+                                (item) =>
+                                  item.criteria._id === criteria._id &&
+                                  item.groupCriteriaId ===
+                                    groupCriteriasSelected
+                              )}
+                              onValueChange={handleSelectedCriterias(
+                                criteria,
+                                groupCriteriasSelected
+                              )}
+                              aria-label={criteria?.name}
+                            ></Checkbox>
+                          }
                         >
-                          <TableHeader>
-                            <TableColumn>LEVEL</TableColumn>
-                            <TableColumn>CRITERIA</TableColumn>
-                            <TableColumn>WEIGHT</TableColumn>
-                          </TableHeader>
-                          <TableBody>
-                            {LEVELs.map((level) => (
-                              <TableRow key={level}>
-                                <TableCell className="font-bold">
-                                  {level}
-                                </TableCell>
-                                <TableCell>
-                                  {(
-                                    criteria[
-                                      level.toLowerCase() as keyof ICriteria
-                                    ] as ICriteriaDetails
-                                  )?.detail ?? ""}
-                                </TableCell>
-                                <TableCell className="w-16">
-                                  {(
-                                    criteria[
-                                      level.toLowerCase() as keyof ICriteria
-                                    ] as ICriteriaDetails
-                                  )?.weight ?? ""}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </Fragment>
-                    ))}
+                          <CriteriaDetail criteria={criteria} />
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
                   </CardBody>
                 </Card>
                 <div className="flex items-center justify-between mb-4 relative mt-[32px] w-full">
@@ -659,6 +761,70 @@ export const AddJob = (): React.JSX.Element => {
                     onClick={() => setActiveTab("Job Extra")}
                   >
                     <ArrowLeft size={20} />
+                    Back
+                  </Button>
+                  <Button
+                    radius="full"
+                    color="primary"
+                    variant="light"
+                    className="bg-gradient-to-tr from-themeOrange to-blurEffectGold text-themeWhite shadow-lg w-[174px] h-[44px]"
+                    onClick={() => {
+                      if (criteriasSelected.length === 0) {
+                        toast.warning("Please select at least one criteria");
+                        return;
+                      }
+                      setActiveTab("Criteria Details");
+                    }}
+                    endContent={<ArrowRight size={20} />}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </Tab>
+              <Tab key="Criteria Details" title="4. Criteria Details">
+                <Card className="min-h-72">
+                  <CardBody className="mt-5 gap-3">
+                    <p className="text-2xl font-bold">
+                      List criteria for {formValue.title}
+                    </p>
+                    <Accordion>
+                      {criteriasSelected.map((criteriaSelected) => {
+                        const { criteria, groupCriteriaId } = criteriaSelected;
+                        return (
+                          <AccordionItem
+                            key={criteria._id + groupCriteriaId}
+                            aria-label={criteria?.name}
+                            title={criteria?.name}
+                            indicator={
+                              <Button
+                                radius="full"
+                                className="bg-gradient-to-tr from-[#ff4c28] to-[#FFF] text-themeWhite shadow-lg"
+                                isIconOnly={true}
+                                onPress={handleDeleteSelectedCriterias(
+                                  criteria,
+                                  groupCriteriaId
+                                )}
+                              >
+                                <X size={18} aria-label={criteria?.name}></X>
+                              </Button>
+                            }
+                          >
+                            <CriteriaDetail criteria={criteria} />
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                  </CardBody>
+                </Card>
+                <div className="flex items-center justify-between mb-4 relative mt-[32px] w-full">
+                  <Button
+                    radius="full"
+                    color="primary"
+                    variant="light"
+                    className="bg-gradient-to-tr from-[#ccc] to-[#999] text-[#FFF] shadow-lg w-[174px] h-[44px]"
+                    onClick={() => setActiveTab("Job Criteria")}
+                    startContent={<ArrowLeft size={20} />}
+                  >
                     Back
                   </Button>
                   <Button

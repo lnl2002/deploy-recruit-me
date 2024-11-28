@@ -26,6 +26,14 @@ const columnsRoot = [
     label: "Post Time",
   },
   {
+    key: "startDate",
+    label: "Start Date",
+  },
+  {
+    key: "expiredDate",
+    label: "Expired Date",
+  },
+  {
     key: "unit",
     label: "Unit",
   },
@@ -111,9 +119,6 @@ const JobSection: React.FC<ListJobProps> = ({
           day: "2-digit",
           month: "2-digit",
           year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
         });
 
         return formattedDate;
@@ -146,6 +151,22 @@ const JobSection: React.FC<ListJobProps> = ({
               </p>
             </div>
           );
+        case "startDate":
+          return (
+            <div className="flex flex-col">
+              <p className="text-bold text-small capitalize">
+                {dateFormat(cellValue)}
+              </p>
+            </div>
+          );
+        case "expiredDate":
+          return (
+            <div className="flex flex-col">
+              <p className="text-bold text-small capitalize">
+                {dateFormat(cellValue)}
+              </p>
+            </div>
+          );
         case "unit":
           return (
             <div className="flex flex-col">
@@ -157,8 +178,15 @@ const JobSection: React.FC<ListJobProps> = ({
         case "status":
           return (
             <div className="flex flex-col">
-              <Chip startContent={<Dot />} variant="flat" color={chipColor}>
-                {statusFormat(cellValue)}
+              <Chip
+                startContent={<Dot />}
+                classNames={{ content: "font-bold text-sm" }}
+                variant="flat"
+                color={chipColor}
+              >
+                {statusFormat(
+                  cellValue == "approved" ? "published" : cellValue
+                )}
               </Chip>
             </div>
           );

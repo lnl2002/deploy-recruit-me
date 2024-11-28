@@ -26,6 +26,14 @@ const columnsRoot = [
     label: "Post Time",
   },
   {
+    key: "startDate",
+    label: "Start Date",
+  },
+  {
+    key: "expiredDate",
+    label: "Expired Date",
+  },
+  {
     key: "unit",
     label: "Unit",
   },
@@ -111,9 +119,6 @@ const JobSection: React.FC<ListJobProps> = ({
           day: "2-digit",
           month: "2-digit",
           year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
         });
 
         return formattedDate;
@@ -141,7 +146,7 @@ const JobSection: React.FC<ListJobProps> = ({
         case "createdAt":
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-small capitalize">
+              <p className="text-bold text-small capitaliz">
                 {dateFormat(cellValue)}
               </p>
             </div>
