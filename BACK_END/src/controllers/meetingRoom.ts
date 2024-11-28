@@ -191,9 +191,27 @@ const meetingController = {
 
             if (!meetingRooms) {
                 return res.status(404).json({ message: 'Meeting room not found' })
-            } 
+            }
 
             return res.status(200).json(meetingRooms)
+        } catch (error) {
+            next(error)
+        }
+    },
+
+    getCandidateRejectReason: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        const { applyId } = req.query
+
+        if (!isValidObjectId(applyId)) {
+            return res.status(400).json({ message: 'Invalid applyId' })
+        }
+
+        try {
+            const reason = await meetingService.getCandidateRejectReason(applyId.toString())
+
+            return res.status(200).json({
+                reason: reason
+            })
         } catch (error) {
             next(error)
         }
