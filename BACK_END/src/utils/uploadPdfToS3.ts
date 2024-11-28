@@ -6,8 +6,8 @@ import { textract } from '../configs/aws-config'
 
 export const uploadPdfToS3 = async (filePath: string): Promise<string> => {
     const s3 = new AWS.S3({
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.ACCESS_KEY_ID,
+        secretAccessKey: process.env.SECRET_ACCESS_KEY,
         region: process.env.S3_REGION_TEXTRACT,
         correctClockSkew: true,
     })
@@ -59,8 +59,8 @@ export const deleteS3File = async ({
 }): Promise<void> => {
     try {
         const s3 = new AWS.S3({
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            accessKeyId: process.env.ACCESS_KEY_ID,
+            secretAccessKey: process.env.SECRET_ACCESS_KEY,
             region: process.env.S3_REGION_TEXTRACT,
             correctClockSkew: true,
         })
