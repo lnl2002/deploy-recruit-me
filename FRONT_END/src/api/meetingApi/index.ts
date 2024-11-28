@@ -246,6 +246,20 @@ export const meetingApi = {
       return undefined;
     }
   },
+
+  getCandidateRejectReason: async (
+    applyId: string
+  ) => {
+    try {
+      const res = await axios.get(
+        `${BACKEND_URL}/api/v1/meeting-room/candidate-reject-reason?applyId=${applyId}`
+      );
+      return res?.data?.data;
+    } catch (error) {
+      console.error("Error candidate reject reason:", error);
+      return undefined;
+    }
+  },
 };
 
 export default meetingApi;

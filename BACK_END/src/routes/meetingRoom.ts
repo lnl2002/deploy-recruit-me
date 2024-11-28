@@ -10,6 +10,7 @@ router.get('/list-candidate',  requireRole(['INTERVIEWER', 'INTERVIEW_MANAGER'])
 router.get('/url', meetingController.getMeetingRoomByUrl)
 router.get('/get/:applyId', meetingController.getMeetingRoomByApplyId)
 router.get('/get-all/:jobId', meetingController.getMeetingRoomsByJobId)
+router.get('/candidate-reject-reason', requireRole(["INTERVIEW_MANAGER", "INTERVIEWER"]), meetingController.getCandidateRejectReason)
 
 // POST
 router.post('/create', meetingController.createMeetingRoom)

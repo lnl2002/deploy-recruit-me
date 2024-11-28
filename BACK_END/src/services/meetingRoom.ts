@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import MeetingRoom, { IMeetingApproveStatus, IMeetingRoom, IParticipantStatus } from '../models/meetingRoomModel'
-import Account from '../models/accountModel'
-import { IRole } from '../models/roleModel'
+import Account, { IAccount } from '../models/accountModel'
+import Role, { IRole } from '../models/roleModel'
 import CVStatus from '../models/cvStatusModel'
 import { IApply } from '~/models/applyModel'
 
@@ -282,6 +282,7 @@ const meetingService = {
                                             },
                                             0,
                                         ],
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     } as any,
                                 },
                             },
@@ -293,6 +294,7 @@ const meetingService = {
                 { $limit: limit },
             ]
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const meetings = await MeetingRoom.aggregate(aggregatePipeline as any[])
 
             const totalMeetingPipeline = [
@@ -378,6 +380,33 @@ const meetingService = {
             console.error('Error finding meeting rooms by jobId:', error)
             return null
         }
+    },
+
+    getCandidateRejectReason: async (applyId: string) => {
+        const role = await Role.findOne({ roleName: 'CANDIDATE' })
+        if (!role) {
+            console.error('Role CANDIDATE not found.')
+            return null
+        }
+
+        const data = await MeetingRoom.findOne({ apply: applyId })
+            .select('participants')
+            .populate('participants.participant')
+
+        if (!data) {
+            console.error('No MeetingRoom found for the given applyId.')
+            return null
+        }
+
+        // Lọc participants có role bằng role.id
+        const filteredParticipants = data.participants.filter((p) =>  p.participant && ((p.participant as IAccount).role.toString() === role._id.toString()))
+
+        if (filteredParticipants.length <= 0) {
+            console.error('No candidate found for the given applyId.')
+            return null
+        }
+
+        return filteredParticipants[0].declineReason
     },
 }
 

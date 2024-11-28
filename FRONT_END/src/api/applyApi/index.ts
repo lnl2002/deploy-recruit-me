@@ -108,7 +108,7 @@ export const applyApi = {
     }
   },
 
-  applyToJob: async (cvData: ICV, jobId: string) => {
+  applyToJob: async (cvData: ICV, jobId: string, cvInfo: any) => {
     try {
       const accessToken = localStorage.getItem("access_token");
 
@@ -149,11 +149,14 @@ export const applyApi = {
         // 4. Send the job application request
         const applyResponse = await axios.post(
           `${BACKEND_URL}/api/v1/apply/apply-job`,
-          formData,
+          {
+            cvId: cvId,
+            jobId: jobId,
+            cvInfo: cvInfo,
+          },
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "multipart/form-data",
             },
           }
         );
@@ -305,6 +308,25 @@ export const applyApi = {
     } catch (error: any) {
       console.error("Error fetching statuses:", error);
       // throw error;
+    }
+  },
+
+  getOcrCV: async (file: File) => {
+    try {
+      const formData = new FormData();
+
+      formData.append("cv", file);
+      const res = await (
+        await axios.post(`${BACKEND_URL}/api/v1/apply/ocr/cv`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+      )?.data;
+      return res;
+    } catch (error) {
+      console.log("Error get OCR CV", error);
+      return null;
     }
   },
 };
