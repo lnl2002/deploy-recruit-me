@@ -234,6 +234,32 @@ export const meetingApi = {
       return undefined;
     }
   },
+
+  getAllMeetingRoomsByJobId: async (jobId: string): Promise<
+    IMeeting | undefined
+  > => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/v1/meeting-room/get-all/${jobId}`);
+      return res.data;
+    } catch (error) {
+      console.error("Error fetching meeting room list:", error);
+      return undefined;
+    }
+  },
+
+  getCandidateRejectReason: async (
+    applyId: string
+  ) => {
+    try {
+      const res = await axios.get(
+        `${BACKEND_URL}/api/v1/meeting-room/candidate-reject-reason?applyId=${applyId}`
+      );
+      return res?.data?.data;
+    } catch (error) {
+      console.error("Error candidate reject reason:", error);
+      return undefined;
+    }
+  },
 };
 
 export default meetingApi;

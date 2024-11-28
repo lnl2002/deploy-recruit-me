@@ -11,6 +11,8 @@ example body
     "receivers": ["garenaobama@gmail.com"]
 }
 */
+systemRouter.post('/ai-chat', systemController.getAIAnswer)
+
 systemRouter.post('/mail/send', systemController.mutipleMail)
 
 export default systemRouter

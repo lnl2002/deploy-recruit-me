@@ -12,6 +12,7 @@ import { useAppDispatch } from "@/store/store";
 import { setJob as saveJob } from "@/store/jobState";
 import { TUnit } from "@/api/unitApi";
 import { TLocation } from "@/api/locationApi";
+import { ScheduleInterview } from "./components/ScheduleInterview";
 
 //example: /job-details?id=67055dd3e22b9a4790729550
 export const JobDetails = (): React.JSX.Element => {
@@ -27,6 +28,7 @@ export const JobDetails = (): React.JSX.Element => {
       setJob(job);
       dispatch(saveJob(job as any));
     })();
+    console.log(jobId);
   }, [jobId]);
 
   const handleTabChange = (tab: string) => {
@@ -65,6 +67,9 @@ export const JobDetails = (): React.JSX.Element => {
           {tabSelected === "overview" && <InformationJob job={job} />}
           {tabSelected === "applicants-list" && (
             <ApplicationList jobId={jobId ?? ""} />
+          )}
+          {tabSelected === "schedule-interview" && (
+            <ScheduleInterview jobId={jobId ?? ""} />
           )}
         </div>
       </div>

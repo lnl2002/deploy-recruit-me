@@ -31,15 +31,7 @@ class Gemini {
      */
     async processCV({ cvContent, criteriaContent }: { cvContent: string; criteriaContent: string }): Promise<string> {
         try {
-            // Step 1: Analyze CV
-            const prompt1 = `${cvContent}
-      First, Based on the above paragraph, try to analyze and come up with the items of the CV.
-      Then, detail the CV in JSON format. Notione: Only json file, doesn't have any text.
-      `
-            const cvJson = await this.generateContent(prompt1)
-
-            // Step 2: Evaluate CV against criteria
-            const prompt2 = `CV json: ${cvJson}
+            const prompt2 = `CV json: ${cvContent}
       List criteria: ${criteriaContent}
 
       Based on the given JSON CV and the list of evaluation criteria, calculate the score for each criterion. Follow these rules for scoring:
@@ -64,10 +56,108 @@ class Gemini {
           }
       ]
       `
+            console.log('calculate done')
             const result = await this.generateContent(prompt2)
 
             // Save the result to a file
             const cleanedResult = result.replace('```json', '').replace('```', '')
+            return cleanedResult || ''
+        } catch (error) {
+            console.error('Error processing CV:', error)
+            throw error
+        }
+    }
+
+    async analyzeCV({ cvContent }: { cvContent: string }): Promise<string> {
+        try {
+            const prompt = `
+                ${cvContent}
+                Based on the provided text extracted from a CV, analyze and extract the content into a structured JSON format.
+                The JSON must include at least the following mandatory fields:
+
+                1. **Personal Information**: Includes name, date of birth, email, phone number, and address.
+                2. **Skills**: A list of the candidate's skills.
+                3. **Experience**: Includes any relevant experience, such as:
+                   - Projects (academic, personal, or professional): Provide details like project name, description, and the candidate's role or contributions.
+                   - Internships or work experience: Include organization name, role, start and end dates, and key responsibilities or achievements.
+                   - Other relevant experiences: Any practical experience, volunteer work, or activities that demonstrate skills or competencies.
+                4. **Education**: Includes degree, field of study, school name, and graduation year.
+
+                Additionally, include any other information present in the CV under an **additionalInformation** field. This field should capture any data not directly mapped to the mandatory fields above.
+
+                Ensure the output is in valid JSON format. For example:
+
+                {
+                    "personalInformation": {
+                        "name": "John Doe",
+                        "dateOfBirth": "1990-01-01",
+                        "email": "john.doe@example.com",
+                        "phone": "+123456789",
+                        "address": "123 Main St, City, Country"
+                    },
+                    "skills": ["JavaScript", "React", "Node.js"],
+                    "experience": [
+                        {
+                            "type": "Project",
+                            "name": "E-commerce Website",
+                            "description": "Developed a full-stack e-commerce platform as part of a university project.",
+                            "role": "Frontend Developer",
+                            "contributions": ["Designed UI using React", "Integrated payment gateway", "Deployed the app on AWS"]
+                        },
+                        {
+                            "type": "Internship",
+                            "organizationName": "Tech Corp",
+                            "role": "Software Engineer Intern",
+                            "startDate": "2023-06",
+                            "endDate": "2023-08",
+                            "responsibilities": ["Developed APIs for data processing", "Collaborated with the frontend team to integrate features"]
+                        },
+                        {
+                            "type": "Volunteer Work",
+                            "organizationName": "Local NGO",
+                            "role": "Community Outreach Volunteer",
+                            "description": "Organized events to raise awareness about environmental sustainability."
+                        }
+                    ],
+                    "education": [
+                        {
+                            "degree": "Bachelor's in Computer Science",
+                            "fieldOfStudy": "Computer Science",
+                            "schoolName": "XYZ University",
+                            "graduationYear": "2022"
+                        }
+                    ],
+                    "additionalInformation": {
+                        "certifications": [
+                            {
+                                "name": "Certified Kubernetes Administrator",
+                                "organization": "CNCF",
+                                "obtainedDate": "2021-07"
+                            }
+                        ],
+                        "languages": [
+                            {
+                                "language": "English",
+                                "proficiency": "Fluent"
+                            },
+                            {
+                                "language": "Spanish",
+                                "proficiency": "Intermediate"
+                            }
+                        ],
+                        "otherDetails": "Open to relocation and remote work."
+                    }
+                }
+
+                Important notes:
+                - Include **all information** from the CV in the JSON output.
+                - Use an **additionalInformation** field to capture any data not fitting the mandatory fields.
+                - Ensure the output is valid JSON and contains no extra text or formatting.
+            `
+            const cvJson = await this.generateContent(prompt)
+
+            // Clean and return the result
+            const cleanedResult = cvJson.replace('```json', '').replace('```', '')
             return cleanedResult || ''
         } catch (error) {
             console.error('Error processing CV:', error)

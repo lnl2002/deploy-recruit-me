@@ -1,12 +1,19 @@
 "use client";
 import React, { useState } from "react";
-import { Autocomplete, AutocompleteItem, Input } from "@nextui-org/react";
+import {
+  Autocomplete,
+  AutocompleteItem,
+  Button,
+  Input,
+  useDisclosure,
+} from "@nextui-org/react";
 import { Upload } from "lucide-react";
 import { ButtonApp } from "../ButtonApp";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { TJob } from "@/api/jobApi";
-import { ICV } from "@/api/applyApi";
+import applyApi, { ICV } from "@/api/applyApi";
+import ModalOCR from "./components/ModalOCR";
 
 // Define your Gender enum and TJob type (replace with your actual types)
 const gender = ["Male", "Female", "Others"];
@@ -16,6 +23,8 @@ type FormProps = {
   job: TJob;
   onApply: (cv: ICV) => void;
   onCancel: () => void;
+  ocrCV: any;
+  setOcrCV: (data: any) => void;
 };
 
 // Validation schema
@@ -35,11 +44,32 @@ const validationSchema = Yup.object().shape({
     ),
 });
 
-export const FormApplyJob = ({ job, onApply, onCancel }: FormProps) => {
+export const FormApplyJob = ({ job, onApply, onCancel, ocrCV, setOcrCV }: FormProps) => {
+  const OCRModal = useDisclosure();
+
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleSubmit = (values: any) => {
     // Handle form submission here (send data to server, etc.)
     console.log("Form submitted:", values);
     onApply(values);
+  };
+
+  const handleFileChange = async (file: File) => {
+    if (!file) return;
+
+    try {
+      OCRModal.onOpen();
+
+      setIsLoading(true);
+      const response = await applyApi.getOcrCV(file);
+      setOcrCV(response?.data?.data);
+      setIsLoading(false);
+      
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -237,23 +267,32 @@ export const FormApplyJob = ({ job, onApply, onCancel }: FormProps) => {
 
             <div className="mt-12">
               {/* CV Upload (You need to implement the logic) */}
-              <Input
-                classNames={{
-                  inputWrapper: "border-none rounded-none bg-white p-0",
-                  input: "text-textPrimary file:border-0 file:text-sm",
-                }}
-                type="file" // Use type="file" for file input
-                label="CV available"
-                name="cv"
-                labelPlacement={"outside"}
-                placeholder="Upload CV"
-                startContent={
-                  <Upload color="#F36523" size={20} fill="currentColor" />
-                }
-                onChange={(event) => {
-                  setFieldValue("cv", event.currentTarget.files![0]);
-                }}
-              />
+              <div className="flex items-end gap-3">
+                <Input
+                  classNames={{
+                    inputWrapper: "border-none rounded-none bg-white p-0",
+                    input: "text-textPrimary file:border-0 file:text-sm",
+                  }}
+                  type="file" // Use type="file" for file input
+                  label="CV available"
+                  name="cv"
+                  labelPlacement={"outside"}
+                  placeholder="Upload CV"
+                  startContent={
+                    <Upload color="#F36523" size={20} fill="currentColor" />
+                  }
+                  onChange={(event) => {
+                    setFieldValue("cv", event.currentTarget.files![0]);
+                    handleFileChange(event.currentTarget.files![0]);
+                  }}
+                />
+                {ocrCV && (
+                  <Button className="border-1 border-themeOrange bg-opacity-0 text-themeOrange" onPress={() => OCRModal.onOpen()}>
+                    CV Information
+                  </Button>
+                )}
+              </div>
+
               <ErrorMessage
                 name="cv"
                 component="div"
@@ -276,6 +315,14 @@ export const FormApplyJob = ({ job, onApply, onCancel }: FormProps) => {
           </Form>
         )}
       </Formik>
+      <ModalOCR
+        isOpen={OCRModal.isOpen}
+        onOpenChange={OCRModal.onOpenChange}
+        isLoading={isLoading}
+        key={`${isLoading}-${ocrCV}`}
+        data={ocrCV}
+        setData={setOcrCV}
+      />
     </div>
   );
 };

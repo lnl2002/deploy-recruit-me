@@ -6,7 +6,7 @@ const LoginPage: React.FC = () => {
     <div
       className="w-screen h-screen"
       style={{
-        background: `url("../background-login.png")`,
+        background: `url("/background-login.png")`,
         backgroundSize: "cover",
         backgroundPosition: "center"
       }}

@@ -8,6 +8,7 @@ import { formatDateTimeSeperate } from "@/utils/formatDateTime"
 import ModalCommon from "../Modals/ModalCommon"
 import { Button, Card, CardBody, CardFooter, CardHeader, Link, Textarea, useDisclosure } from "@nextui-org/react"
 import { useRouter } from "next/navigation"
+import applyApi from "@/api/applyApi"
 
 type Props = {
 
@@ -38,6 +39,15 @@ export const StateBox: React.FC<Props> = (props) => {
             meetingRoomId: meeting?._id ?? "",
             status: "approved",
         })
+
+        if(applyInfo){
+            const data = await applyApi.updateApplyStatus({
+                applyId: applyInfo._id,
+                newStatus: "Interview Scheduled"
+           })
+           window.location.reload();
+        }
+        
         if (applyInfo?._id) {
             fetchMeeting(applyInfo?._id)
         }
@@ -49,6 +59,15 @@ export const StateBox: React.FC<Props> = (props) => {
             status: "rejected",
             declineReason: message
         })
+
+        if(applyInfo){
+            const data = await applyApi.updateApplyStatus({
+                applyId: applyInfo._id,
+                newStatus: "Interview Rescheduled"
+           })
+           window.location.reload();
+        }
+
         if (applyInfo?._id) {
             fetchMeeting(applyInfo?._id)
         }
@@ -67,7 +86,10 @@ export const StateBox: React.FC<Props> = (props) => {
     }
 
     const conFirmMeeting = () => {
-        if (meeting && applyInfo?.status.name == "Pending Interview Confirmation")
+        console.log("userInfo", userInfo);
+        console.log("meeting", meeting);
+        
+        if (meeting && applyInfo?.status.name === "Pending Interview Confirmation")
             return (
                 <>
                     {
@@ -81,7 +103,7 @@ export const StateBox: React.FC<Props> = (props) => {
                             <ButtonApp
                                 onClick={() => { agreeDisclosure.onOpen() }}
                                 type="submit"
-                                className="w-full col-span-1 text-white"
+                                className="w-full col-span-1 text-themeWhite"
                                 title="Accept"
                             />
                         </div>

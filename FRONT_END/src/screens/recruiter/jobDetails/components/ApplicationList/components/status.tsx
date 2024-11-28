@@ -25,7 +25,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
       dot: "bg-[#000]"
     }
   },
-  "Shortlist": {
+  "Shortlisted": {
     message: "Your CV has been shortlisted for an interview. Please check back frequently for updates.",
     label: "Shortlisted",
     styles: {
