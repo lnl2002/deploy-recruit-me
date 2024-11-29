@@ -2,6 +2,8 @@ import { Pagination } from "@nextui-org/react";
 import Job from "./Job";
 import { useRouter } from "next/navigation";
 import { TJob } from "@/api/jobApi";
+import { TUnit } from "@/api/unitApi";
+import { TLocation } from "@/api/locationApi";
 
 type ListJobProps = {
   jobs: TJob[];
@@ -26,8 +28,9 @@ const ListJobView: React.FC<ListJobProps> = ({
           id={job._id}
           key={job._id}
           title={job.title}
-          unit={job.unit.name}
-          location={job.location.city}
+          unit={(job.unit as TUnit).name}
+          unitImg={(job.unit as TUnit)?.image || ""}
+          location={(job.location as TLocation).city}
           minSalary={job.minSalary}
           maxSalary={job.maxSalary}
           expiredDate={job.expiredDate}

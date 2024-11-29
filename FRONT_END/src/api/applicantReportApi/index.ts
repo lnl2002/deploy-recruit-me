@@ -25,6 +25,7 @@ export interface IApplicantReport {
   details: IDetailCriteria[];
   createdBy: string | IAccount;
   comment: string;
+  score: number;
   isPass: boolean;
 }
 
@@ -32,4 +33,5 @@ export interface IDetailCriteria {
   _id?: string;
   criteriaName: string;
   comment: string;
+  explanation: string;
 }

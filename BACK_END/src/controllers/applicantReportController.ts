@@ -8,7 +8,7 @@ const applicantReportController = {
     updateApplicantReport: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
             const { applicantReport, applicantReportIds } = req.body
-            const { details, createdBy, comment, isPass } = applicantReport
+            const { details, createdBy, score, isPass } = applicantReport
             const account = req.user
             const updateFile: any = {}
 
@@ -56,8 +56,8 @@ const applicantReportController = {
                 updateFile.createdBy = account._id
             }
 
-            if (comment) {
-                updateFile.comment = comment
+            if (score !== undefined) {
+                updateFile.score = score
             }
 
             if (isPass !== undefined) {
@@ -79,13 +79,13 @@ const applicantReportController = {
     },
     addApplicantReport: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { details, comment, isPass } = req.body
+            const { details, score, isPass } = req.body
             const account = req.user
 
             const newApplicantReport = await applicantReportService.addApplicantReport({
                 details: Array.isArray(details) ? details : [],
                 createdBy: new mongoose.Types.ObjectId(account._id),
-                comment: comment ?? '',
+                score: score ?? 0,
                 isPass: isPass === true,
             })
 

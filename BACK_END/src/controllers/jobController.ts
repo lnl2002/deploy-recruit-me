@@ -7,6 +7,7 @@ import careerService from '../services/careerService'
 import { IRole } from '../models/roleModel'
 import { IJob } from '../models/jobModel'
 import locationService from '../services/locationService'
+import criteriaService from '../services/criteriaService'
 
 const jobController = {
     getJobDetail: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -74,10 +75,10 @@ const jobController = {
                     account: 'objectId',
                     location: 'objectId',
                     interviewManager: 'objectId',
-                    groupCriteria: 'objectId',
                     address: 'string',
                     timestamp: 'date',
                     expiredDate: 'date',
+                    startDate: 'string',
                     isDelete: 'boolean',
                     isActive: 'boolean',
                     type: 'string',
@@ -117,6 +118,12 @@ const jobController = {
                 const currentDate = new Date()
                 if (expiredDate == '1') filteredQuery.expiredDate = { $gte: currentDate }
                 if (expiredDate == '-1') filteredQuery.expiredDate = { $lt: currentDate }
+            }
+
+            if (filteredQuery.startDate) {
+                const currentDate = new Date()
+                if (filteredQuery.startDate == '1') filteredQuery.startDate = { $gte: currentDate }
+                if (filteredQuery.startDate == '-1') filteredQuery.startDate = { $lt: currentDate }
             }
 
             if (title) {
@@ -188,117 +195,6 @@ const jobController = {
         }
     },
 
-    getJobListByUser: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        try {
-            const { skip, limit, title, sort_by, order, expiredDate } = req.query
-
-            const { id } = req.params
-
-            if (!Types.ObjectId.isValid(id)) {
-                return res.status(400).json({ message: 'Invalid Account ID format' })
-            }
-
-            const pageLimit = parseInt(limit as string, 10) || 10
-            const pageSkip = parseInt(skip as string, 10) || 0
-
-            if (pageLimit <= pageSkip) {
-                return res.status(400).json({
-                    status: 'error',
-                    message: 'Limit must be greater than to skip',
-                })
-            }
-
-            if (pageLimit <= pageSkip) {
-                return res.status(400).json({
-                    status: 'error',
-                    message: 'Limit must be greater than to skip',
-                })
-            }
-
-            const query: any = {
-                limit: pageLimit,
-                skip: pageSkip,
-                ...req.query,
-            }
-
-            if (sort_by) {
-                query.sort_field = sort_by as string
-            }
-
-            if (order) {
-                query.order = order as 'asc' | 'desc'
-            }
-
-            const fieldTypes: { [key in keyof IJob]?: 'string' | 'number' | 'boolean' | 'date' } = {
-                title: 'string',
-                introduction: 'string',
-                description: 'string',
-                benefits: 'string',
-                requests: 'string',
-                minSalary: 'number',
-                maxSalary: 'number',
-                numberPerson: 'number',
-                unit: 'string',
-                location: 'string',
-                career: 'string',
-                account: 'string',
-                interviewManager: 'string',
-                address: 'string',
-                timestamp: 'date',
-                expiredDate: 'date',
-                isDelete: 'boolean',
-                isActive: 'boolean',
-                type: 'string',
-                status: 'string',
-            }
-
-            // Lọc và xác thực các trường hợp hợp lệ
-            const filteredQuery = Object.keys(query)
-                .filter((key) => key in fieldTypes) // Chỉ giữ lại các trường hợp có trong fieldTypes
-                .reduce((obj, key) => {
-                    const expectedType = fieldTypes[key as keyof IJob]
-                    let value = query[key]
-
-                    // Xử lý theo loại dữ liệu mong muốn
-                    if (expectedType === 'number') {
-                        value = parseInt(value, 10)
-                        if (isNaN(value)) return obj // Bỏ qua nếu không phải số hợp lệ
-                    } else if (expectedType === 'boolean') {
-                        value = Boolean(value === 'true' || value === true)
-                    } else if (expectedType === 'date') {
-                        value = new Date(value)
-                        if (isNaN(value.getTime())) return obj // Bỏ qua nếu không phải ngày hợp lệ
-                    } else if (expectedType === 'string') {
-                        value = value.toString()
-                    }
-
-                    // Thêm giá trị hợp lệ vào đối tượng query
-                    obj[key] = value
-                    return obj
-                }, {} as any)
-
-            if (expiredDate) {
-                const currentDate = new Date()
-                if (expiredDate == '1') filteredQuery.expiredDate = { $gte: currentDate }
-                if (expiredDate == '-1') filteredQuery.expiredDate = { $lt: currentDate }
-            }
-
-            if (title) {
-                filteredQuery.title = { $regex: title, $options: 'i' }
-            }
-
-            if (filteredQuery.status?.includes(',')) {
-                const multiStatus = filteredQuery.status.split(',')
-                filteredQuery.status = { $in: multiStatus }
-            }
-
-            const jobs = await jobService.getListJobsByUser(query, filteredQuery, new Types.ObjectId(id))
-
-            return res.json(jobs)
-        } catch (error: unknown) {
-            next(error)
-        }
-    },
     deleteJob: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
             const { id } = req.params
@@ -334,9 +230,10 @@ const jobController = {
                 career,
                 address,
                 expiredDate,
+                startDate,
                 type,
                 location,
-                groupCriteria,
+                criterias,
             } = req.body
 
             const account = req.user
@@ -385,21 +282,52 @@ const jobController = {
                 return res.status(400).json({ message: 'Type is required' })
             }
 
-            if (!groupCriteria) {
+            if (!Array.isArray(criterias) || criterias.length === 0) {
                 return res.status(400).json({ message: 'Group Criteria is required' })
             }
 
-            const expirationDate = new Date(expiredDate)
-            if (isNaN(expirationDate.getTime()) || expirationDate <= new Date()) {
+            function resetToStartOfDay(date) {
+                const newDate = new Date(date)
+                newDate.setHours(0, 0, 0, 0)
+                return newDate
+            }
+
+            const expirationDate = resetToStartOfDay(expiredDate)
+            const startionDate = resetToStartOfDay(startDate)
+            const today = resetToStartOfDay(new Date())
+
+            if (isNaN(expirationDate.getTime()) || expirationDate <= today) {
                 return res.status(400).json({ message: 'Expired date must be a valid future date' })
+            }
+
+            if (isNaN(startionDate.getTime()) || startionDate.getTime() < today.getTime()) {
+                return res.status(400).json({ message: 'Started date must be a valid future date' })
+            }
+
+            if (expirationDate.getTime() < startionDate.getTime()) {
+                return res.status(400).json({ message: 'Expiration date must be greater than startion date' })
             }
 
             if (!Types.ObjectId.isValid(interviewManager)) {
                 return res.status(400).json({ message: 'Invalid interview manager ID format' })
             }
 
-            if (!Types.ObjectId.isValid(groupCriteria)) {
-                return res.status(400).json({ message: 'Invalid group criteria ID format' })
+            const areAllObjectIds = criterias.map((item) => mongoose.Types.ObjectId.isValid(item))
+
+            if (!areAllObjectIds) {
+                return res.status(400).json({ message: 'All elements in Group Criteria must be valid ObjectIds' })
+            }
+
+            const criteriaObjId = criterias.map((critera) => new mongoose.Types.ObjectId(critera))
+
+            const existingCriterias = await criteriaService.getListCriteria({ _id: { $in: criteriaObjId } })
+
+            console.log({ _id: { $in: criteriaObjId } })
+
+            console.log(existingCriterias)
+
+            if (existingCriterias.length !== criterias.length) {
+                return res.status(400).json({ message: 'Some criteria do not exist' })
             }
 
             if (!Types.ObjectId.isValid(unit)) {
@@ -454,10 +382,11 @@ const jobController = {
                 interviewManager: interviewManager,
                 address: address,
                 expiredDate: new Date(expiredDate),
+                startDate: new Date(startDate),
                 isActive: false,
                 isDelete: false,
                 status: 'pending',
-                groupCriteria: groupCriteria,
+                criterias: criterias,
                 type: type,
             })
             return res.json(newJob)
