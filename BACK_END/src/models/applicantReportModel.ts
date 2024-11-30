@@ -1,6 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose'
 import { IAccount } from './accountModel'
-import { IApply } from './applyModel'
 
 export interface IApplicantReport extends Document {
     details: IDetailCriteria[]

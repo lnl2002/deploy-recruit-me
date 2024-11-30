@@ -235,11 +235,13 @@ export const meetingApi = {
     }
   },
 
-  getAllMeetingRoomsByJobId: async (jobId: string): Promise<
-    IMeeting | undefined
-  > => {
+  getAllMeetingRoomsByJobId: async (
+    jobId: string
+  ): Promise<IMeeting | undefined> => {
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/v1/meeting-room/get-all/${jobId}`);
+      const res = await axios.get(
+        `${BACKEND_URL}/api/v1/meeting-room/get-all/${jobId}`
+      );
       return res.data;
     } catch (error) {
       console.error("Error fetching meeting room list:", error);
@@ -247,9 +249,7 @@ export const meetingApi = {
     }
   },
 
-  getCandidateRejectReason: async (
-    applyId: string
-  ) => {
+  getCandidateRejectReason: async (applyId: string) => {
     try {
       const res = await axios.get(
         `${BACKEND_URL}/api/v1/meeting-room/candidate-reject-reason?applyId=${applyId}`
@@ -257,6 +257,40 @@ export const meetingApi = {
       return res?.data?.data;
     } catch (error) {
       console.error("Error candidate reject reason:", error);
+      return undefined;
+    }
+  },
+
+  addParticipantToMeetingRoom: async (
+    meetingRoomId: string,
+    participantId: string
+  ): Promise<any | undefined> => {
+    try {
+      const res = await axios.post(
+        `${BACKEND_URL}/api/v1/meeting-room/add-participant`,
+        { participantId, meetingRoomId }
+      );
+      return res?.data?.data;
+    } catch (error) {
+      console.error("Error adding participant:", error);
+      return undefined;
+    }
+  },
+
+  removeParticipantFromMeetingRoom: async (
+    meetingRoomId: string,
+    participantId: string
+  ): Promise<any | undefined> => {
+    try {
+      const res = await axios.delete(
+        `${BACKEND_URL}/api/v1/meeting-room/remove-participant`,
+        {
+          data: { participantId, meetingRoomId }, // DELETE request body must be sent in the `data` property
+        }
+      );
+      return res?.data?.data;
+    } catch (error) {
+      console.error("Error removing participant:", error);
       return undefined;
     }
   },

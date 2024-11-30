@@ -3,7 +3,7 @@ import MeetingRoom, { IMeetingApproveStatus, IMeetingRoom, IParticipantStatus } 
 import Account, { IAccount } from '../models/accountModel'
 import Role, { IRole } from '../models/roleModel'
 import CVStatus from '../models/cvStatusModel'
-import { IApply } from '~/models/applyModel'
+import { IApply } from '../models/applyModel'
 
 interface UpdateMeetingStatusInput {
     meetingRoomId: mongoose.Types.ObjectId
@@ -345,7 +345,7 @@ const meetingService = {
             return {
                 total: totalMeeting[0]?.total || 0,
                 page,
-                totalPages: Math.ceil(totalMeeting[0]?.total || 0 / limit),
+                totalPages: Math.ceil((totalMeeting[0]?.total || 0) / limit),
                 data: meetings,
             }
         } catch (error) {
@@ -407,6 +407,47 @@ const meetingService = {
         }
 
         return filteredParticipants[0].declineReason
+    },
+
+    addParticipant: async (meetingId: string, participantId: string) => {
+        const meetingRoom = await MeetingRoom.findById(meetingId);
+        if (!meetingRoom) {
+            throw new Error('Meeting room not found');
+        }
+        // Check if participant already exists
+        const participantExists = meetingRoom.participants.some(
+            (p: IParticipantStatus) => p.participant.toString() === participantId.toString()
+        );
+        if (participantExists) {
+            throw new Error('Participant already exists in the meeting room');
+        }
+
+        // Add participant with default status 'pending'
+        meetingRoom.participants.push({
+            participant: new mongoose.Types.ObjectId(participantId),
+            status: IMeetingApproveStatus.PENDING,
+        });
+
+        await meetingRoom.save();
+        return meetingRoom;
+    },
+
+    removeParticipant: async (
+        meetingRoomId: string,
+        participantId: string
+    ): Promise<IMeetingRoom | null> => {
+        const meetingRoom = await MeetingRoom.findById(meetingRoomId);
+        if (!meetingRoom) {
+            throw new Error('Meeting room not found');
+        }
+
+        // Remove participant
+        meetingRoom.participants = meetingRoom.participants.filter(
+            (p: IParticipantStatus) => p.participant.toString() !== participantId.toString()
+        );
+
+        await meetingRoom.save();
+        return meetingRoom;
     },
 }
 

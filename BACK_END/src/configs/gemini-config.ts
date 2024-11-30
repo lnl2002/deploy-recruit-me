@@ -4,7 +4,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ''
 
 class Gemini {
     private genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
-    private model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
+    private model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
     constructor() {}
 
