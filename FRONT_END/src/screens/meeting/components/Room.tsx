@@ -28,6 +28,7 @@ interface RoomProps {
   isContactSegment: boolean;
   applicantReportIds: string[];
   cvScore: ICVScore;
+  applyId: string;
 }
 
 const Room: React.FC<RoomProps> = ({
@@ -40,6 +41,7 @@ const Room: React.FC<RoomProps> = ({
   applicantReportIds,
   isContactSegment,
   cvScore,
+  applyId,
 }) => {
   const [participants, setParticipants] = useState<TwilioParticipant[]>(
     Array.from(room?.participants.values()) ?? []
@@ -253,6 +255,7 @@ const Room: React.FC<RoomProps> = ({
                 <CriteriaEvaluation
                   cvScore={cvScore}
                   applicantReportIds={applicantReportIds}
+                  applyId={applyId}
                 />
               </Tab>
               {/* <Tab key="live-chat" title="Live chat">

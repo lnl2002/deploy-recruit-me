@@ -9,8 +9,6 @@ const ScoreApplicant: React.FC<ScoreApplicantProps> = ({
   scoreSelected,
   setScoreSelected,
 }) => {
-  console.log(typeof scoreSelected);
-
   return (
     <Select
       label="Select score for candidate"
@@ -21,13 +19,13 @@ const ScoreApplicant: React.FC<ScoreApplicantProps> = ({
         setScoreSelected(Number(event.target.value));
       }}
     >
-      {Array.from({ length: 10 }).map((_, index) => (
+      {Array.from({ length: 11 }).map((_, index) => (
         <SelectItem
-          textValue={`Score - ${index + 1}`}
+          textValue={`${index} - point`}
           className="text-themeDark"
-          key={index + 1}
+          key={index}
         >
-          Score - {index + 1}
+          {index} - point
         </SelectItem>
       ))}
     </Select>
