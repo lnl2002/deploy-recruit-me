@@ -13,11 +13,12 @@ import ScoreApplicant from "./ScoreApplicant";
 type CriteriaEvaluationProps = {
   cvScore: ICVScore;
   applicantReportIds: string[];
+  applyId: string;
 };
 
 const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
   cvScore,
-  applicantReportIds,
+  applyId,
 }): React.JSX.Element => {
   const router = useRouter();
   const { userInfo } = useAppSelector((state) => state.user);
@@ -26,7 +27,7 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
   const [criteriaIndex, setCriteriaIndex] = useState<number>(0);
   const [updateApplicantReportSegment, setUpdateApplicantReportSegment] =
     useState<string>("");
-  const [scoreSelected, setScoreSelected] = useState<number>(1);
+  const [scoreSelected, setScoreSelected] = useState<number>(0);
 
   //update
   useEffect(() => {
@@ -37,12 +38,10 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
     const intervalId = setInterval(
       async () => {
         const { data, status } = await applicantReportApi.updateApplicantReport(
+          applyId,
           {
-            applicantReportIds,
-            applicantReport: {
-              details: detailsCriteria,
-              score: scoreSelected,
-            },
+            details: detailsCriteria,
+            score: scoreSelected,
           }
         );
 
@@ -62,12 +61,11 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
       updateApplicantReportSegment === "update-failed" ? 10000 : 1000
     );
     return () => clearInterval(intervalId);
-  }, [detailsCriteria, updateApplicantReportSegment, scoreSelected]);
+  }, [detailsCriteria, updateApplicantReportSegment, scoreSelected, applyId]);
 
   useEffect(() => {
     (async () => {
-      const { applicantReport } =
-        (await applyApi.getApplicationsByUser()) ?? {};
+      const { applicantReport } = await applyApi.getApplicationsByUser();
 
       const otherCriteria = {
         criteriaName: "Other",
@@ -78,7 +76,7 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
       const { details, score } = applicantReport as IApplicantReport;
       setScoreSelected((prev) => score || prev);
 
-      if (details.length > 0) {
+      if (details?.length > 0) {
         setDetailsCriteria([
           ...details.map((detail) => ({
             criteriaName: detail.criteriaName,
@@ -88,17 +86,19 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
         ]);
       } else {
         const { detailScore } = cvScore;
-        setDetailsCriteria([
+        const newCriteriaReport = [
           ...detailScore.map((detail) => ({
             criteriaName: detail.criterion,
             comment: "",
             explanation: detail.explanation || "",
           })),
           otherCriteria,
-        ]);
+        ];
+        setDetailsCriteria(newCriteriaReport);
+        await applicantReportApi.addApplicantReport(applyId, {});
       }
     })();
-  }, [cvScore]);
+  }, [cvScore, applyId]);
 
   const handleScrollToElement = (index: number) => {
     if (targetRef.current) {

@@ -182,6 +182,12 @@ const applyService = {
             console.error('Error extracting text:', error)
         }
     },
+
+    updateApply: async (id: mongoose.Types.ObjectId, newApply: Partial<IApply>): Promise<IApply> => {
+        return await Apply.findByIdAndUpdate(id, newApply, {
+            new: true,
+        })
+    },
 }
 
 const calculateAverageScore = (criteria: { score: string }[]): string => {

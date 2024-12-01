@@ -1,5 +1,5 @@
 import { BACKEND_URL } from "@/utils/env";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { IResponse, ITable } from "../common/type";
 import { TJob } from "../jobApi";
 import JobPosting from "@/type/job";
@@ -266,8 +266,8 @@ export const applyApi = {
   },
 
   getApplicationsByUser: async (): Promise<{
-    applicantReport: IApplicantReport;
-  } | null> => {
+    applicantReport: Partial<IApplicantReport>;
+  }> => {
     try {
       const response = await axios.get(
         `${BACKEND_URL}/api/v1/applicant-reports/user`
@@ -276,8 +276,8 @@ export const applyApi = {
       return { applicantReport: response.data.data };
     } catch (error: any) {
       // Handle API errors appropriately, e.g.,
-      console.error("Error fetching applie:", error);
-      return null;
+      console.error("Error fetching applie:", (error as AxiosError).message);
+      return { applicantReport: {} };
     }
   },
 
