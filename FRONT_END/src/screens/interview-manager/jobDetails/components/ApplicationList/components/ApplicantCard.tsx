@@ -12,6 +12,8 @@ import {
   formatTimeToHHMM,
 } from "@/utils/formatDateTime";
 import { useRouter } from "next/navigation";
+import meetingApi from "@/api/meetingApi";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface ApplicantCardProps {
   name: string;
@@ -50,8 +52,6 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
   cv,
   user,
 }) => {
-  console.log({ user });
-
   return (
     <>
       {/* Overlay làm mờ nền khi sidebar mở */}
@@ -159,7 +159,6 @@ const State: React.FC<IStateProps> = ({
       newStatus: status,
     });
 
-    console.log(data);
     if (!data) {
       toast.error("Something went wrong! pls try again");
       return;
@@ -217,6 +216,7 @@ const State: React.FC<IStateProps> = ({
           setLoadAgain={setLoadAgain}
           cv={cv}
           meetingInfo={meetingInfo}
+          applyId={applyId}
           description="The candidate has declined the current interview. Please review and create a new schedule or make a different decision regarding this candidate."
         />
       )}
@@ -557,7 +557,7 @@ const InterviewPendingStatus = ({
           disabled={isButtonDisabled}
         >
           <div className="flex justify-center items-center gap-2">
-            Go to Interview room <ArrowRight size={"16px"}/>
+            Go to Interview room <ArrowRight size={"16px"} />
           </div>
         </Button>
       </div>
@@ -569,16 +569,27 @@ const RescheduleStatus = ({
   description,
   changeStatus,
   cv,
-  applyId
+  applyId,
 }: IStateProps) => {
-  const disclosure = useDisclosure()
+  const disclosure = useDisclosure();
   const [isConfirm, setIsConfirm] = useState<boolean>(false);
   const [btnChoosed, setButtonChoosed] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [reason, setReason] = useState<string>("");
   const disclosureConfirm = useDisclosure();
 
   const handleClickButton = (updateStatus: string) => {
     setButtonChoosed(updateStatus);
     disclosureConfirm.onOpen();
+  };
+
+  const getReajectReason = async () => {
+    if (!applyId) return;
+
+    setIsLoading(true);
+    const reason = await meetingApi.getCandidateRejectReason(applyId);
+    setReason(reason?.reason || "");
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -587,6 +598,10 @@ const RescheduleStatus = ({
       disclosureConfirm.onClose();
     }
   }, [isConfirm]);
+
+  useEffect(() => {
+    getReajectReason();
+  }, [applyId]);
   return (
     <div className="flex-grow flex justify-between flex-col">
       <div className="mb-6">
@@ -600,6 +615,15 @@ const RescheduleStatus = ({
         <p className="text-gray-500 mt-4 text-[14px] opacity-80">
           {description}
         </p>
+        <p className="mt-4 text-themeDark font-semibold">
+          {isLoading && (
+            <div className="flex gap-2 text-themeOrange">
+              <LoadingSpinner />
+              <span>Reason loading...</span>
+            </div>
+          )}
+          {!isLoading && reason ? `"${reason}"` : ""}
+        </p>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <Button
@@ -609,7 +633,11 @@ const RescheduleStatus = ({
         >
           Disqualify Candidate
         </Button>
-        <Button className="bg-themeOrange text-[#fff]" radius="full" onClick={() => disclosure.onOpen()}>
+        <Button
+          className="bg-themeOrange text-[#fff]"
+          radius="full"
+          onClick={() => disclosure.onOpen()}
+        >
           Reschedule time
         </Button>
       </div>

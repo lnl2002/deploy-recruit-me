@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express'
-import { Types } from 'mongoose'
 import { IAccount } from '../models/accountModel'
 import accountService from '../services/accountService'
 
@@ -75,6 +74,21 @@ const accountController = {
 
             const accounts = await accountService.getAccountList(query, filteredQuery)
             return res.json(accounts)
+        } catch (error) {
+            next(error)
+        }
+    },
+    getInterviewerByUnit: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        try {
+            const { unitId } = req.query
+            if (!unitId) {
+                res.status(400).json({
+                    message: 'BAD REQUEST',
+                })
+            }
+
+            const data = await accountService.getInterviewerByUnit(unitId.toString())
+            return res.status(200).json(data)
         } catch (error) {
             next(error)
         }

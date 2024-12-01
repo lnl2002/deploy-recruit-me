@@ -26,7 +26,7 @@ export const InterviewManagerListJob = (): React.JSX.Element => {
         limit: 10,
         page: currentPage,
         status: filterValue,
-        search: searchTerm
+        search: searchTerm,
       });
       setListJob(data);
       setJobTotal(totalPages);
@@ -51,7 +51,7 @@ export const InterviewManagerListJob = (): React.JSX.Element => {
         limit: 10,
         page: currentPage,
         status: filterValue,
-        search
+        search,
       });
       setListJob(data);
       setJobTotal(totalPages);
@@ -61,7 +61,6 @@ export const InterviewManagerListJob = (): React.JSX.Element => {
   useEffect(() => {
     fetchJobs(search);
   }, [search, fetchJobs]);
-    
 
   const handleChangePage = (pageNumber: number) => {
     setCurrentPage(pageNumber);
@@ -73,22 +72,22 @@ export const InterviewManagerListJob = (): React.JSX.Element => {
         <div className="w-full flex justify-between">
           <h1 className="font-bold text-themeDark text-3xl">My Job</h1>
           <div>
-            <Input 
+            <Input
               placeholder="Search Job"
-              startContent={<Search className="text-themeDark"/>}
+              startContent={<Search className="text-themeDark" />}
               className="min-w-[300px]"
-              onChange={(e) => setSearch(e.target.value)} 
-              />
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
         </div>
-        <div className="grid grid-flow-col grid-cols-4">
+        <div className="grid grid-flow-col grid-cols-5">
           <div className="col-span-1">
             <FilterSection
               setFilterValue={setFilterValue}
               filterValue={filterValue}
             />
           </div>
-          <div className="col-span-3">
+          <div className="col-span-4">
             <JobSection
               listJob={listJob ?? []}
               totalPage={jobTotal / limit}

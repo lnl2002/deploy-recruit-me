@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Types } from 'mongoose'
 import Account, { IAccount } from '../models/accountModel'
+import Role from '../models/roleModel'
 
 const accountService = {
     getAccountList: async (query: any, filteredQuery: any): Promise<{ accounts: IAccount[]; total: number }> => {
@@ -27,9 +30,37 @@ const accountService = {
         try {
             const newAccount = await Account.create(account)
             return newAccount
-        } catch (error) {
+        } catch (error: any) {
             throw new Error('Could not found account')
         }
+    },
+
+    // get interviewer and interview_manager with same unit
+    getInterviewerByUnit: async (unitId: string) => {
+        const roleInterviewer = await Role.findOne({
+            roleName: 'INTERVIEWER',
+        })
+
+        const roleInterviewManager = await Role.findOne({
+            roleName: 'INTERVIEW_MANAGER',
+        })
+
+        if (!roleInterviewer) {
+            console.log('Cannot find INTERVIEWER role')
+            return undefined
+        }
+
+        if (!roleInterviewManager) {
+            console.log('Cannot find INTERVIEW_MANAGER role')
+            return undefined
+        }
+
+        const listInterviewer = await Account.find({
+            role: { $in: [roleInterviewer._id, roleInterviewManager._id] },
+            unit: unitId,
+        }).select('_id email name image')
+
+        return listInterviewer
     },
 }
 

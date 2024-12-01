@@ -1,9 +1,9 @@
-import { Request, Response } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import Apply, { IApply } from '../models/applyModel'
 import CVStatus from '../models/cvStatusModel'
 import applyService from '../services/apply'
 import { AppError } from '../constants/AppError'
-import mongoose from 'mongoose'
+import mongoose, { isValidObjectId } from 'mongoose'
 import CV from '../models/cvModel'
 import Job from '../models/jobModel'
 
@@ -12,8 +12,8 @@ const ApplyController = {
     applyToJob: async (req: Request, res: Response): Promise<void> => {
         try {
             // 1. Extract data from the request body
-            const { cvId, jobId } = req.body
-            const { file } = req
+            const { cvId, jobId, cvInfo } = req.body
+            const cvContent = JSON.stringify(cvInfo)
 
             // 3. Find the CV, Job, and default CVStatus
             const [cv, job, defaultStatus] = await Promise.all([
@@ -30,7 +30,7 @@ const ApplyController = {
             })
 
             //OCR and calculate apply score
-            applyService.extractTextFromPdf(file.path, jobId, savedApply._id.toString())
+            applyService.extractTextFromPdf(cvContent, jobId, savedApply._id.toString())
 
             // 7. Send a success response
             res.status(201).json({
@@ -208,6 +208,36 @@ const ApplyController = {
         } catch (error: unknown) {
             console.error('Error fetching statuses:', error)
             res.status(500).json({ message: 'Error fetching statuses.' })
+        }
+    },
+
+    analyzeCV: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { file } = req
+            const result = await applyService.textractPdf(file.path)
+            res.status(200).json({
+                data: result,
+            })
+        } catch (error) {
+            console.log('analyzeCV error:', error)
+            next(error)
+        }
+    },
+
+    getReports: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { id } = req.params;
+            if(!isValidObjectId(id)){
+                return res.status(400).json({
+                    message: "BAD REQUEST"
+                })
+            }
+
+            const result = await applyService.getReports(id.toString());
+            res.status(200).json(result)
+        } catch (error) {
+            console.log("analyzeCV error:", error);
+            next(error);
         }
     },
 }

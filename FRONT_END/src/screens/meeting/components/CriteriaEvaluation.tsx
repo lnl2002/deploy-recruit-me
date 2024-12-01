@@ -1,19 +1,24 @@
-import { Button, Textarea } from "@nextui-org/react";
-import { useEffect, useRef, useState } from "react";
+import { Accordion, AccordionItem, Button, Textarea } from "@nextui-org/react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAppSelector } from "@/store/store";
-import applicantReportApi, { IDetailCriteria } from "@/api/applicantReportApi";
+import applicantReportApi, {
+  IApplicantReport,
+  IDetailCriteria,
+} from "@/api/applicantReportApi";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import applyApi, { ICVScore } from "@/api/applyApi";
+import ScoreApplicant from "./ScoreApplicant";
 
 type CriteriaEvaluationProps = {
   cvScore: ICVScore;
   applicantReportIds: string[];
+  applyId: string;
 };
 
 const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
   cvScore,
-  applicantReportIds,
+  applyId,
 }): React.JSX.Element => {
   const router = useRouter();
   const { userInfo } = useAppSelector((state) => state.user);
@@ -22,6 +27,7 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
   const [criteriaIndex, setCriteriaIndex] = useState<number>(0);
   const [updateApplicantReportSegment, setUpdateApplicantReportSegment] =
     useState<string>("");
+  const [scoreSelected, setScoreSelected] = useState<number>(0);
 
   //update
   useEffect(() => {
@@ -32,11 +38,10 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
     const intervalId = setInterval(
       async () => {
         const { data, status } = await applicantReportApi.updateApplicantReport(
+          applyId,
           {
-            applicantReportIds,
-            applicantReport: {
-              details: detailsCriteria,
-            },
+            details: detailsCriteria,
+            score: scoreSelected,
           }
         );
 
@@ -56,32 +61,44 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
       updateApplicantReportSegment === "update-failed" ? 10000 : 1000
     );
     return () => clearInterval(intervalId);
-  }, [detailsCriteria, updateApplicantReportSegment]);
+  }, [detailsCriteria, updateApplicantReportSegment, scoreSelected, applyId]);
 
   useEffect(() => {
     (async () => {
-      const { applicantReport } =
-        (await applyApi.getApplicationsByUser()) ?? {};
+      const { applicantReport } = await applyApi.getApplicationsByUser();
 
-      if (applicantReport) {
-        const { details } = applicantReport;
-        setDetailsCriteria(
-          details.map((detail) => ({
+      const otherCriteria = {
+        criteriaName: "Other",
+        comment: "",
+        explanation: "",
+      };
+
+      const { details, score } = applicantReport as IApplicantReport;
+      setScoreSelected((prev) => score || prev);
+
+      if (details?.length > 0) {
+        setDetailsCriteria([
+          ...details.map((detail) => ({
             criteriaName: detail.criteriaName,
             comment: detail.comment || "",
-          }))
-        );
+            explanation: detail.explanation || "",
+          })),
+        ]);
       } else {
         const { detailScore } = cvScore;
-        setDetailsCriteria(
-          detailScore.map((detail) => ({
+        const newCriteriaReport = [
+          ...detailScore.map((detail) => ({
             criteriaName: detail.criterion,
             comment: "",
-          }))
-        );
+            explanation: detail.explanation || "",
+          })),
+          otherCriteria,
+        ];
+        setDetailsCriteria(newCriteriaReport);
+        await applicantReportApi.addApplicantReport(applyId, {});
       }
     })();
-  }, [cvScore]);
+  }, [cvScore, applyId]);
 
   const handleScrollToElement = (index: number) => {
     if (targetRef.current) {
@@ -114,9 +131,23 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
     return <p>Loading...</p>;
   }
 
+  const ViewScore = ({ average }: { average: string }): React.JSX.Element => {
+    const [score, totalScore] = average.split("/");
+    return (
+      <p className="text-sm text-blurEffect text-end px-4">
+        <span className="font-bold text-themeOrange">{score || "0"}</span>/
+        {totalScore || "0"}
+      </p>
+    );
+  };
+
   return (
     <div className="max-h-[75vh] flex flex-col gap-8 p-2">
-      <div className="bg-themeOrange h-1/4 px-2 rounded-lg custom-scrollbar-thin">
+      <ScoreApplicant
+        scoreSelected={scoreSelected}
+        setScoreSelected={setScoreSelected}
+      />
+      <div className="bg-themeOrange h-1/4 px-2 py-1 rounded-lg custom-scrollbar-thin">
         {detailsCriteria.map((detail, index) => (
           <Button
             key={detail?._id + detail.criteriaName}
@@ -137,13 +168,25 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
       </div>
       <div
         ref={targetRef}
-        className="flex flex-col gap-4 overflow-hidden h-3/4"
+        className="flex flex-col gap-4 custom-scrollbar-thin h-3/4"
       >
         {detailsCriteria.map((detail, index) => (
           <div key={detail._id + detail.criteriaName}>
-            <p className="text-themeDark text-md font-bold">
-              {index + 1}. {detail.criteriaName}
-            </p>
+            <Accordion>
+              <AccordionItem
+                key={detail._id + detail.criteriaName}
+                aria-label={detail.criteriaName}
+                title={
+                  <p className="text-themeDark text-md font-bold px-1">
+                    {index + 1}. {detail.criteriaName}
+                  </p>
+                }
+              >
+                <p className="text-blurEffect text-xs font-normal px-1">
+                  {detail.explanation}
+                </p>
+              </AccordionItem>
+            </Accordion>
             <div>
               <Textarea
                 onValueChange={(value: string) => {
@@ -160,9 +203,9 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
                     index === criteriaIndex ? "border-themeOrange" : "",
                 }}
               />
-              <p className="text-sm text-blurEffect text-end px-4">
-                {cvScore.detailScore[index].score}
-              </p>
+              <ViewScore
+                average={(cvScore.detailScore[index]?.score as string) ?? ""}
+              />
             </div>
           </div>
         ))}

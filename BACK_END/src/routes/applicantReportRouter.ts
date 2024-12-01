@@ -1,8 +1,8 @@
-import express from 'express'
+import express, { Router } from 'express'
 import applicantReportController from '../controllers/applicantReportController'
 import { requireRole } from '../middlewares/auth'
 
-const applicantReportRouter = express.Router()
+const applicantReportRouter: Router = express.Router()
 
 applicantReportRouter.get(
     '/:applyId/apply',
@@ -17,12 +17,12 @@ applicantReportRouter.get(
 )
 
 applicantReportRouter.patch(
-    '/',
+    '/:applyId/apply',
     requireRole(['RECRUITER', 'INTERVIEWER', 'INTERVIEW_MANAGER']),
     applicantReportController.updateApplicantReport,
 )
 applicantReportRouter.post(
-    '/',
+    '/:applyId/apply',
     requireRole(['RECRUITER', 'INTERVIEWER', 'INTERVIEW_MANAGER']),
     applicantReportController.addApplicantReport,
 )

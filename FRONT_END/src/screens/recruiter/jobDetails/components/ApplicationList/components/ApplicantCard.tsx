@@ -7,6 +7,8 @@ import applyApi from "@/api/applyApi";
 import { toast } from "react-toastify";
 import ScheduleInterviewModal from "./BookSchedule";
 import ModalConfirm from "@/components/Modals/ModalConfirm";
+import meetingApi from "@/api/meetingApi";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface ApplicantCardProps {
   name: string;
@@ -137,7 +139,6 @@ const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", set
       newStatus: status,
     });
 
-    console.log(data);
     if (!data) {
       toast.error("Something went wrong! pls try again");
       return;
@@ -192,6 +193,7 @@ const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", set
           changeStatus={changeStatus}
           setLoadAgain={setLoadAgain}
           cv={cv}
+          applyId={applyId}
           description="The candidate has declined the current interview. Please review and suggest a new schedule or make a different decision regarding this candidate."
         />
       )}
@@ -444,7 +446,23 @@ const InterviewPendingStatus = ({ status, description, changeStatus }: IStatePro
     </div>
   );
 };
-const RescheduleStatus = ({ status, description, changeStatus }: IStateProps) => {
+const RescheduleStatus = ({ status, description, changeStatus, applyId }: IStateProps) => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [reason, setReason] = useState<string>("");
+
+  const getReajectReason = async () => {
+    if (!applyId) return;
+
+    setIsLoading(true);
+    const reason = await meetingApi.getCandidateRejectReason(applyId);
+    setReason(reason?.reason || "");
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    getReajectReason();
+  }, [applyId]);
+
   return (
     <div className="flex-grow flex justify-between flex-col">
       <div className="mb-6">
@@ -458,9 +476,18 @@ const RescheduleStatus = ({ status, description, changeStatus }: IStateProps) =>
         <p className="text-gray-500 mt-4 text-[14px] opacity-80">
           {description}
         </p>
+        <p className="mt-4 text-themeDark font-semibold">
+          {isLoading && (
+            <div className="flex gap-2 text-themeOrange">
+              <LoadingSpinner />
+              <span>Reason loading...</span>
+            </div>
+          )}
+          {!isLoading && reason ? `"${reason}"` : ""}
+        </p>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <Button
+        {/* <Button
           className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
           radius="full"
         >
@@ -468,7 +495,7 @@ const RescheduleStatus = ({ status, description, changeStatus }: IStateProps) =>
         </Button>
         <Button className="bg-themeOrange text-[#fff]" radius="full">
           Reschedule time
-        </Button>
+        </Button> */}
       </div>
     </div>
   );

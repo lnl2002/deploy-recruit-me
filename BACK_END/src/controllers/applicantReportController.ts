@@ -1,30 +1,31 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from 'express'
 import mongoose from 'mongoose'
 import applicantReportService from '../services/applicantReportService'
 import accountService from '../services/accountService'
 import { IDetailCriteria } from '../models/applicantReportModel'
+import Apply from '../models/applyModel'
+import applyService from '../services/apply'
 
 const applicantReportController = {
     updateApplicantReport: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { applicantReport, applicantReportIds } = req.body
-            const { details, createdBy, comment, isPass } = applicantReport
+            const { applyId } = req.params
+            const { details, createdBy, score, isPass } = req.body
             const account = req.user
             const updateFile: any = {}
 
-            if (!applicantReportIds) {
-                return res.status(400).json({ message: 'ApplicantReportIds is required' })
+            if (!mongoose.Types.ObjectId.isValid(applyId)) {
+                return res.status(400).json({ message: 'Invalid apply id format' })
             }
 
-            if (!Array.isArray(applicantReportIds)) {
-                return res.status(400).json({ message: 'ApplicantReportIds must be an array' })
+            const apply = await Apply.findById(applyId)
+
+            if (!apply._id) {
+                return res.status(404).json({ message: 'Apply not found' })
             }
 
-            for (const id of applicantReportIds) {
-                if (!mongoose.Types.ObjectId.isValid(id)) {
-                    return res.status(400).json({ message: 'Invalid applicant report id format' })
-                }
-            }
+            const { applicantReports } = apply
 
             if (details) {
                 if (!Array.isArray(details)) {
@@ -35,12 +36,15 @@ const applicantReportController = {
                     return res.status(400).json({ message: 'Criteria name can not be empty' })
                 }
                 updateFile.details = details
+            } else {
+                updateFile.details = []
             }
 
             const applicantReportResult = await applicantReportService.getApplicantReport({
                 createdBy: account._id,
-                _id: { $in: applicantReportIds },
+                _id: { $in: applicantReports },
             })
+
             if (!applicantReportResult?._id) {
                 return res.status(404).json({ message: 'Applicant Report not found' })
             }
@@ -56,8 +60,8 @@ const applicantReportController = {
                 updateFile.createdBy = account._id
             }
 
-            if (comment) {
-                updateFile.comment = comment
+            if (score !== undefined) {
+                updateFile.score = score
             }
 
             if (isPass !== undefined) {
@@ -79,14 +83,49 @@ const applicantReportController = {
     },
     addApplicantReport: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { details, comment, isPass } = req.body
+            const { applyId } = req.params
+            const { details, score, isPass } = req.body
             const account = req.user
+            // validate and add id in applies table
+
+            if (!mongoose.Types.ObjectId.isValid(applyId)) {
+                return res.status(400).json({ message: 'Invalid apply ID' })
+            }
+
+            const apply = await Apply.findById(applyId)
+
+            if (!apply._id) {
+                return res.status(404).json({ message: 'Apply not found' })
+            }
+
+            const { applicantReports } = apply
+
+            const existApplicantReport = await applicantReportService.getApplicantReport({
+                _id: { $in: applicantReports },
+                createdBy: account._id,
+            })
+
+            if (existApplicantReport?._id) {
+                return res.status(400).json({ message: 'Application report is existed' })
+            }
 
             const newApplicantReport = await applicantReportService.addApplicantReport({
                 details: Array.isArray(details) ? details : [],
                 createdBy: new mongoose.Types.ObjectId(account._id),
-                comment: comment ?? '',
+                score: score ?? 0,
                 isPass: isPass === true,
+            })
+
+            // Add the new report to the applicantReports array
+            const newListApplicantReports = [
+                ...applicantReports.map((id: any) => mongoose.Types.ObjectId.createFromHexString(id.toString())),
+                new mongoose.Types.ObjectId(newApplicantReport._id as string),
+            ]
+
+            // Update the apply document
+            await applyService.updateApply(new mongoose.Types.ObjectId(apply._id as string), {
+                ...apply.toObject(),
+                applicantReports: newListApplicantReports,
             })
 
             return res.status(200).json(newApplicantReport)

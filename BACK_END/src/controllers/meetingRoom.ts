@@ -191,11 +191,54 @@ const meetingController = {
 
             if (!meetingRooms) {
                 return res.status(404).json({ message: 'Meeting room not found' })
-            } 
+            }
 
             return res.status(200).json(meetingRooms)
         } catch (error) {
             next(error)
+        }
+    },
+
+    getCandidateRejectReason: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        const { applyId } = req.query
+
+        if (!isValidObjectId(applyId)) {
+            return res.status(400).json({ message: 'Invalid applyId' })
+        }
+
+        try {
+            const reason = await meetingService.getCandidateRejectReason(applyId.toString())
+
+            return res.status(200).json({
+                reason: reason,
+            })
+        } catch (error) {
+            next(error)
+        }
+    },
+
+    addParticipant: async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { participantId, meetingRoomId } = req.body
+
+            const updatedMeetingRoom = await meetingService.addParticipant(meetingRoomId, participantId.toString())
+            res.status(200).json(updatedMeetingRoom)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            res.status(400).json({ message: error.message })
+        }
+    },
+
+    removeParticipant: async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { participantId, meetingRoomId } = req.body
+
+            const updatedMeetingRoom = await meetingService.removeParticipant(meetingRoomId, participantId.toString())
+            res.status(200).json({ message: 'Participant removed successfully', data: updatedMeetingRoom })
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            res.status(400).json({ message: error.message })
         }
     },
 }

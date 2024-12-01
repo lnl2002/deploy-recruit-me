@@ -3,7 +3,7 @@ import { IUnit } from './unitModel'
 import { ICareer } from './careerModel'
 import { IAccount } from './accountModel'
 import { ILocation } from './locationModel'
-import { IGroupCriteria } from './groupCriteriaModel'
+import { ICriteria } from './criteriaModel'
 
 export interface IJobCriteria extends Document {
     criteriaName: string
@@ -24,10 +24,11 @@ export interface IJob extends Document {
     account: mongoose.Types.ObjectId | IAccount
     interviewManager: mongoose.Types.ObjectId | IAccount
     location: mongoose.Types.ObjectId | ILocation
-    groupCriteria: mongoose.Types.ObjectId | IGroupCriteria
+    criterias: mongoose.Types.ObjectId[] | ICriteria[]
     address: string
     timestamp: Date
     expiredDate: Date
+    startDate: Date
     isDelete: boolean
     isActive: boolean
     type: string
@@ -94,11 +95,13 @@ const jobSchema: Schema = new Schema(
             ref: 'Account',
             required: true,
         },
-        groupCriteria: {
-            type: mongoose.Types.ObjectId,
-            ref: 'GroupCriteria',
-            required: true,
-        },
+        criterias: [
+            {
+                type: mongoose.Types.ObjectId,
+                ref: 'Criteria',
+                required: true,
+            },
+        ],
         address: {
             type: String,
             required: false,
@@ -106,6 +109,10 @@ const jobSchema: Schema = new Schema(
         expiredDate: {
             type: Date,
             required: true,
+        },
+        startDate: {
+            type: Date,
+            required: false,
         },
         isDelete: {
             type: Boolean,
@@ -119,7 +126,7 @@ const jobSchema: Schema = new Schema(
         status: {
             type: String,
             required: true,
-            enum: ['pending', 'approved', 'published', 'expired', 'reopened', 'rejected'],
+            enum: ['pending', 'approved', 'expired', 'reopened', 'rejected'],
         },
         rejectReason: {
             type: String,

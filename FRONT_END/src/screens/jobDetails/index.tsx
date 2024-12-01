@@ -25,6 +25,7 @@ const JobDetails = (): React.JSX.Element => {
   const jobId = searchParams.get("id");
   const [job, setJob] = useState<Partial<TJob>>({});
   const [state, setState] = useState<string>(asyncState.loading);
+  const [ocrCV, setOcrCV] = useState();
   const [responseMessage, setResponseMessage] = useState<string>();
   const { userInfo } = useAppSelector((state) => state.user);
   const { applyInfo } = useAppSelector((state) => state.applyInfo);
@@ -39,7 +40,7 @@ const JobDetails = (): React.JSX.Element => {
       const { job } = await jobApi.getJobById(jobId as string);
       setJob(job);
       const applyInfo = await applyApi.getApplyInfo(jobId as string);
-      dispatcher(setApplyInfo(applyInfo?.data || null))
+      dispatcher(setApplyInfo((applyInfo as any)?.data || null))
     })();
   }, [jobId]);
 
@@ -49,7 +50,7 @@ const JobDetails = (): React.JSX.Element => {
     if (!jobId || jobId == "") return;
     try {
       setState(asyncState.loading);
-      await applyApi.applyToJob(cvProfile, jobId);
+      await applyApi.applyToJob(cvProfile, jobId, ocrCV);
       setTimeout(() => {
         setState(asyncState.success);
         setResponseMessage(
@@ -108,6 +109,8 @@ const JobDetails = (): React.JSX.Element => {
           onCancel={popupApplyJob.onClose}
           onApply={_applyJob}
           job={job as TJob}
+          ocrCV={ocrCV}
+          setOcrCV={setOcrCV}
         />
       </ModalCommon>
 

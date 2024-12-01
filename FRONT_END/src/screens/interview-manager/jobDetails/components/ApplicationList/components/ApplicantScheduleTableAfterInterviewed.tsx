@@ -28,6 +28,8 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import AIScoreModal, { Criterion } from "./DetailScore";
 import { toast } from "react-toastify";
 import { RootState, useAppSelector } from "@/store/store";
+import InteviewNotes from "./InteviewNotes";
+import { IApplicantReport } from "@/api/applicantReportApi";
 
 type ApplicantScheduledTableProps = {
   _id: string;
@@ -36,7 +38,7 @@ type ApplicantScheduledTableProps = {
     sort: string;
   };
 };
-export const ApplicantScheduledTable = ({
+export const ApplicantScheduledTableAfterInterviewed = ({
   _id,
   filter,
 }: ApplicantScheduledTableProps) => {
@@ -44,6 +46,7 @@ export const ApplicantScheduledTable = ({
   const cvViewDisclosure = useDisclosure();
   const scoreDetailDisclosure = useDisclosure();
   const confirmRemove = useDisclosure();
+  const interviewNotes = useDisclosure();
   const [url, setUrl] = useState("");
 
   const [page, setPage] = useState(1);
@@ -54,10 +57,12 @@ export const ApplicantScheduledTable = ({
   const [user, setUser] = useState<IApply | any>();
   const [loadAgain, setLoadAgain] = useState(false);
   const [criterias, setCriterias] = useState<Criterion[]>([]);
+  const [applyId, setApplyId] = useState<string>("");
   const [selectedParticipant, setSelectedParticipant] = useState({
     participantId: "",
     meetingRoomId: "",
   });
+  const [reports, setReports] = useState<IApplicantReport[]>([]);
 
   useEffect(() => {
     if (_id) {
@@ -160,6 +165,34 @@ export const ApplicantScheduledTable = ({
     getApplicants();
   };
 
+  const openInterviewNotes = async (applyId: string) => {
+    setApplyId(applyId);
+    await getReports(applyId);
+
+    interviewNotes.onOpen();
+  }
+
+  const changeStatus = async ({ status }: { status: string }) => {
+    if(!applyId) return;
+
+    const data = await applyApi.updateApplyStatus({
+      applyId: applyId,
+      newStatus: status,
+    });
+
+    if (!data) {
+      toast.error("Something went wrong! pls try again");
+      return;
+    }
+    toast.success("Change status successfully");
+    setLoadAgain?.(true);
+  };
+
+  const getReports = async(id: string) => {
+    const data = await applyApi.getReports(id);
+    setReports(data);
+  }
+
   return (
     <div>
       {users && users.length > 0 ? (
@@ -190,6 +223,7 @@ export const ApplicantScheduledTable = ({
             <TableColumn key="status">STATUS</TableColumn>
             <TableColumn key="cvScore">AI Score</TableColumn>
             <TableColumn key="action">CV</TableColumn>
+            <TableColumn key="action">INTERVIEW NOTES</TableColumn>
           </TableHeader>
           <TableBody
             isLoading={isLoading}
@@ -279,10 +313,19 @@ export const ApplicantScheduledTable = ({
                       View CV <ArrowRight size="16px" />
                     </button>
                   </TableCell>
+                  <TableCell className="py-4 font-bold">
+                    <button
+                      className="text-themeOrange rounded-lg transition duration-300 ease-in-out transform hover:scale-105 flex gap-1 items-center"
+                      onClick={() => openInterviewNotes(user.applyId)}
+                    >
+                      See Details
+                    </button>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow key="1">
+                <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
                 <TableCell className="py-4 font-bold"> </TableCell>
@@ -352,6 +395,9 @@ export const ApplicantScheduledTable = ({
             </Button>
           </div>
         </div>
+      </ModalCommon>
+      <ModalCommon size={"5xl"} disclosure={interviewNotes}>
+        <InteviewNotes changeStatus={changeStatus} filter={filter} data={reports}/>
       </ModalCommon>
       <AIScoreModal
         isOpen={scoreDetailDisclosure.isOpen}

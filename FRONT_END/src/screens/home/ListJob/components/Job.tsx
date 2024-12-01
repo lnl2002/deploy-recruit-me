@@ -15,6 +15,7 @@ type JobProps = {
   expiredDate: string;
   type: string;
   handleNavigate: (id: string) => void;
+  unitImg: string;
 };
 
 const Job: React.FC<JobProps> = ({
@@ -27,6 +28,7 @@ const Job: React.FC<JobProps> = ({
   expiredDate,
   type,
   handleNavigate,
+  unitImg,
 }): React.JSX.Element => {
   const [dueDate, setDueDate] = useState<number>(0);
   const [rankSalary, setRankSalary] = useState<string>("Negotiable");
@@ -68,7 +70,7 @@ const Job: React.FC<JobProps> = ({
       <div className="flex justify-between">
         <div className="flex gap-3">
           <Image
-            src={Images.FPT_University}
+            src={unitImg}
             height={42}
             width={102}
             alt="Company Image"
