@@ -1,12 +1,19 @@
 import { BACKEND_URL } from "@/utils/env";
 import axios from "axios";
-import { TLocation } from "../locationApi";
+
+// Adjust the Content type to use the Part type
+interface Content {
+  role: string;
+  content: string;
+  // Add other properties as needed
+}
 
 const systemApi = {
-  getAIResponse: async (input: string): Promise<{ response: string; data: Object }> => {
+  getAIResponse: async (input: string, history: Content[]): Promise<{ response: string; data: Object }> => {
     try {
       const res = await axios.post(`${BACKEND_URL}/api/v1/system/ai-chat`, {
-        input: input
+        input: input,
+        history: history
       });
 
       if (res.status === 200) {
