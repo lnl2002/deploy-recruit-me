@@ -237,6 +237,7 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
             apply?.applicantReports as IApplicantReport[]
           )?.map((applicantReport) => applicantReport._id)}
           isContactSegment={isContactSegment}
+          applyId={apply?._id ?? ""}
         />
       ) : (
         <Lobby

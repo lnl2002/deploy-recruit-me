@@ -17,12 +17,12 @@ applicantReportRouter.get(
 )
 
 applicantReportRouter.patch(
-    '/',
+    '/:applyId/apply',
     requireRole(['RECRUITER', 'INTERVIEWER', 'INTERVIEW_MANAGER']),
     applicantReportController.updateApplicantReport,
 )
 applicantReportRouter.post(
-    '/',
+    '/:applyId/apply',
     requireRole(['RECRUITER', 'INTERVIEWER', 'INTERVIEW_MANAGER']),
     applicantReportController.addApplicantReport,
 )

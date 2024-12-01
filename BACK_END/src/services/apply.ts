@@ -1,10 +1,12 @@
 import mongoose, { Types } from 'mongoose'
 import Apply, { IApply } from '..//models/applyModel'
 import Job from '../models/jobModel'
+import fs from 'fs'
 import { textract } from '../configs/aws-config'
 import Gemini from '../configs/gemini-config'
 import { IGroupCriteria } from '../models/groupCriteriaModel'
 import { deleteS3File, pollTextractJob, uploadPdfToS3 } from '../utils/uploadPdfToS3'
+import { ICriteria } from '../models/criteriaModel'
 
 const applyService = {
     updateStatus: async ({
@@ -91,9 +93,9 @@ const applyService = {
     extractTextFromPdf: async (cvContent: string, jobId: string, applyId: string): Promise<string> => {
         try {
             const job = await Job.findById(jobId)
-                .select('_id groupCriteria')
+                .select('_id criterias')
                 .populate({
-                    path: 'groupCriteria',
+                    path: 'criterias',
                     populate: {
                         path: 'criterias',
                         model: 'Criteria',
@@ -104,7 +106,8 @@ const applyService = {
                 throw new Error(`Job ${jobId} not found`)
             }
 
-            const criterias = JSON.stringify((job.groupCriteria as IGroupCriteria).criterias)
+            // update
+            const criterias = JSON.stringify(job.criterias)
 
             const gemini = new Gemini()
             const result = await gemini.processCV({
@@ -178,6 +181,12 @@ const applyService = {
         } catch (error) {
             console.error('Error extracting text:', error)
         }
+    },
+
+    updateApply: async (id: mongoose.Types.ObjectId, newApply: Partial<IApply>): Promise<IApply> => {
+        return await Apply.findByIdAndUpdate(id, newApply, {
+            new: true,
+        })
     },
 
     getReports: async (id: string) => {

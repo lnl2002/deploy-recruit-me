@@ -17,6 +17,7 @@ const ListJob = (): React.JSX.Element => {
 
   useEffect(() => {
     (async () => {
+      if (!params) return;
       const { jobs, total } = (await jobApi.getJobList(params)) as {
         jobs: TJob[];
         total: number;

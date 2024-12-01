@@ -6,6 +6,7 @@ import { TCareer } from "../careerApi";
 import { IAccount } from "../accountApi/accountApi";
 import { IApply } from "../applyApi";
 import { IGroupCriteria } from "../groupCriteriaApi";
+import { ICriteria } from "../criteriaApi";
 
 const jobApi = {
   getJobList: async (
@@ -13,6 +14,7 @@ const jobApi = {
     owner?: boolean
   ): Promise<{ jobs: TJob[]; total: number }> => {
     let newParams = "?expiredDate=1&sort_by=createdAt&order=1" + params;
+    console.log(newParams);
 
     try {
       const res = await (owner ? axios : axios.create()).get(
@@ -26,6 +28,9 @@ const jobApi = {
       }
     } catch (error) {
       console.error("Error fetching job list:", (error as AxiosError).status);
+      if ((error as AxiosError).status === 401) {
+        window.location.href = "/login";
+      }
       return { jobs: [], total: 0 };
     }
   },
@@ -119,7 +124,7 @@ const jobApi = {
   updateJobStatus: async ({
     jobId,
     status,
-    rejectReason
+    rejectReason,
   }: {
     jobId: string;
     status: string;
@@ -129,7 +134,7 @@ const jobApi = {
       const res = await axios.put(`${BACKEND_URL}/api/v1/jobs/update-status`, {
         jobId,
         status,
-        rejectReason
+        rejectReason,
       });
       if (res.status === 200) {
         return res.data.data;
@@ -161,6 +166,7 @@ export interface TJob {
   interviewManager: string | IAccount;
   location: string | TLocation;
   expiredDate: string;
+  startDate: string;
   type: string;
   isDelete: boolean;
   isActive: boolean;
@@ -168,7 +174,7 @@ export interface TJob {
   updatedAt: string;
   applies: string[] | Partial<IApply>[];
   status: JobStatus;
-  groupCriteria?: string | IGroupCriteria;
+  criterias: string[] | ICriteria[];
   __v: number;
 }
 
