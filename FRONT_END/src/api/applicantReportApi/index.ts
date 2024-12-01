@@ -26,10 +26,12 @@ export interface IApplicantReport {
   createdBy: string | IAccount;
   comment: string;
   isPass: boolean;
+  score?: number
 }
 
 export interface IDetailCriteria {
   _id?: string;
   criteriaName: string;
   comment: string;
+  explanation?: string;
 }

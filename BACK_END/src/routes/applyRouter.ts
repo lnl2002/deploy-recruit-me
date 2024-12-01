@@ -12,6 +12,7 @@ applyRouter.get("/cvs/:jobId", ApplyController.getAllCVsByJobId);
 applyRouter.get("/:id", ApplyController.getApplicationById);
 applyRouter.get("/interview-manager/applies",requireRole(["INTERVIEW_MANAGER"]), applyController.getApplyListByInterviewManager);
 applyRouter.get("/statuses/all", ApplyController.getAllStatus)
+applyRouter.get("/reports/:id", requireRole(['INTERVIEW_MANAGER']), ApplyController.getReports)
 
 applyRouter.post("/apply-job", requireRole(['CANDIDATE']), ApplyController.applyToJob);
 applyRouter.post("/ocr/cv", requireRole(['CANDIDATE']), upload.single("cv"), ApplyController.analyzeCV)

@@ -90,13 +90,15 @@ const applyService = {
     // S3 textract
     extractTextFromPdf: async (cvContent: string, jobId: string, applyId: string): Promise<string> => {
         try {
-            const job = await Job.findById(jobId).select('_id groupCriteria').populate({
-                path: 'groupCriteria',
-                populate: {
-                    path: 'criterias',
-                    model: 'Criteria',
-                },
-            })
+            const job = await Job.findById(jobId)
+                .select('_id groupCriteria')
+                .populate({
+                    path: 'groupCriteria',
+                    populate: {
+                        path: 'criterias',
+                        model: 'Criteria',
+                    },
+                })
 
             if (!job) {
                 throw new Error(`Job ${jobId} not found`)
@@ -130,37 +132,38 @@ const applyService = {
         }
     },
 
-    textractPdf: async(filePath: string) => {
+    textractPdf: async (filePath: string) => {
         try {
-             // Tải file PDF lên S3
-            const s3Key = await uploadPdfToS3(filePath);
+            // Tải file PDF lên S3
+            const s3Key = await uploadPdfToS3(filePath)
 
-            const startResponse = await textract.startDocumentTextDetection({
-                DocumentLocation: {
-                    S3Object: {
-                        Bucket: process.env.S3_BUCKET_TEXTRACT_NAME,
-                        Name: s3Key,
+            const startResponse = await textract
+                .startDocumentTextDetection({
+                    DocumentLocation: {
+                        S3Object: {
+                            Bucket: process.env.S3_BUCKET_TEXTRACT_NAME,
+                            Name: s3Key,
+                        },
                     },
-                },
-            }).promise();
+                })
+                .promise()
 
-            console.log("tải lên s3");
-
+            console.log('tải lên s3')
 
             if (!startResponse.JobId) {
-                throw new Error('Failed to start text detection job');
+                throw new Error('Failed to start text detection job')
             }
 
-            const textractJobId = startResponse.JobId;
+            const textractJobId = startResponse.JobId
 
             // Chờ job Textract hoàn tất
-            const extractedText = await pollTextractJob(textractJobId);
+            const extractedText = await pollTextractJob(textractJobId)
 
-            console.log("done textract");
+            console.log('done textract')
 
             // xóa file trên s3
             deleteS3File({
-                fileName: s3Key
+                fileName: s3Key,
             })
 
             //use gemini
@@ -169,15 +172,26 @@ const applyService = {
                 cvContent: extractedText,
             })
 
-            console.log("done gemini");
+            console.log('done gemini')
 
             return JSON.parse(result)
         } catch (error) {
             console.error('Error extracting text:', error)
         }
-    }
-}
+    },
 
+    getReports: async (id: string) => {
+        const data = await Apply.findById(id).select('_id applicantReports').populate({
+            path: 'applicantReports',
+            populate: {
+                path: "createdBy",
+                select: "_id email image name",
+            }
+        });
+
+        return data?.applicantReports || []
+    },
+}
 const calculateAverageScore = (criteria: { score: string }[]): string => {
     let totalAchieved = 0 // Tổng điểm đạt được
     let totalPossible = 0 // Tổng điểm tối đa
