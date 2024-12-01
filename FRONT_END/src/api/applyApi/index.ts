@@ -134,8 +134,6 @@ export const applyApi = {
         })
       ).data;
 
-      console.log(cvResponse.data.cv._id);
-
       if (cvResponse.status === 201) {
         // CV created successfully!
         const cvId = cvResponse.data.cv._id;
@@ -326,6 +324,16 @@ export const applyApi = {
       return res;
     } catch (error) {
       console.log("Error get OCR CV", error);
+      return null;
+    }
+  },
+
+  getReports: async (id: string) => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/v1/apply/reports/${id.toString()}`)
+      return res?.data?.data || [];
+    } catch (error) {
+      console.log("Error getReports", error);
       return null;
     }
   },

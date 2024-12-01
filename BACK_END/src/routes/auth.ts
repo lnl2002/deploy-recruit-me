@@ -10,7 +10,7 @@ router.get('/google/callback', passport.authenticate('google', { session: false 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const user = (req as any).user;
 
-    const accessToken  = jwt.sign(user, process.env.JWT_SECRET!, { expiresIn: '1h' })
+    const accessToken  = jwt.sign(user, process.env.JWT_SECRET!, { expiresIn: '1d' })
     const refreshToken  = jwt.sign(user, process.env.JWT_REFRESH_SECRET!, { expiresIn: '90d' })
 
 

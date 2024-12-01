@@ -42,11 +42,12 @@ export interface IApplicantReport {
   comment: string;
   score: number;
   isPass: boolean;
+  score?: number
 }
 
 export interface IDetailCriteria {
   _id?: string;
   criteriaName: string;
   comment: string;
-  explanation: string;
+  explanation?: string;
 }

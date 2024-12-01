@@ -26,6 +26,25 @@ const accountApi = {
       return { accounts: [], total: 0 };
     }
   },
+  getInterviewerByUnit: async (
+    unitId: string
+  ) => {
+    try {
+      const { status, data } = await axios.get(
+        `${BACKEND_URL}/api/v1/accounts/interviewers?unitId=${unitId}`
+      );
+
+      if (status === 200) {
+        return data?.data || []
+      } else {
+        return []
+      }
+    } catch (error) {
+      console.log("getInterviewerByUnit error:", error);
+      
+      return []
+    }
+  },
 };
 
 export default accountApi;
