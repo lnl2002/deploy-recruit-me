@@ -8,7 +8,7 @@ interface JobState {
 
 const initialState: JobState = {
   job: null,
-  statusJobFilterIndex: 0,
+  statusJobFilterIndex: 1,
 };
 
 const jobSlice = createSlice({

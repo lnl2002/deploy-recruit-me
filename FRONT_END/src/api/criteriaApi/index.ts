@@ -2,7 +2,7 @@ import { BACKEND_URL } from "@/utils/env";
 import axios from "axios";
 
 const criteriaApi = {
-  getCareerList: async (
+  getCriteriaList: async (
     params: string
   ): Promise<{ criterias: ICriteria[] }> => {
     try {

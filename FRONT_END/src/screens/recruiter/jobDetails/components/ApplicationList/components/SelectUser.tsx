@@ -44,6 +44,7 @@ const SelectUser: React.FC<SelectUserProps> = ({users, setParticipants}) => {
                   alt={item.data.name}
                   size="sm"
                   src={item.data.image}
+                  key={item?.data?.image || ''}
                 />
                 <div>{item.data.name}</div>
                 </Chip>

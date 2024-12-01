@@ -20,13 +20,15 @@ export const systemController = {
 
     getAIAnswer: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { input } = req.body
-            const respond = await genAnswer(input)
+            const { input, history } = req.body
+            const respond = await genAnswer(input, history)
+            console.log(respond);
+            
             const cleanedResult = respond.response.text().replace('```json', '').replace('```', '')
             return res.status(200).json(JSON.parse(cleanedResult));
         } catch (error: unknown) {
             // next(error)
-            return res.status(400).json({ message: 'Email not sent' });
+            return res.status(400).json({ message: 'AI not sent' });
         }
     },
 }

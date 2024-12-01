@@ -28,6 +28,7 @@ import { CvViewer } from "@/components/CvViewer";
 import { ApplicantScheduledTable } from "./components/ApplicantScheduledTable";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import AIScoreModal, { Criterion } from "./components/DetailScore";
+import { ApplicantScheduledTableAfterInterviewed } from "./components/ApplicantScheduleTableAfterInterviewed";
 
 const ApplicationList: React.FC<{ jobId: string }> = ({
   jobId,
@@ -36,15 +37,15 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
 }) => {
   const [filter, setFilter] = useState({
     status: "Shortlisted",
-    sort: "desc"
-  })
+    sort: "desc",
+  });
 
   const handleChangeFilter = (name: string, value: string) => {
     setFilter({
       ...filter,
-      [name]: value
-    })
-  }
+      [name]: value,
+    });
+  };
 
   return (
     <div className="">
@@ -71,25 +72,53 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
             value={filter.status}
             onChange={(e) => handleChangeFilter("status", e.target.value)}
           >
-            <SelectItem key={"Shortlisted"} value={"Shortlisted"} className="text-themeDark">
+            <SelectItem
+              key={"Shortlisted"}
+              value={"Shortlisted"}
+              className="text-themeDark"
+            >
               Applicant shortlisted
             </SelectItem>
-            <SelectItem key={"Pending Interview Confirmation"} value={"Waiting"} className="text-themeDark">
+            <SelectItem
+              key={"Pending Interview Confirmation"}
+              value={"Waiting"}
+              className="text-themeDark"
+            >
               Pending Interview Confirmation
             </SelectItem>
-            <SelectItem key={"Interview Rescheduled"} value={"Waiting"} className="text-themeDark">
+            <SelectItem
+              key={"Interview Rescheduled"}
+              value={"Waiting"}
+              className="text-themeDark"
+            >
               Applicant Requests Reschedule
             </SelectItem>
-            <SelectItem key={"Interview Scheduled"} value={"Waiting"} className="text-themeDark">
+            <SelectItem
+              key={"Interview Scheduled"}
+              value={"Waiting"}
+              className="text-themeDark"
+            >
               Interview Waiting
             </SelectItem>
-            <SelectItem key={"Interviewed"} value={"Inteviewed"} className="text-themeDark">
+            <SelectItem
+              key={"Interviewed"}
+              value={"Inteviewed"}
+              className="text-themeDark"
+            >
               Applicant Inteviewed
             </SelectItem>
-            <SelectItem key={"Accepted"} value={"Inteviewed"} className="text-themeDark">
+            <SelectItem
+              key={"Accepted"}
+              value={"Inteviewed"}
+              className="text-themeDark"
+            >
               Applicant Accepted
             </SelectItem>
-            <SelectItem key={"Rejected"} value={"Inteviewed"} className="text-themeDark">
+            <SelectItem
+              key={"Rejected"}
+              value={"Inteviewed"}
+              className="text-themeDark"
+            >
               Applicant Rejected
             </SelectItem>
           </Select>
@@ -110,9 +139,19 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
       </div>
       <div>
         {filter.status === "Shortlisted" ? (
-          <ApplicantTable _id={jobId} filter={filter}/>
+          <ApplicantTable _id={jobId} filter={filter} />
+        ) : ["Interviewed", "Accepted", "Rejected"].includes(filter.status) ? (
+          <ApplicantScheduledTableAfterInterviewed
+            _id={jobId}
+            filter={filter}
+            key={`${filter.status}-${filter.sort}`}
+          />
         ) : (
-          <ApplicantScheduledTable _id={jobId} filter={filter} key={`${filter.status}-${filter.sort}`}/>
+          <ApplicantScheduledTable
+            _id={jobId}
+            filter={filter}
+            key={`${filter.status}-${filter.sort}`}
+          />
         )}
       </div>
       <div className="flex justify-center"></div>
@@ -125,9 +164,9 @@ export default ApplicationList;
 type TableProps = {
   _id: string;
   filter: {
-    status: string
-    sort: string
-  }
+    status: string;
+    sort: string;
+  };
 };
 const ApplicantTable = ({ _id, filter }: TableProps) => {
   const cvViewDisclosure = useDisclosure();
@@ -157,7 +196,13 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
 
   const getApplicants = async () => {
     setIsLoading(true);
-    const data = await applyApi.getApplyByJob({ _id, page, limit: 10, status: 'Shortlisted', sort: filter.sort });
+    const data = await applyApi.getApplyByJob({
+      _id,
+      page,
+      limit: 10,
+      status: "Shortlisted",
+      sort: filter.sort,
+    });
     setLoadAgain(false);
     setUsers(data.data);
     setTotalPages(data.totalPages);
@@ -184,10 +229,10 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
   };
 
   const handleOpenScore = async (criteria: Criterion[], userId: string) => {
-    setCriterias(criteria)
+    setCriterias(criteria);
     await getApplicant(userId);
-    scoreDetailDisclosure.onOpen()
-  }
+    scoreDetailDisclosure.onOpen();
+  };
 
   return (
     <div>
@@ -233,14 +278,19 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
                     {formatDateTime(user.createdAt)}
                   </TableCell>
                   <TableCell className="py-4 font-bold">
-                    <Status status={user.status.name} key={user.status.name}/>
+                    <Status status={user.status.name} key={user.status.name} />
                   </TableCell>
-                  <TableCell className="py-4 font-bold text-themeOrange cursor-pointer" onClick={() => handleOpenScore(user?.cvScore?.detailScore, user._id)}>
+                  <TableCell
+                    className="py-4 font-bold text-themeOrange cursor-pointer"
+                    onClick={() =>
+                      handleOpenScore(user?.cvScore?.detailScore, user._id)
+                    }
+                  >
                     {user?.cvScore?.averageScore || (
                       <div className="flex gap-2 items-center">
-                        <LoadingSpinner/> Caculating...
+                        <LoadingSpinner /> Caculating...
                       </div>
-                    )} 
+                    )}
                   </TableCell>
                   <TableCell className="py-4 font-bold">
                     <button
@@ -290,7 +340,7 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
           ...user?.cv,
           image: user?.createdBy?.image,
           name: `${user?.cv?.firstName || ""} ${user?.cv?.lastName || ""}`,
-          candidateId: user?.createdBy?._id
+          candidateId: user?.createdBy?._id,
         }}
       />
       <ModalCommon size={"5xl"} disclosure={cvViewDisclosure}>

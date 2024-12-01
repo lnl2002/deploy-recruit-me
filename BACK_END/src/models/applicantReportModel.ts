@@ -1,17 +1,17 @@
 import mongoose, { Document, Schema } from 'mongoose'
 import { IAccount } from './accountModel'
-import { IApply } from './applyModel'
 
 export interface IApplicantReport extends Document {
     details: IDetailCriteria[]
     createdBy: mongoose.Types.ObjectId | IAccount
-    comment: string
+    score: number
     isPass: boolean
 }
 
 export interface IDetailCriteria extends Document {
     criteriaName: string
     comment: string
+    explanation: string
 }
 
 const DetailCriteriaSchema: Schema = new Schema({
@@ -20,6 +20,10 @@ const DetailCriteriaSchema: Schema = new Schema({
         required: true,
     },
     comment: {
+        type: String,
+        required: false,
+    },
+    explanation: {
         type: String,
         required: false,
     },
@@ -37,8 +41,8 @@ const applicantReportSchema: Schema = new Schema(
             ref: 'Account',
             required: true,
         },
-        comment: {
-            type: String,
+        score: {
+            type: Number,
         },
         isPass: {
             type: Boolean,

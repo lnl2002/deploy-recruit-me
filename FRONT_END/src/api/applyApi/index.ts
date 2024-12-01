@@ -1,5 +1,5 @@
 import { BACKEND_URL } from "@/utils/env";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { IResponse, ITable } from "../common/type";
 import { TJob } from "../jobApi";
 import JobPosting from "@/type/job";
@@ -108,7 +108,7 @@ export const applyApi = {
     }
   },
 
-  applyToJob: async (cvData: ICV, jobId: string) => {
+  applyToJob: async (cvData: ICV, jobId: string, cvInfo: any) => {
     try {
       const accessToken = localStorage.getItem("access_token");
 
@@ -134,8 +134,6 @@ export const applyApi = {
         })
       ).data;
 
-      console.log(cvResponse.data.cv._id);
-
       if (cvResponse.status === 201) {
         // CV created successfully!
         const cvId = cvResponse.data.cv._id;
@@ -149,11 +147,14 @@ export const applyApi = {
         // 4. Send the job application request
         const applyResponse = await axios.post(
           `${BACKEND_URL}/api/v1/apply/apply-job`,
-          formData,
+          {
+            cvId: cvId,
+            jobId: jobId,
+            cvInfo: cvInfo,
+          },
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "multipart/form-data",
             },
           }
         );
@@ -263,8 +264,8 @@ export const applyApi = {
   },
 
   getApplicationsByUser: async (): Promise<{
-    applicantReport: IApplicantReport;
-  } | null> => {
+    applicantReport: Partial<IApplicantReport>;
+  }> => {
     try {
       const response = await axios.get(
         `${BACKEND_URL}/api/v1/applicant-reports/user`
@@ -273,8 +274,8 @@ export const applyApi = {
       return { applicantReport: response.data.data };
     } catch (error: any) {
       // Handle API errors appropriately, e.g.,
-      console.error("Error fetching applie:", error);
-      return null;
+      console.error("Error fetching applie:", (error as AxiosError).message);
+      return { applicantReport: {} };
     }
   },
 
@@ -305,6 +306,35 @@ export const applyApi = {
     } catch (error: any) {
       console.error("Error fetching statuses:", error);
       // throw error;
+    }
+  },
+
+  getOcrCV: async (file: File) => {
+    try {
+      const formData = new FormData();
+
+      formData.append("cv", file);
+      const res = await (
+        await axios.post(`${BACKEND_URL}/api/v1/apply/ocr/cv`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+      )?.data;
+      return res;
+    } catch (error) {
+      console.log("Error get OCR CV", error);
+      return null;
+    }
+  },
+
+  getReports: async (id: string) => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/v1/apply/reports/${id.toString()}`)
+      return res?.data?.data || [];
+    } catch (error) {
+      console.log("Error getReports", error);
+      return null;
     }
   },
 };

@@ -5,7 +5,6 @@ import { optionalAuthenticate, requireRole } from '../middlewares/auth'
 const jobRouter: Router = express.Router()
 
 jobRouter.get('/', optionalAuthenticate(), jobController.getJobList)
-jobRouter.get('/user/:id', jobController.getJobListByUser)
 jobRouter.get('/:id', jobController.getJobDetail)
 jobRouter.get(
     '/interview-manager/list-jobs',
