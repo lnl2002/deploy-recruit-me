@@ -46,7 +46,6 @@ export interface IApplicantReport {
   comment: string;
   score: number;
   isPass: boolean;
-  score?: number;
 }
 
 export interface IDetailCriteria {
