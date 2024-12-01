@@ -1,12 +1,9 @@
 import mongoose, { Types } from 'mongoose'
 import Apply, { IApply } from '..//models/applyModel'
 import Job from '../models/jobModel'
-import fs from 'fs'
 import { textract } from '../configs/aws-config'
 import Gemini from '../configs/gemini-config'
-import { IGroupCriteria } from '../models/groupCriteriaModel'
 import { deleteS3File, pollTextractJob, uploadPdfToS3 } from '../utils/uploadPdfToS3'
-import { ICriteria } from '../models/criteriaModel'
 
 const applyService = {
     updateStatus: async ({
@@ -92,15 +89,9 @@ const applyService = {
     // S3 textract
     extractTextFromPdf: async (cvContent: string, jobId: string, applyId: string): Promise<string> => {
         try {
-            const job = await Job.findById(jobId)
-                .select('_id criterias')
-                .populate({
-                    path: 'criterias',
-                    populate: {
-                        path: 'criterias',
-                        model: 'Criteria',
-                    },
-                })
+            const job = await Job.findById('674889402fbd2cc948c9905c').select('_id criterias').populate({
+                path: 'criterias',
+            })
 
             if (!job) {
                 throw new Error(`Job ${jobId} not found`)
@@ -188,8 +179,21 @@ const applyService = {
             new: true,
         })
     },
-}
 
+    getReports: async (id: string) => {
+        const data = await Apply.findById(id)
+            .select('_id applicantReports')
+            .populate({
+                path: 'applicantReports',
+                populate: {
+                    path: 'createdBy',
+                    select: '_id email image name',
+                },
+            })
+
+        return data?.applicantReports || []
+    },
+}
 const calculateAverageScore = (criteria: { score: string }[]): string => {
     let totalAchieved = 0 // Tổng điểm đạt được
     let totalPossible = 0 // Tổng điểm tối đa

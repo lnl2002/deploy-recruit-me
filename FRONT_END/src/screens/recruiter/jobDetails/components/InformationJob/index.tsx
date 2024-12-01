@@ -3,6 +3,7 @@ import { TJob } from "@/api/jobApi";
 import { TUnit } from "@/api/unitApi";
 import JobAppicationCard from "@/components/JobApplicationCard";
 import JobSection from "@/components/JobSection";
+import { Modal, ModalContent, useDisclosure } from "@nextui-org/react";
 
 type InformationJobProps = {
   job: Partial<TJob>;
@@ -11,6 +12,7 @@ type InformationJobProps = {
 const InformationJob: React.FC<InformationJobProps> = ({
   job,
 }): React.JSX.Element => {
+  const disclosure = useDisclosure();
   if (!job?._id) return <div></div>;
 
   return (
@@ -48,7 +50,30 @@ const InformationJob: React.FC<InformationJobProps> = ({
           )}
         </div>
       </div>
+
       <div className="col-span-1 px-8">
+        <div className="mb-5 flex justify-center" onClick={disclosure.onOpen}>
+          <img
+            src="../job_process.png"
+            alt="Auto Scan"
+            className="w-full cursor-pointer hover:bg-backgroundDecor200 transition-colors rounded-lg"
+          />
+        </div>
+        <Modal
+          className="min-w-[90vw]"
+          isOpen={disclosure.isOpen}
+          onClose={disclosure.onClose}
+        >
+          <ModalContent>
+            <div className="flex justify-center">
+              <img
+                src="../job_process.png"
+                alt="Auto Scan"
+                className="max-w-full max-h-[80vh]"
+              />
+            </div>
+          </ModalContent>
+        </Modal>
         <div className="p-6 bg-white rounded-2xl shadow-xl border">
           <JobAppicationCard
             minSalary={job.minSalary ?? 0}

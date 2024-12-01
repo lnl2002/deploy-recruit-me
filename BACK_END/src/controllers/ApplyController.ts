@@ -3,7 +3,7 @@ import Apply, { IApply } from '../models/applyModel'
 import CVStatus from '../models/cvStatusModel'
 import applyService from '../services/apply'
 import { AppError } from '../constants/AppError'
-import mongoose from 'mongoose'
+import mongoose, { isValidObjectId } from 'mongoose'
 import CV from '../models/cvModel'
 import Job from '../models/jobModel'
 
@@ -221,6 +221,23 @@ const ApplyController = {
         } catch (error) {
             console.log('analyzeCV error:', error)
             next(error)
+        }
+    },
+
+    getReports: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { id } = req.params;
+            if(!isValidObjectId(id)){
+                return res.status(400).json({
+                    message: "BAD REQUEST"
+                })
+            }
+
+            const result = await applyService.getReports(id.toString());
+            res.status(200).json(result)
+        } catch (error) {
+            console.log("analyzeCV error:", error);
+            next(error);
         }
     },
 }

@@ -3,7 +3,6 @@ import { IUnit } from './unitModel'
 import { ICareer } from './careerModel'
 import { IAccount } from './accountModel'
 import { ILocation } from './locationModel'
-import { IGroupCriteria } from './groupCriteriaModel'
 import { ICriteria } from './criteriaModel'
 
 export interface IJobCriteria extends Document {

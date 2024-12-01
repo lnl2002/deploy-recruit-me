@@ -1,8 +1,8 @@
-import express from 'express'
+import express, { Router } from 'express'
 import applicantReportController from '../controllers/applicantReportController'
 import { requireRole } from '../middlewares/auth'
 
-const applicantReportRouter = express.Router()
+const applicantReportRouter: Router = express.Router()
 
 applicantReportRouter.get(
     '/:applyId/apply',
