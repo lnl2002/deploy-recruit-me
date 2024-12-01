@@ -11,7 +11,6 @@ export interface IApplicantReport extends Document {
 export interface IDetailCriteria extends Document {
     criteriaName: string
     comment: string
-    explanation: string
 }
 
 const DetailCriteriaSchema: Schema = new Schema({

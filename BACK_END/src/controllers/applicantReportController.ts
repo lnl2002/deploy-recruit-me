@@ -148,6 +148,11 @@ const applicantReportController = {
                 apply: applyId,
                 createdBy: account._id,
             })
+
+            if (!applicantReport) {
+                return res.status(404).json({ message: 'Applicant report not found' })
+            }
+
             return res.status(200).json(applicantReport)
         } catch (error) {
             next(error)

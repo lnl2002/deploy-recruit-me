@@ -26,8 +26,12 @@ const applicantReportApi = {
         `${BACKEND_URL}/api/v1/applicant-reports/${id}/apply`,
         body
       );
+      console.log(res.data.status);
+
       return { status: res.data.status, data: res.data.data };
     } catch (error: any) {
+      console.log((error as AxiosError)?.status);
+
       return { status: (error as AxiosError)?.status as number, data: {} };
     }
   },
@@ -48,5 +52,4 @@ export interface IDetailCriteria {
   _id?: string;
   criteriaName: string;
   comment: string;
-  explanation: string;
 }
