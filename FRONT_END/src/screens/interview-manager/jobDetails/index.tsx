@@ -48,7 +48,7 @@ export const InterviewManagerJobDetails = (): React.JSX.Element => {
             />
             <div className="flex items-center gap-2">
               <h1 className="text-themeDark text-3xl font-bold">{job.title}</h1>
-              <JobStatus status={job.status || ''} key={job.status}/>
+              <JobStatus status={job.status || ""} key={job.status} />
             </div>
             <div className="flex gap-1 items-center">
               <span className="text-sm text-blurEffect">

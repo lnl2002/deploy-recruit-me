@@ -1,4 +1,10 @@
-import { Accordion, AccordionItem, Button, Textarea } from "@nextui-org/react";
+import {
+  Accordion,
+  AccordionItem,
+  Button,
+  Textarea,
+  Spinner,
+} from "@nextui-org/react";
 import React, { useEffect, useRef, useState } from "react";
 import { useAppSelector } from "@/store/store";
 import applicantReportApi, {
@@ -65,23 +71,21 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
 
   useEffect(() => {
     (async () => {
-      const { applicantReport } = await applyApi.getApplicationsByUser();
+      const { applicantReport } = await applyApi.getApplicationByApply(applyId);
 
       const otherCriteria = {
         criteriaName: "Other",
         comment: "",
-        explanation: "",
       };
 
-      const { details, score } = applicantReport as IApplicantReport;
-      setScoreSelected((prev) => score || prev);
+      if ((applicantReport as IApplicantReport)?.details?.length > 0) {
+        const { details, score } = applicantReport as IApplicantReport;
+        setScoreSelected((prev) => score || prev);
 
-      if (details?.length > 0) {
         setDetailsCriteria([
           ...details.map((detail) => ({
             criteriaName: detail.criteriaName,
             comment: detail.comment || "",
-            explanation: detail.explanation || "",
           })),
         ]);
       } else {
@@ -90,12 +94,11 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
           ...detailScore.map((detail) => ({
             criteriaName: detail.criterion,
             comment: "",
-            explanation: detail.explanation || "",
           })),
           otherCriteria,
         ];
-        setDetailsCriteria(newCriteriaReport);
         await applicantReportApi.addApplicantReport(applyId, {});
+        setDetailsCriteria(newCriteriaReport);
       }
     })();
   }, [cvScore, applyId]);
@@ -127,8 +130,12 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
     );
   };
 
-  if (!cvScore) {
-    return <p>Loading...</p>;
+  if (!cvScore || detailsCriteria.length === 0) {
+    return (
+      <div className={"flex justify-center my-10"}>
+        <Spinner />
+      </div>
+    );
   }
 
   const ViewScore = ({ average }: { average: string }): React.JSX.Element => {
@@ -183,7 +190,7 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
                 }
               >
                 <p className="text-blurEffect text-xs font-normal px-1">
-                  {detail.explanation}
+                  {cvScore.detailScore[index]?.explanation}
                 </p>
               </AccordionItem>
             </Accordion>

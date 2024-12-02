@@ -263,12 +263,14 @@ export const applyApi = {
     }
   },
 
-  getApplicationsByUser: async (): Promise<{
+  getApplicationByApply: async (
+    applyId: string
+  ): Promise<{
     applicantReport: Partial<IApplicantReport>;
   }> => {
     try {
       const response = await axios.get(
-        `${BACKEND_URL}/api/v1/applicant-reports/user`
+        `${BACKEND_URL}/api/v1/applicant-reports/${applyId}/apply`
       );
 
       return { applicantReport: response.data.data };
