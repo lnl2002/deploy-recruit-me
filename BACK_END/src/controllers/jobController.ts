@@ -194,7 +194,6 @@ const jobController = {
             next(error)
         }
     },
-
     deleteJob: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
             const { id } = req.params
@@ -210,6 +209,173 @@ const jobController = {
             }
 
             return res.json(deletedJob)
+        } catch (error: unknown) {
+            next(error)
+        }
+    },
+    updateJob: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        try {
+            const { jobId } = req.params
+            const {
+                title,
+                introduction,
+                description,
+                benefits,
+                requests,
+                minSalary,
+                maxSalary,
+                numberPerson,
+                interviewManager,
+                unit,
+                career,
+                address,
+                expiredDate,
+                startDate,
+                type,
+                location,
+                criterias,
+            } = req.body
+
+            const account = req.user
+
+            // Kiểm tra quyền truy cập
+            if (account.role !== 'RECRUITER') {
+                return res.status(403).json({ message: 'Forbidden' })
+            }
+
+            if (!Types.ObjectId.isValid(jobId)) {
+                return res.status(400).json({ message: 'Invalid job ID format' })
+            }
+
+            const job = await jobService.getJobById(new mongoose.Types.ObjectId(jobId))
+
+            if (!job) {
+                return res.status(404).json({ message: 'Job not found' })
+            }
+
+            // Object chứa các trường cần cập nhật
+            const updateFields: Record<string, unknown> = {}
+
+            if (title) updateFields.title = title
+            if (introduction) updateFields.introduction = introduction
+            if (description) updateFields.description = description
+            if (benefits) updateFields.benefits = benefits
+            if (requests) updateFields.requests = requests
+
+            if (minSalary != null) {
+                if (typeof minSalary !== 'number' || minSalary < 0) {
+                    return res.status(400).json({ message: 'minSalary must be a positive number' })
+                }
+                updateFields.minSalary = minSalary
+            }
+
+            if (maxSalary != null) {
+                if (typeof maxSalary !== 'number' || maxSalary < 0 || maxSalary < minSalary) {
+                    return res
+                        .status(400)
+                        .json({ message: 'maxSalary must be a positive number and greater than minSalary' })
+                }
+                updateFields.maxSalary = maxSalary
+            }
+
+            if (numberPerson != null) {
+                if (typeof numberPerson !== 'number' || numberPerson < 1) {
+                    return res.status(400).json({ message: 'numberPerson must be greater than 0' })
+                }
+                updateFields.numberPerson = numberPerson
+            }
+
+            if (interviewManager) {
+                if (!Types.ObjectId.isValid(interviewManager)) {
+                    return res.status(400).json({ message: 'Invalid interview manager ID format' })
+                }
+                const interviewManagerResult = await accountService.getAccountById(interviewManager)
+                if (!interviewManagerResult) {
+                    return res.status(404).json({ message: 'Interview manager not found' })
+                }
+                if ((interviewManagerResult.role as IRole).roleName !== 'INTERVIEW_MANAGER') {
+                    return res
+                        .status(403)
+                        .json({ message: `${interviewManagerResult.name} is not an interview manager` })
+                }
+                updateFields.interviewManager = interviewManager
+            }
+
+            if (unit) {
+                if (!Types.ObjectId.isValid(unit)) {
+                    return res.status(400).json({ message: 'Invalid unit ID format' })
+                }
+                const unitResult = await unitService.getUnitById(unit)
+                if (!unitResult) {
+                    return res.status(404).json({ message: 'Unit not found' })
+                }
+                updateFields.unit = unit
+            }
+
+            if (career) {
+                if (!Types.ObjectId.isValid(career)) {
+                    return res.status(400).json({ message: 'Invalid career ID format' })
+                }
+                const careerResult = await careerService.getCareerById(career)
+                if (!careerResult) {
+                    return res.status(404).json({ message: 'Career not found' })
+                }
+                updateFields.career = career
+            }
+
+            if (address) updateFields.address = address
+
+            const today = resetToStartOfDay(new Date())
+
+            if (expiredDate) {
+                const expirationDate = resetToStartOfDay(expiredDate)
+                if (isNaN(expirationDate.getTime()) || expirationDate <= today) {
+                    return res.status(400).json({ message: 'Expired date must be a valid future date' })
+                }
+                updateFields.expiredDate = expirationDate
+            }
+
+            if (startDate) {
+                const startionDate = resetToStartOfDay(startDate)
+                if (isNaN(startionDate.getTime()) || startionDate < today) {
+                    return res.status(400).json({ message: 'Start date must be a valid future date' })
+                }
+                updateFields.startDate = startionDate
+            }
+
+            if (type) updateFields.type = type
+
+            if (location) {
+                if (!Types.ObjectId.isValid(location)) {
+                    return res.status(400).json({ message: 'Invalid location ID format' })
+                }
+                const locationResult = await locationService.getLocationById(location)
+                if (!locationResult) {
+                    return res.status(404).json({ message: 'Location not found' })
+                }
+                updateFields.location = location
+            }
+
+            if (criterias) {
+                if (!Array.isArray(criterias) || criterias.length === 0) {
+                    return res.status(400).json({ message: 'Criterias must be a non-empty array' })
+                }
+                const areAllObjectIds = criterias.every((item) => Types.ObjectId.isValid(item))
+                if (!areAllObjectIds) {
+                    return res.status(400).json({ message: 'All elements in criterias must be valid ObjectIds' })
+                }
+                const criteriaObjId = criterias.map((criteria) => new Types.ObjectId(criteria))
+                const existingCriterias = await criteriaService.getListCriteria({ _id: { $in: criteriaObjId } })
+                if (existingCriterias.length !== criterias.length) {
+                    return res.status(400).json({ message: 'Some criteria do not exist' })
+                }
+                updateFields.criterias = criterias
+            }
+
+            // Thực hiện cập nhật
+            const updatedJob = await jobService.updateJob(new mongoose.Types.ObjectId(jobId), updateFields)
+
+            return res.json(updatedJob)
         } catch (error: unknown) {
             next(error)
         }
@@ -284,12 +450,6 @@ const jobController = {
 
             if (!Array.isArray(criterias) || criterias.length === 0) {
                 return res.status(400).json({ message: 'Group Criteria is required' })
-            }
-
-            function resetToStartOfDay(date) {
-                const newDate = new Date(date)
-                newDate.setHours(0, 0, 0, 0)
-                return newDate
             }
 
             const expirationDate = resetToStartOfDay(expiredDate)
@@ -465,6 +625,12 @@ const jobController = {
             next(error)
         }
     },
+}
+
+function resetToStartOfDay(date) {
+    const newDate = new Date(date)
+    newDate.setHours(0, 0, 0, 0)
+    return newDate
 }
 
 export default jobController

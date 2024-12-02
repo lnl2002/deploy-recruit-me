@@ -28,7 +28,6 @@ export const JobDetails = (): React.JSX.Element => {
       setJob(job);
       dispatch(saveJob(job as any));
     })();
-    console.log(jobId);
   }, [jobId]);
 
   const handleTabChange = (tab: string) => {
@@ -63,6 +62,7 @@ export const JobDetails = (): React.JSX.Element => {
           <TabComponent
             handleTabChange={handleTabChange}
             tabSelected={tabSelected}
+            job={job}
           />
           {tabSelected === "overview" && <InformationJob job={job} />}
           {tabSelected === "applicants-list" && (

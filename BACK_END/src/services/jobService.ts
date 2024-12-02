@@ -99,6 +99,10 @@ const jobService = {
             throw new Error('Could not soft delete job')
         }
     },
+    updateJob: async (jobId: Types.ObjectId, newJob: Partial<IJob>): Promise<IJob | null> => {
+        const job = await Job.findByIdAndUpdate(jobId, newJob, { new: true })
+        return job
+    },
     addJob: async (job: Partial<IJob>): Promise<IJob | null> => {
         try {
             const newJob = Job.create(job)
