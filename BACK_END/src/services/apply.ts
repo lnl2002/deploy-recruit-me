@@ -89,7 +89,7 @@ const applyService = {
     // S3 textract
     extractTextFromPdf: async (cvContent: string, jobId: string, applyId: string): Promise<string> => {
         try {
-            const job = await Job.findById('674889402fbd2cc948c9905c').select('_id criterias').populate({
+            const job = await Job.findById(jobId).select('_id criterias').populate({
                 path: 'criterias',
             })
 

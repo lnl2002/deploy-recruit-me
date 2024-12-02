@@ -29,6 +29,21 @@ const FilterSection: React.FC<FilterSectionProps> = ({
       </div>
       <div
         className="flex justify-start py-2 w-full cursor-pointer"
+        onClick={() => handleClick("pending")}
+      >
+        <p
+          className={`text-base px-1 text-${
+            filterValue === "approved"
+              ? "themeDark border-b-2"
+              : "foreground-400"
+          }
+          `}
+        >
+          Pending Approve Jobs
+        </p>
+      </div>
+      <div
+        className="flex justify-start py-2 w-full cursor-pointer"
         onClick={() => handleClick("approved")}
       >
         <p
