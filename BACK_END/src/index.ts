@@ -8,6 +8,7 @@ import 'module-alias/register'
 // Load environment variables from .env file
 dotenv.config()
 import './auth'
+import './crons'
 
 // const MONGO_DB_URL = 'mongodb://127.0.0.1:27017/RecruitME'
 const MONGO_DB_URL = process.env.DB_CONNECTION || ''
