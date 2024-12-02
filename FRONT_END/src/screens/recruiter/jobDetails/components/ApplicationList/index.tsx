@@ -270,6 +270,7 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
         <Empty />
       )}
       <ApplicantCard
+        apply={user}
         image={user?.createdBy?.image}
         name={`${user?.cv?.firstName || ''} ${user?.cv?.lastName || ''}`}
         email={user?.cv?.email || ''}

@@ -6,6 +6,7 @@ export interface INotification extends Document {
     content: string
     url: string
     timestamp: Date
+    seen: Boolean
 }
 
 const notificationSchema: Schema = new Schema(
@@ -17,6 +18,10 @@ const notificationSchema: Schema = new Schema(
         },
         content: {
             type: String,
+            required: true,
+        },
+        seen:{
+            type: Boolean,
             required: true,
         },
         url: {
