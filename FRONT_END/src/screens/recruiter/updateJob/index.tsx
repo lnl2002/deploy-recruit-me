@@ -13,7 +13,12 @@ import {
 } from "@nextui-org/react";
 import { DatePicker } from "@nextui-org/date-picker";
 import { ArrowLeft, ArrowRight, DollarSign, MapPin, X } from "lucide-react";
-import { Fragment, Key, useEffect, useState } from "react";
+import {
+  parseAbsoluteToLocal,
+  getLocalTimeZone,
+  today,
+} from "@internationalized/date";
+import { Key, useEffect, useState } from "react";
 import unitApi, { TUnit } from "@/api/unitApi";
 import accountApi, { IAccount } from "@/api/accountApi/accountApi";
 import jobApi, { TJob } from "@/api/jobApi";
@@ -26,7 +31,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useAppSelector } from "@/store/store";
 import groupCriteriaApi, { IGroupCriteria } from "@/api/groupCriteriaApi";
-import { ICriteria } from "@/api/criteriaApi";
+import { ICriteria, ICriteriaDetails } from "@/api/criteriaApi";
+import { title } from "process";
 import CriteriaDetail from "./criteriaDetail";
 import { isEmpty } from "@/utils/isEmpty";
 
@@ -67,12 +73,18 @@ const types: JobType[] = [
   { _id: "remote-parttime", name: "Remote Parttime" },
 ];
 
-type TCriteriaSelected = {
-  groupCriteriaId: string;
-  criteria: ICriteria;
-};
+// type TCriteriaSelected = {
+//   groupCriteriaId: string;
+//   criteria: ICriteria;
+// };
 
-export const AddJob = (): React.JSX.Element => {
+interface PageProps {
+  jobId: string;
+}
+
+export const UpdateJob: React.FC<PageProps> = ({
+  jobId,
+}): React.JSX.Element => {
   const router = useRouter();
   const { userInfo } = useAppSelector((state) => state.user);
   const [activeTab, setActiveTab] = useState("Job Description");
@@ -101,6 +113,27 @@ export const AddJob = (): React.JSX.Element => {
 
   useEffect(() => {
     (async () => {
+      const { job } = await jobApi.getJobById(jobId);
+
+      if (!job) {
+        toast.error("Job not found.");
+        router.push("/recruiter/list-jobs");
+        return;
+      }
+      setFormValue({
+        ...job,
+        career: (job.career as TCareer)._id,
+        interviewManager: (job.interviewManager as IAccount)._id,
+        account: (job.account as IAccount)._id,
+        location: (job.location as TLocation)._id,
+        unit: (job.unit as TUnit)._id,
+      });
+      setCriteriasSelected(job.criterias as ICriteria[]);
+    })();
+  }, [jobId]);
+
+  useEffect(() => {
+    (async () => {
       const { units } = await unitApi.getUnitList();
       const { careers } = await careerApi.getCareerList();
       setUnitList(units);
@@ -109,8 +142,8 @@ export const AddJob = (): React.JSX.Element => {
   }, []);
 
   useEffect(() => {
-    console.log(criteriasSelected);
-  }, [criteriasSelected]);
+    console.log(formValue);
+  }, [formValue]);
 
   useEffect(() => {
     (async () => {
@@ -150,7 +183,9 @@ export const AddJob = (): React.JSX.Element => {
         groupCriteriasSelected
       );
 
-      if (groupCriteria) setCriterias(groupCriteria.criterias as ICriteria[]);
+      if (groupCriteria) {
+        setCriterias(groupCriteria.criterias as ICriteria[]);
+      }
     })();
   }, [groupCriteriasSelected]);
 
@@ -330,15 +365,15 @@ export const AddJob = (): React.JSX.Element => {
 
     const criteriaIds = criteriasSelected.map((criteria) => criteria._id);
 
-    const { job: newJob } = await jobApi.addJob({
+    const { job: newJob } = await jobApi.updateJob(jobId, {
       ...formValue,
       criterias: criteriaIds,
     });
 
     if (newJob?._id) {
-      toast.success("Add job successfully");
+      toast.success("Update job successfully");
       router.push("/recruiter/list-job");
-    } else toast.error("Error creating job!");
+    } else toast.error("Error updating job!");
   };
 
   const handleSelectedCriterias =
@@ -364,12 +399,16 @@ export const AddJob = (): React.JSX.Element => {
     });
   };
 
+  if (Object.keys(formValue).length === 0) {
+    return <div>la</div>;
+  }
+
   return (
     <div className="flex-grow flex flex-col items-center justify-center">
       <div className="w-[68vw] flex-1 bg-white">
         <div className="mt-[60px]">
           <h1 className="mb-[4px] text-3xl font-medium text-[#999]">
-            Post a new job
+            Update a job
           </h1>
           <p className="text-backgroundDecor500 text-base">
             Create a job and hire your talented candidate now! 🌟
@@ -416,7 +455,6 @@ export const AddJob = (): React.JSX.Element => {
                         }
                         className="mt-[32px]"
                       />
-                      {/* {accountList.length > 0 && ( */}
                       <AutocompleteComponent
                         items={accountList}
                         props={{ isDisabled: accountList.length === 0 }}
@@ -439,7 +477,6 @@ export const AddJob = (): React.JSX.Element => {
                         }
                         className="mt-[32px]"
                       />
-                      {/* )} */}
                       <CustomEditor
                         handleChange={handleOnChange}
                         label="Description"
@@ -514,7 +551,6 @@ export const AddJob = (): React.JSX.Element => {
                           label="Career"
                           placeholder="Select Career"
                           selectedKey={formValue.career as string | null}
-                          // onSelectionChange={onSelectionCareerChange}
                           onSelectionChange={(value: Key | null) => {
                             onSelectedChange("career", value);
                           }}
@@ -531,7 +567,6 @@ export const AddJob = (): React.JSX.Element => {
                           label="Location"
                           placeholder="Select Location"
                           selectedKey={formValue.location as string | null}
-                          // onSelectionChange={onSelectionLocationChange}
                           onSelectionChange={(value: Key | null) => {
                             onSelectedChange("location", value);
                           }}
@@ -587,6 +622,10 @@ export const AddJob = (): React.JSX.Element => {
                           onChange={onDateChange("startDate")}
                           isInvalid={!!formValueError.startDate}
                           errorMessage={formValueError.startDate}
+                          defaultValue={parseAbsoluteToLocal(
+                            formValue?.startDate ?? getLocalTimeZone()
+                          )}
+                          granularity="day"
                         />
                         <DatePicker
                           label="Expired date"
@@ -595,6 +634,10 @@ export const AddJob = (): React.JSX.Element => {
                           onChange={onDateChange("expiredDate")}
                           isInvalid={!!formValueError.expiredDate}
                           errorMessage={formValueError.expiredDate}
+                          defaultValue={parseAbsoluteToLocal(
+                            formValue?.expiredDate ?? getLocalTimeZone()
+                          )}
+                          granularity="day"
                         />
                       </div>
 
@@ -710,7 +753,7 @@ export const AddJob = (): React.JSX.Element => {
                           startContent={
                             <Checkbox
                               isSelected={criteriasSelected.some(
-                                (item) => item._id === criteria._id
+                                (item) => item?._id === criteria._id
                               )}
                               onValueChange={handleSelectedCriterias(criteria)}
                               aria-label={criteria?.name}
@@ -759,29 +802,25 @@ export const AddJob = (): React.JSX.Element => {
                       List criteria for {formValue.title}
                     </p>
                     <Accordion>
-                      {criteriasSelected.map((criteria) => {
-                        return (
-                          <AccordionItem
-                            key={criteria._id}
-                            aria-label={criteria?.name}
-                            title={criteria?.name}
-                            indicator={
-                              <Button
-                                radius="full"
-                                className="bg-gradient-to-tr from-[#ff4c28] to-[#FFF] text-themeWhite shadow-lg"
-                                isIconOnly={true}
-                                onPress={handleDeleteSelectedCriterias(
-                                  criteria
-                                )}
-                              >
-                                <X size={18} aria-label={criteria?.name}></X>
-                              </Button>
-                            }
-                          >
-                            <CriteriaDetail criteria={criteria} />
-                          </AccordionItem>
-                        );
-                      })}
+                      {criteriasSelected.map((criteria) => (
+                        <AccordionItem
+                          key={criteria?._id}
+                          aria-label={criteria?.name}
+                          title={criteria?.name}
+                          indicator={
+                            <Button
+                              radius="full"
+                              className="bg-gradient-to-tr from-[#ff4c28] to-[#FFF] text-themeWhite shadow-lg"
+                              isIconOnly={true}
+                              onPress={handleDeleteSelectedCriterias(criteria)}
+                            >
+                              <X size={18} aria-label={criteria?.name} />
+                            </Button>
+                          }
+                        >
+                          <CriteriaDetail criteria={criteria} />
+                        </AccordionItem>
+                      ))}
                     </Accordion>
                   </CardBody>
                 </Card>
@@ -801,7 +840,7 @@ export const AddJob = (): React.JSX.Element => {
                     radius="full"
                     className="bg-gradient-to-tr from-themeOrange to-blurEffectGold text-themeWhite shadow-lg w-[174px] h-[44px]"
                   >
-                    Post Job
+                    Update Job
                   </Button>
                 </div>
               </Tab>

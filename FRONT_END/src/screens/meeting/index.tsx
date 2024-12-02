@@ -111,7 +111,7 @@ export const Meeting: React.FC<PageProps> = ({ params }): React.JSX.Element => {
     } catch (error) {
       console.log(error);
     }
-  }, [meetingURL]);
+  }, [meetingURL, params]);
 
   const handleSubmit = useCallback(async () => {
     setConnecting(true);

@@ -251,7 +251,7 @@ const Room: React.FC<RoomProps> = ({
         <div className="col-span-2">
           <div className="flex flex-col items-center justify-start border-2 rounded-lg p-2">
             <Tabs aria-label="Options" classNames={{ panel: "py-0" }}>
-              <Tab key="note" title="Note">
+              <Tab key="note" title="Note" className={"w-full"}>
                 <CriteriaEvaluation
                   cvScore={cvScore}
                   applicantReportIds={applicantReportIds}
