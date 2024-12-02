@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Status from "./status";
 import { AlarmClock, ArrowRight, ChevronLeft } from "lucide-react";
 import { IStateProps } from "../types/status";
-import applyApi from "@/api/applyApi";
+import applyApi, { IApply } from "@/api/applyApi";
 import { toast } from "react-toastify";
 import ScheduleInterviewModal from "./BookSchedule";
 import ModalConfirm from "@/components/Modals/ModalConfirm";
@@ -14,6 +14,7 @@ import {
 import { useRouter } from "next/navigation";
 import meetingApi from "@/api/meetingApi";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import systemApi from "@/api/systemApi";
 
 interface ApplicantCardProps {
   name: string;
@@ -32,6 +33,7 @@ interface ApplicantCardProps {
   setLoadAgain: (loadAgain: boolean) => void;
   cv: any;
   user?: any;
+  apply?: IApply;
 }
 
 const ApplicantCard: React.FC<ApplicantCardProps> = ({
@@ -51,6 +53,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
   image,
   cv,
   user,
+  apply,
 }) => {
   return (
     <>
@@ -132,6 +135,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
             setLoadAgain={setLoadAgain}
             cv={cv}
             meetingInfo={user}
+            apply={apply}
           />
         </div>
       </div>
@@ -147,6 +151,7 @@ const State: React.FC<IStateProps> = ({
   setLoadAgain,
   cv,
   meetingInfo,
+  apply,
 }: IStateProps) => {
   const [status, setStatus] = useState(initialStatus);
   useEffect(() => {
@@ -162,6 +167,13 @@ const State: React.FC<IStateProps> = ({
     if (!data) {
       toast.error("Something went wrong! pls try again");
       return;
+    } else {
+      systemApi.createNotification({
+        content:
+          "Your CV have been reviewed and be switched to state: " + status,
+        receiver: apply?.createdBy?._id ?? "",
+        url: "/job-details?id=" + apply?.job?._id,
+      });
     }
     toast.success("Change status successfully");
     setLoadAgain?.(true);
