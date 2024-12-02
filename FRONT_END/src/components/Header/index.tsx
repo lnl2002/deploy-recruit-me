@@ -67,7 +67,7 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
   }, []);
 
   const fetchNoti = async () => {
-    const data = await systemApi.getUserNotifications();
+    const data = (await systemApi.getUserNotifications()) as any;
     setNotis(data.data);
     console.log(data.data);
   };
@@ -125,7 +125,7 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
               <Dropdown placement="bottom-end">
                 <DropdownTrigger className="border-none">
                   <button className="flex flex-row items-center gap-5 rounded-full border-none py-5 px-1">
-                    <Badge color="danger" content={notis.filter(n => !n.seen).length} shape="circle">
+                    <Badge color="danger" content={notis ? notis.filter(n => !n.seen).length : 0} shape="circle">
                       <Bell
                         className="fill-current text-textPrimary"
                         size={20}
@@ -138,7 +138,7 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
                   aria-label="Profile Actions"
                   variant="flat"
                 >
-                  {notis.map((n, index) => (
+                  {notis && notis.map((n, index) => (
                     <DropdownItem key={index} onClick={() => handleNotiClick(n._id)} className={twMerge("gap-2 py-3 my-1", n.seen ? "bg-surfaceTertiary" : "bg-themeWhite")}>
                       <div>
                         <div className="flex gap-2 items-center">
