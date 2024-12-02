@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { HrLayout } from "@/components";
+import { HrLayout, InterviewerLayout } from "@/components";
 import { InterviewManagerListJob } from "@/screens";
 
 export default function ContactUsPage() {
@@ -14,11 +14,11 @@ export default function ContactUsPage() {
         backgroundPosition: "center",
       }}
     >
-      <HrLayout>
+      <InterviewerLayout>
         <div className="flex-1">
           <InterviewManagerListJob />
         </div>
-      </HrLayout>
+      </InterviewerLayout>
     </div>
   );
 }

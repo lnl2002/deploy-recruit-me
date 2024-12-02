@@ -21,7 +21,7 @@ import {
 import { logout } from "@/store/userState";
 
 import { setStatusJobFilterIndex } from "@/store/jobState";
-import { hrNavLinks, navLinks, Role } from "@/utils/constants";
+import { hrNavLinks, interviewerNavLink, navLinks, Role } from "@/utils/constants";
 import { useDispatch } from "react-redux";
 
 const getNavLink = (role: Role) => {
@@ -30,6 +30,8 @@ const getNavLink = (role: Role) => {
       return navLinks;
     case Role.Recruiter:
       return hrNavLinks;
+    case Role.Interviewer:
+      return interviewerNavLink
   }
 };
 
@@ -65,7 +67,7 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
           </div>
         </Link>
         <div className="hidden sm:flex items-center">
-          {getNavLink(role ?? Role.Common).map((item, index: number) =>
+          {getNavLink(role ?? Role.Common)?.map((item, index: number) =>
             !item.expandable && item?.expand.length === 0 ? (
               <HeaderLink
                 key={index + item.id}
