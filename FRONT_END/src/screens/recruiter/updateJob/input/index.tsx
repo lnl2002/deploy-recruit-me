@@ -16,7 +16,6 @@ interface IInputComponentProps {
   disabled?: boolean;
   endContent?: React.ReactNode;
   className?: string;
-  props?: any;
 }
 
 function InputComponent({
@@ -34,7 +33,6 @@ function InputComponent({
   disabled = false,
   endContent,
   className = "",
-  props,
 }: IInputComponentProps) {
   return (
     <Input
@@ -52,7 +50,6 @@ function InputComponent({
       disabled={disabled}
       endContent={endContent}
       className={className}
-      {...props}
     />
   );
 }

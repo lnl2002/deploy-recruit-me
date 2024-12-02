@@ -5,6 +5,7 @@ export * from "./jobDetails";
 export * from "./recruiter/ListJob";
 export * from "./recruiter/jobDetails";
 export * from "./recruiter/addJob";
+export * from "./recruiter/updateJob";
 
 export * from "./interview-manager/ListJob";
 export * from "./interview-manager/jobDetails";

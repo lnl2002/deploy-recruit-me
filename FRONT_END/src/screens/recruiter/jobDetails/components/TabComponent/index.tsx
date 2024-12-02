@@ -1,3 +1,4 @@
+import { TJob } from "@/api/jobApi";
 import {
   Dropdown,
   DropdownItem,
@@ -5,16 +6,20 @@ import {
   DropdownTrigger,
 } from "@nextui-org/react";
 import { EllipsisVertical } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type TabComponentProps = {
   tabSelected: string;
   handleTabChange: (tab: string) => void;
+  job: Partial<TJob>;
 };
 
 const TabComponent: React.FC<TabComponentProps> = ({
   handleTabChange,
   tabSelected,
+  job,
 }): React.JSX.Element => {
+  const router = useRouter();
   return (
     <div className="flex justify-between">
       <div>
@@ -73,23 +78,32 @@ const TabComponent: React.FC<TabComponentProps> = ({
           </div>
         </div>
       </div>
-      <div>
-        <Dropdown>
-          <DropdownTrigger>
-            <EllipsisVertical
-              size={43}
-              className="p-2.5 border rounded-full cursor-pointer"
-              color="#000"
-            />
-          </DropdownTrigger>
-          <DropdownMenu aria-label="Static Actions">
-            <DropdownItem className="text-themeDark">Edit</DropdownItem>
-            <DropdownItem key="delete" className="text-danger" color="danger">
-              Delete
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-      </div>
+      {job?.status !== "approved" && (
+        <div>
+          <Dropdown>
+            <DropdownTrigger>
+              <EllipsisVertical
+                size={43}
+                className="p-2.5 border rounded-full cursor-pointer"
+                color="#000"
+              />
+            </DropdownTrigger>
+            <DropdownMenu aria-label="Static Actions">
+              <DropdownItem
+                className="text-themeDark"
+                onClick={() => {
+                  router.push(`/recruiter/update-job/${job?._id ?? ""}`);
+                }}
+              >
+                Edit
+              </DropdownItem>
+              <DropdownItem key="delete" className="text-danger" color="danger">
+                Delete
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        </div>
+      )}
     </div>
   );
 };

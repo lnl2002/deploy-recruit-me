@@ -35,38 +35,29 @@ const jobApi = {
     }
   },
 
-  getJobListOwn: async (
-    params: string,
-    id: string
-  ): Promise<{ jobs: TJob[]; total: number }> => {
-    let newParams = "?expiredDate=1&sort_by=createdAt&order=1" + params;
-    console.log(newParams);
-    try {
-      const res = await axios.get(
-        `${BACKEND_URL}/api/v1/jobs/user/${id}${newParams}`
-      );
-
-      if (res.status === 200) {
-        return { jobs: res.data.data.jobs, total: res.data.data.total };
-      } else {
-        return { jobs: [], total: 0 };
-      }
-    } catch (error) {
-      console.error("Error fetching job list:", error);
-      return { jobs: [], total: 0 };
-    }
-  },
-
   getJobById: async (id: string): Promise<{ job: Partial<TJob> }> => {
     try {
       const res = await axios.get(`${BACKEND_URL}/api/v1/jobs/${id}`);
 
-      if (res.status === 200) {
-        return { job: res.data.data };
-      } else {
-        return { job: {} };
-      }
+      return { job: res.data.data };
     } catch (error) {
+      return { job: {} };
+    }
+  },
+
+  updateJob: async (
+    id: string,
+    newJob: Partial<TJob>
+  ): Promise<{ job: Partial<TJob> }> => {
+    try {
+      const res = await axios.patch(`${BACKEND_URL}/api/v1/jobs/${id}`, newJob);
+
+      return { job: res.data.data };
+    } catch (error: any) {
+      const { status } = error as AxiosError;
+      if (status === 401) {
+        window.location.href = "/login";
+      }
       return { job: {} };
     }
   },
