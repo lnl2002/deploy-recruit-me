@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Types } from 'mongoose'
-import Account, { IAccount } from '../models/accountModel'
+import Account, { IAccount, IAccoutStatus } from '../models/accountModel'
 import Role from '../models/roleModel'
 
 const accountService = {
     getAccountList: async (query: any, filteredQuery: any): Promise<{ accounts: IAccount[]; total: number }> => {
-        const { sort_field = 'createdAt', order = 'asc', limit, skip } = query
+        const { sort_field = 'createdAt', order = 'asc', limit, skip, role } = query
+
+        if(role) {
+            const roleInfo = await Role.findOne({
+                roleName: role
+            })
+            filteredQuery.role = roleInfo._id
+        }
 
         const total = await Account.countDocuments(filteredQuery)
 
@@ -62,6 +69,24 @@ const accountService = {
 
         return listInterviewer
     },
+
+    updateStatus: async (accountId: string, newStatus: IAccoutStatus) => {
+        // Find the account by ID and update its status
+        const updatedAccount = await Account.findByIdAndUpdate(
+            accountId,
+            { status: newStatus },
+            { new: true, runValidators: true },
+        )
+        return updatedAccount;
+    },
+
+    createAccount: async (accountData: Partial<IAccount>) => {
+        const account = new Account({
+            ...accountData
+        })
+
+        return await account.save();
+    }
 }
 
 export default accountService
