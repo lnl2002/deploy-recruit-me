@@ -7,11 +7,12 @@ import { usePathname } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
-import { Menu, MenuIcon } from "lucide-react";
+import { Bell, ChevronDown, Dot, LogOut, Menu, MenuIcon } from "lucide-react";
 import { SearchBox } from "../SearchBox";
 import { Images } from "@/images";
 import {
   Avatar,
+  Badge,
   Button,
   Dropdown,
   DropdownItem,
@@ -21,8 +22,15 @@ import {
 import { logout } from "@/store/userState";
 
 import { setStatusJobFilterIndex } from "@/store/jobState";
-import { hrNavLinks, navLinks, Role } from "@/utils/constants";
+import {
+  hrNavLinks,
+  interviewerNavLink,
+  navLinks,
+  Role,
+} from "@/utils/constants";
 import { useDispatch } from "react-redux";
+import systemApi, { INoti } from "@/api/systemApi";
+import { format } from "date-fns";
 
 const getNavLink = (role: Role) => {
   switch (role) {
@@ -30,6 +38,8 @@ const getNavLink = (role: Role) => {
       return navLinks;
     case Role.Recruiter:
       return hrNavLinks;
+    case Role.Interviewer:
+      return interviewerNavLink;
   }
 };
 
@@ -39,13 +49,33 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
   const router = useRouter();
   const isActive = (path: string) => path === pathname;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [notis, setNotis] = useState<INoti[]>([]);
 
   const { userInfo, isLoggedIn } = useAppSelector((state) => state.user);
 
   const handleLogout = () => {
     dispatch(logout()); // Dispatch để đăng xuất người dùng
-    window.location.href = '/login'
+    window.location.href = "/login";
   };
+
+  //fetch noti each 30s
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchNoti()
+    }, 30000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const fetchNoti = async () => {
+    const data = (await systemApi.getUserNotifications()) as any;
+    setNotis(data.data);
+    console.log(data.data);
+  };
+
+  const handleNotiClick = async (id: string) => {
+    await systemApi.markAsSeen(id);
+    fetchNoti()
+  }
 
   return (
     <div className="relative z-10 justify-center grid grid-cols-2 h-16 bg-[transparent] items-center sm:flex sm:justify-between">
@@ -65,7 +95,7 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
           </div>
         </Link>
         <div className="hidden sm:flex items-center">
-          {getNavLink(role ?? Role.Common).map((item, index: number) =>
+          {getNavLink(role ?? Role.Common)?.map((item, index: number) =>
             !item.expandable && item?.expand.length === 0 ? (
               <HeaderLink
                 key={index + item.id}
@@ -89,53 +119,103 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
             )
           )}
         </div>
-        {/*<div>
-          <HeaderLink
-            title={"Login"}
-            isCurrent={false}
-            href={"/login"}
-            expandable={false}
-          /> 
-        </div>*/}
         <div className="flex items-center gap-3">
           {isLoggedIn ? (
-            <Dropdown placement="bottom-end">
-              <DropdownTrigger>
-                <Avatar
-                  isBordered
-                  as="button"
-                  className="transition-transform"
-                  color="secondary"
-                  name={userInfo?.displayName || ""}
-                  size="sm"
-                  src={userInfo?.image || ""}
-                />
-              </DropdownTrigger>
-              <DropdownMenu
-                className="text-themeDark"
-                aria-label="Profile Actions"
-                variant="flat"
-              >
-                <DropdownItem key="profile" className="h-10 gap-2">
-                  <p className="font-semibold">{userInfo?.displayName || ""}</p>
-                </DropdownItem>
-                <DropdownItem key="settings">My Settings</DropdownItem>
-                <DropdownItem key="team_settings">Team Settings</DropdownItem>
-                <DropdownItem key="analytics">Analytics</DropdownItem>
-                <DropdownItem key="system">System</DropdownItem>
-                <DropdownItem key="configurations">Configurations</DropdownItem>
-                <DropdownItem key="help_and_feedback">
-                  Help & Feedback
-                </DropdownItem>
-                <DropdownItem
-                  key="logout"
-                  color="danger"
-                  onClick={() => handleLogout()}
+            <div className="flex flex-row items-center gap-5">
+              <Dropdown placement="bottom-end">
+                <DropdownTrigger className="border-none">
+                  <button className="flex flex-row items-center gap-5 rounded-full border-none py-5 px-1">
+                    <Badge color="danger" content={notis ? notis.filter(n => !n.seen).length : 0} shape="circle">
+                      <Bell
+                        className="fill-current text-textPrimary"
+                        size={20}
+                      />
+                    </Badge>
+                  </button>
+                </DropdownTrigger>
+                <DropdownMenu
+                  className="text-themeDark"
+                  aria-label="Profile Actions"
+                  variant="flat"
                 >
-                  Log Out
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
+                  {notis && notis.map((n, index) => (
+                    <DropdownItem key={index} onClick={() => handleNotiClick(n._id)} className={twMerge("gap-2 py-3 my-1", n.seen ? "bg-surfaceTertiary" : "bg-themeWhite")}>
+                      <div>
+                        <div className="flex gap-2 items-center">
+                          <img
+                            src="./logo.svg"
+                            alt="RecruitMe Logo"
+                            className="h-10"
+                          />
+                          <div className="flex flex-col">
+                            <p className={twMerge("text-md", n.seen? "font-medium" : "font-semibold")}>{n.content}</p>
+                            <p className="text-textSecondary italic">
+                              {format(
+                                new Date(n.createdAt),
+                                "dd MMMM yyyy HH:mm"
+                              )}
+                            </p>
+                          </div>
+                          {!n.seen && <Dot className="text-textIconBrand" size={20}/>}
+                        </div>
+                      </div>
+                    </DropdownItem>
+                  ))}
+                </DropdownMenu>
+              </Dropdown>
+              <Dropdown placement="bottom-end">
+                <DropdownTrigger>
+                  <Button
+                    variant="bordered"
+                    className="flex flex-row items-center gap-5 rounded-full py-5 px-1"
+                  >
+                    <Avatar
+                      isBordered
+                      as="button"
+                      className="transition-transform"
+                      color="secondary"
+                      name={userInfo?.displayName || ""}
+                      size="sm"
+                      src={userInfo?.image || ""}
+                    />
+                    <p className="text-textPrimary font-semibold max-w-36 overflow-clip whitespace-nowrap text-ellipsis">
+                      {userInfo?.displayName}
+                    </p>
+                    <ChevronDown color="black" />
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu
+                  className="text-themeDark"
+                  aria-label="Profile Actions"
+                  variant="flat"
+                >
+                  <DropdownItem key="profile" className="h-10 gap-2">
+                    <p className="font-semibold">
+                      {userInfo?.displayName || ""}
+                    </p>
+                  </DropdownItem>
+                  <DropdownItem>
+                    <div>
+                      <p className="text-textPrimary italic">
+                        {userInfo?.email}
+                      </p>
+                      <p className="text-textPrimary">Account role: </p>
+                      <p className="text-themeOrange">{userInfo?.role}</p>
+                    </div>
+                  </DropdownItem>
+                  <DropdownItem
+                    key="logout"
+                    color="danger"
+                    onClick={() => handleLogout()}
+                  >
+                    <div className="flex flex-row items-center gap-2">
+                      <p className="text-themeOrange">Log Out</p>
+                      <LogOut size={20} className="text-themeOrange" />
+                    </div>
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </div>
           ) : (
             <div className="flex gap-3">
               <Button

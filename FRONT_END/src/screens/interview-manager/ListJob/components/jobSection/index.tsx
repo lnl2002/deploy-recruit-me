@@ -159,6 +159,22 @@ const JobSection: React.FC<ListJobProps> = ({
               </p>
             </div>
           );
+        case "startDate":
+          return (
+            <div className="flex flex-col">
+              <p className="text-bold text-small capitalize">
+                {dateFormat(cellValue)}
+              </p>
+            </div>
+          );
+        case "expiredDate":
+          return (
+            <div className="flex flex-col">
+              <p className="text-bold text-small capitalize">
+                {dateFormat(cellValue)}
+              </p>
+            </div>
+          );
         case "unit":
           return (
             <div className="flex flex-col">

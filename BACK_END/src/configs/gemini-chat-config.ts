@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { Content, GoogleGenerativeAI } from '@google/generative-ai'
 
 const GEMINI_CHAT_API_KEY = process.env.GEMINI_CHAT_API_KEY || ''
 
@@ -28,7 +28,7 @@ const model = genAI.getGenerativeModel({
     About privacy policy: Your CV will be encrypted by our system for highest data sercure. 
 
     ** Note for answer :
-    Your response should be in json form : {
+    Your response MUST be in json form so that i can handle your response as data: {
         response: [response]
         data: [data for job finding]
     }
@@ -49,17 +49,24 @@ const generationConfig = {
     topK: 40, // Allow a broader range of vocabulary
     maxOutputTokens: 512, // Limit response length for efficiency
     responseMimeType: 'text/plain',
-};
+}
 
-export async function genAnswer(inputMessage: string) {
+export async function genAnswer(inputMessage: string, history: Content[] = []): Promise<any> {
+    //added return type Promise<any>
+    console.log(JSON.stringify(history));
+    
     const chatSession = model.startChat({
         generationConfig,
-        // safetySettings: Adjust safety settings
-        // See https://ai.google.dev/gemini-api/docs/safety-settings
-        history: [],
+        history: [], //Ensure history is properly formatted.
     })
 
-    const result = await chatSession.sendMessage(inputMessage)
-    console.log(result.response.text())
-    return result
+    try {
+        const result = await chatSession.sendMessage(inputMessage)
+        console.log(result.response.text())
+        return result
+    } catch (error) {
+        console.error('Error during Gemini API call:', error)
+        // Handle the error appropriately (e.g., return an error message, retry, etc.)
+        throw error // Re-throw for higher-level error handling
+    }
 }

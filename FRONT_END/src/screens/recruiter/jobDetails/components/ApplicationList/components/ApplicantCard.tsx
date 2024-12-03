@@ -3,12 +3,13 @@ import React, { useEffect, useState } from "react";
 import Status from "./status";
 import { AlarmClock, ChevronLeft } from "lucide-react";
 import { IStateProps } from "../types/status";
-import applyApi from "@/api/applyApi";
+import applyApi, { IApply } from "@/api/applyApi";
 import { toast } from "react-toastify";
 import ScheduleInterviewModal from "./BookSchedule";
 import ModalConfirm from "@/components/Modals/ModalConfirm";
 import meetingApi from "@/api/meetingApi";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import systemApi from "@/api/systemApi";
 
 interface ApplicantCardProps {
   name: string;
@@ -25,7 +26,8 @@ interface ApplicantCardProps {
   onClose: () => void;
   applyId: string;
   setLoadAgain: (loadAgain: boolean) => void;
-  cv: any
+  cv: any;
+  apply: IApply;
 }
 
 const ApplicantCard: React.FC<ApplicantCardProps> = ({
@@ -43,7 +45,8 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
   applyId,
   setLoadAgain,
   image,
-  cv
+  cv,
+  apply,
 }) => {
   return (
     <>
@@ -118,7 +121,14 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
               </ul>
             </div>
           </div>
-          <State key={state} status={state} applyId={applyId} setLoadAgain={setLoadAgain} cv={cv}/>
+          <State
+            key={state}
+            status={state}
+            applyId={applyId}
+            setLoadAgain={setLoadAgain}
+            cv={cv}
+            apply={apply}
+          />
         </div>
       </div>
     </>
@@ -127,7 +137,13 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
 
 export default ApplicantCard;
 
-const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", setLoadAgain, cv }: IStateProps) => {
+const State: React.FC<IStateProps> = ({
+  status: initialStatus,
+  applyId = "",
+  setLoadAgain,
+  cv,
+  apply,
+}: IStateProps) => {
   const [status, setStatus] = useState(initialStatus);
   useEffect(() => {
     setStatus(initialStatus);
@@ -142,9 +158,17 @@ const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", set
     if (!data) {
       toast.error("Something went wrong! pls try again");
       return;
+    } else {
+      //push noti
+      systemApi.createNotification({
+        content:
+          "Your CV have been reviewed and be switched to state: " + status,
+        receiver: apply?.createdBy?._id ?? "",
+        url: "/job-details?id=" + apply?.job?._id,
+      });
     }
-    toast.success('Change status successfully');
-    setLoadAgain?.(true)
+    toast.success("Change status successfully");
+    setLoadAgain?.(true);
     setStatus(status);
   };
 
@@ -240,20 +264,20 @@ const State: React.FC<IStateProps> = ({ status: initialStatus, applyId = "", set
 
 const NewStatus = ({ status, description, changeStatus }: IStateProps) => {
   const [isConfirm, setIsConfirm] = useState<boolean>(false);
-  const [btnChoosed, setButtonChoosed] = useState<string>('');
+  const [btnChoosed, setButtonChoosed] = useState<string>("");
   const disclosure = useDisclosure();
 
   const handleClickButton = (updateStatus: string) => {
     setButtonChoosed(updateStatus);
-    disclosure.onOpen()
-  }
+    disclosure.onOpen();
+  };
 
   useEffect(() => {
-    if(isConfirm && changeStatus){
-      changeStatus({status: btnChoosed})
+    if (isConfirm && changeStatus) {
+      changeStatus({ status: btnChoosed });
       disclosure.onClose();
     }
-  }, [isConfirm])
+  }, [isConfirm]);
 
   return (
     <div className="flex-grow flex justify-between flex-col">
@@ -261,7 +285,7 @@ const NewStatus = ({ status, description, changeStatus }: IStateProps) => {
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status}  key={status}/>
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -273,15 +297,15 @@ const NewStatus = ({ status, description, changeStatus }: IStateProps) => {
         <Button
           className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
           radius="full"
-          onClick={() => handleClickButton('Rejected')} // status name in db
+          onClick={() => handleClickButton("Rejected")} // status name in db
         >
           Reject
         </Button>
-        <Button 
+        <Button
           className="bg-themeOrange text-[#fff]"
           radius="full"
-          onClick={() => handleClickButton('Shortlisted')} // status name in db
-          >
+          onClick={() => handleClickButton("Shortlisted")} // status name in db
+        >
           Shortlisting
         </Button>
       </div>
@@ -298,7 +322,7 @@ const NewStatus = ({ status, description, changeStatus }: IStateProps) => {
 const ApprovalInterviewScheduleStatus = ({
   status,
   description,
-  changeStatus
+  changeStatus,
 }: IStateProps) => {
   return (
     <div className="flex-grow flex justify-between flex-col">
@@ -306,7 +330,7 @@ const ApprovalInterviewScheduleStatus = ({
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status}  key={status}/>
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -326,14 +350,18 @@ const ApprovalInterviewScheduleStatus = ({
     </div>
   );
 };
-const InterviewedStatus = ({ status, description, changeStatus }: IStateProps) => {
+const InterviewedStatus = ({
+  status,
+  description,
+  changeStatus,
+}: IStateProps) => {
   return (
     <div className="flex-grow flex justify-between flex-col">
       <div className="mb-6">
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status}  key={status}/>
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -351,7 +379,7 @@ const AcceptedStatus = ({ status, description, changeStatus }: IStateProps) => {
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status}  key={status}/>
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -369,7 +397,7 @@ const RejectedStatus = ({ status, description, changeStatus }: IStateProps) => {
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status}  key={status}/>
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -380,7 +408,13 @@ const RejectedStatus = ({ status, description, changeStatus }: IStateProps) => {
     </div>
   );
 };
-const ShortlistedStatus = ({ status, description, changeStatus, cv, applyId }: IStateProps) => {
+const ShortlistedStatus = ({
+  status,
+  description,
+  changeStatus,
+  cv,
+  applyId,
+}: IStateProps) => {
   const disclosure = useDisclosure();
 
   const handleSend = (data: any) => {
@@ -393,7 +427,7 @@ const ShortlistedStatus = ({ status, description, changeStatus, cv, applyId }: I
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status}  key={status}/>
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -402,29 +436,37 @@ const ShortlistedStatus = ({ status, description, changeStatus, cv, applyId }: I
         </p>
       </div>
       <div className="grid grid-cols-1 gap-4">
-        <Button className="bg-themeOrange text-[#fff]" radius="full" onClick={() => disclosure.onOpen()}>
+        <Button
+          className="bg-themeOrange text-[#fff]"
+          radius="full"
+          onClick={() => disclosure.onOpen()}
+        >
           Schedule a interview time
         </Button>
       </div>
-      <ScheduleInterviewModal 
+      <ScheduleInterviewModal
         disclosure={disclosure}
         onClose={() => disclosure.onClose()}
-        onSend={() => console.log('test')}
+        onSend={() => console.log("test")}
         cv={cv}
         changeStatus={changeStatus}
-        applyId={applyId || ''}
-        />
+        applyId={applyId || ""}
+      />
     </div>
   );
 };
-const InterviewPendingStatus = ({ status, description, changeStatus }: IStateProps) => {
+const InterviewPendingStatus = ({
+  status,
+  description,
+  changeStatus,
+}: IStateProps) => {
   return (
     <div className="flex-grow flex justify-between flex-col">
       <div className="mb-6">
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status}  key={status}/>
+            <Status status={status} key={status} />
           </p>
         </div>
 
@@ -446,7 +488,12 @@ const InterviewPendingStatus = ({ status, description, changeStatus }: IStatePro
     </div>
   );
 };
-const RescheduleStatus = ({ status, description, changeStatus, applyId }: IStateProps) => {
+const RescheduleStatus = ({
+  status,
+  description,
+  changeStatus,
+  applyId,
+}: IStateProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [reason, setReason] = useState<string>("");
 
@@ -469,7 +516,7 @@ const RescheduleStatus = ({ status, description, changeStatus, applyId }: IState
         <div className="flex justify-between">
           <h3 className="text-lg font-semibold">Status</h3>
           <p className="text-gray-500 mb-2">
-            <Status status={status}  key={status}/>
+            <Status status={status} key={status} />
           </p>
         </div>
 

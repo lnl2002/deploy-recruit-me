@@ -323,6 +323,7 @@ export const ApplicantScheduledTable = ({
           candidateId: user?.createdBy?._id,
         }}
         user={user}
+        apply={user}
       />
       <ModalCommon size={"5xl"} disclosure={cvViewDisclosure}>
         <CvViewer url={url ?? ""} />

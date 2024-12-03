@@ -1,9 +1,8 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { Spinner } from "@nextui-org/react";
 import { CandidateList as Candidates } from "@/screens";
-import { HrLayout } from "@/components";
+import { HrLayout, InterviewerLayout } from "@/components";
 
 export default function CandidateList() {
   return (
@@ -15,11 +14,11 @@ export default function CandidateList() {
         backgroundPosition: "center",
       }}
     >
-      <HrLayout>
+      <InterviewerLayout>
         <div className="flex-1">
           <Candidates />
         </div>
-      </HrLayout>
+      </InterviewerLayout>
     </div>
   );
 }

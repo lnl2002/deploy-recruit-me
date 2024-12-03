@@ -4,6 +4,9 @@ import Account, { IAccount } from '../models/accountModel'
 import Role, { IRole } from '../models/roleModel'
 import CVStatus from '../models/cvStatusModel'
 import { IApply } from '../models/applyModel'
+import { formatDateTime, truncateToMinutes } from '../utils/common'
+import { sendMessageToQueue } from '../configs/aws-queue'
+import { S3_QUEUE_URL } from '../utils/env'
 
 interface UpdateMeetingStatusInput {
     meetingRoomId: mongoose.Types.ObjectId
@@ -282,7 +285,7 @@ const meetingService = {
                                             },
                                             0,
                                         ],
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     } as any,
                                 },
                             },
@@ -399,7 +402,9 @@ const meetingService = {
         }
 
         // Lọc participants có role bằng role.id
-        const filteredParticipants = data.participants.filter((p) =>  p.participant && ((p.participant as IAccount).role.toString() === role._id.toString()))
+        const filteredParticipants = data.participants.filter(
+            (p) => p.participant && (p.participant as IAccount).role.toString() === role._id.toString(),
+        )
 
         if (filteredParticipants.length <= 0) {
             console.error('No candidate found for the given applyId.')
@@ -410,44 +415,166 @@ const meetingService = {
     },
 
     addParticipant: async (meetingId: string, participantId: string) => {
-        const meetingRoom = await MeetingRoom.findById(meetingId);
+        const meetingRoom = await MeetingRoom.findById(meetingId)
         if (!meetingRoom) {
-            throw new Error('Meeting room not found');
+            throw new Error('Meeting room not found')
         }
         // Check if participant already exists
         const participantExists = meetingRoom.participants.some(
-            (p: IParticipantStatus) => p.participant.toString() === participantId.toString()
-        );
+            (p: IParticipantStatus) => p.participant.toString() === participantId.toString(),
+        )
         if (participantExists) {
-            throw new Error('Participant already exists in the meeting room');
+            throw new Error('Participant already exists in the meeting room')
         }
 
         // Add participant with default status 'pending'
         meetingRoom.participants.push({
             participant: new mongoose.Types.ObjectId(participantId),
             status: IMeetingApproveStatus.PENDING,
-        });
+        })
 
-        await meetingRoom.save();
-        return meetingRoom;
+        await meetingRoom.save()
+        return meetingRoom
     },
 
-    removeParticipant: async (
-        meetingRoomId: string,
-        participantId: string
-    ): Promise<IMeetingRoom | null> => {
-        const meetingRoom = await MeetingRoom.findById(meetingRoomId);
+    removeParticipant: async (meetingRoomId: string, participantId: string): Promise<IMeetingRoom | null> => {
+        const meetingRoom = await MeetingRoom.findById(meetingRoomId)
         if (!meetingRoom) {
-            throw new Error('Meeting room not found');
+            throw new Error('Meeting room not found')
         }
 
         // Remove participant
         meetingRoom.participants = meetingRoom.participants.filter(
-            (p: IParticipantStatus) => p.participant.toString() !== participantId.toString()
-        );
+            (p: IParticipantStatus) => p.participant.toString() !== participantId.toString(),
+        )
 
-        await meetingRoom.save();
-        return meetingRoom;
+        await meetingRoom.save()
+        return meetingRoom
+    },
+
+    //Check và gửi mail khi gần đến giờ họp 1 tiếng
+    getMeetingRoomsOneHourFromNow: async () => {
+        try {
+            const now = truncateToMinutes(new Date())
+            const oneHourFromNow = truncateToMinutes(new Date(now.getTime() + 60 * 60 * 1000))
+            console.log("oneHourFromNow", oneHourFromNow);
+
+
+            const rooms = await MeetingRoom.find({
+                timeStart: oneHourFromNow,
+            })
+                .select('participants timeStart url')
+                .populate({
+                    path: 'participants.participant',
+                    select: '_id email name',
+                })
+
+                console.log(rooms)
+
+            const result = rooms.flatMap((meeting) =>
+                meeting.participants
+                    .filter((participant) => participant.participant && (participant.participant as IAccount).email) // Lọc các participant có email
+                    .map((participant) => ({
+                        email: (participant.participant as IAccount).email,
+                        url: meeting.url,
+                        timeStart: meeting.timeStart,
+                        name: (participant.participant as IAccount).name,
+                    })),
+            )
+
+            //Send to queue
+            result.forEach(async (user) => {
+                const sendTo = user.email
+                const subject = `Reminder: Upcoming Meeting at ${formatDateTime(user.timeStart.toISOString())}`
+                const body = `Hi ${user.name},<br/>
+                    <br/>
+                    This is a friendly reminder for your upcoming meeting, scheduled as follows:<br/>
+
+                    - Date and Time:  ${user.timeStart.toISOString()}<br/>
+                    - Location: ${user.url}<br/>
+
+                    Please make sure to join on time and prepare any necessary materials (if required). If you're unable to attend, kindly notify the organizer at your earliest convenience.<br/><br/>
+
+                    Support Contact:<br/>
+                    If you have any questions or face issues regarding the meeting, feel free to contact: recruitme-me@google.com<br/>
+                    <br/>
+                    Looking forward to your participation!<br/>
+                    <br/>
+                    Best regards,<br/>
+                    RecruitMe<br/>
+                    `
+                await sendMessageToQueue(
+                    S3_QUEUE_URL,
+                    JSON.stringify({
+                        sendTo: sendTo,
+                        subject: subject,
+                        body: body,
+                    }),
+                    'meeting-email-group',
+                )
+            })
+        } catch (error) {
+            console.error('Error fetching meeting rooms 1 hour from now:', error)
+        }
+    },
+
+    //Check và gửi mail khi gần đến giờ họp 5 phút
+    getMeetingRoomsFiveMinutesFromNow: async () => {
+        try {
+            const now = new Date()
+            const fiveMinutesFromNow = truncateToMinutes(new Date(now.getTime() + 5 * 60 * 1000))
+
+            const rooms = await MeetingRoom.find({
+                timeStart: fiveMinutesFromNow,
+            })
+
+            const result = rooms.flatMap((meeting) =>
+                meeting.participants
+                    .filter((participant) => participant.participant && (participant.participant as IAccount).email) // Lọc các participant có email
+                    .map((participant) => ({
+                        email: (participant.participant as IAccount).email,
+                        url: meeting.url,
+                        timeStart: meeting.timeStart,
+                        name: (participant.participant as IAccount).name,
+                    })),
+            )
+
+            //Send to queue
+            result.forEach(async (user) => {
+                const sendTo = user.email
+                const subject = `Reminder: Meeting starts in 5 minutes!`
+                const body = `Hi ${user.name},<br/>
+                    <br/>
+                    This is a friendly reminder for your upcoming meeting, scheduled as follows:<br/>
+
+                    - Date and Time:  ${user.timeStart.toISOString()}<br/>
+                    - Location: ${user.url}<br/>
+
+                    Please make sure to join on time and prepare any necessary materials (if required). If you're unable to attend, kindly notify the organizer at your earliest convenience.<br/><br/>
+
+                    Support Contact:<br/>
+                    If you have any questions or face issues regarding the meeting, feel free to contact: recruitme-me@google.com<br/>
+                    <br/>
+                    Looking forward to your participation!<br/>
+                    <br/>
+                    Best regards,<br/>
+                    RecruitMe<br/>
+                    `
+                await sendMessageToQueue(
+                    S3_QUEUE_URL,
+                    JSON.stringify({
+                        sendTo: sendTo,
+                        subject: subject,
+                        body: body,
+                    }),
+                    'meeting-email-group',
+                )
+            })
+
+            return rooms
+        } catch (error) {
+            console.error('Error fetching meeting rooms 5 minutes range:', error)
+        }
     },
 }
 

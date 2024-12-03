@@ -26,6 +26,7 @@ export const inputSlots = {
 export enum Role {
   Common,
   Recruiter,
+  Interviewer
 }
 export const navLinks = [
   {
@@ -102,6 +103,57 @@ export const hrNavLinks = [
   },
   {
     id: 3,
+    name: "Contact Us",
+    path: "/contact-us",
+    expandable: false,
+    loginRequired: false,
+    expand: [],
+  },
+];
+
+
+export const interviewerNavLink = [
+  {
+    id: 1,
+    name: "Home",
+    path: "/",
+    expandable: false,
+    loginRequired: false,
+    expand: [],
+  },
+  {
+    id: 2,
+    name: "Candidate Listing",
+    path: "/interview-manager/candidate-list",
+    expandable: true,
+    loginRequired: true,
+    expand: [
+      {
+        id: 1,
+        name: "Waiting Interview",
+        path: "/interview-manager/candidate-list",
+        expandable: false,
+        loginRequired: true,
+      },
+      {
+        id: 2,
+        name: "Interviewed Candidates",
+        path: "/interview-manager/candidate-list",
+        expandable: false,
+        loginRequired: true,
+      },
+    ],
+  },
+  {
+    id: 3,
+    name: "Interview Schedule",
+    path: "/interview-manager/interview-schedule",
+    expandable: false,
+    loginRequired: false,
+    expand: [],
+  },
+  {
+    id: 4,
     name: "Contact Us",
     path: "/contact-us",
     expandable: false,

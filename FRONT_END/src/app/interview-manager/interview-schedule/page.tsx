@@ -2,15 +2,15 @@
 
 import React, { Suspense } from "react";
 import { Spinner } from "@nextui-org/react";
-import { InterviewManagerJobDetails } from "@/screens";
-import { HrLayout, InterviewerLayout } from "@/components";
+import { InterviewerLayout } from "@/components";
+import { InterviewSchedule } from "@/screens/interview-manager/inteviewSchedule";
 
-export default function JobDetailsPage() {
+export default function Page() {
   return (
     <main>
        <InterviewerLayout>
         <Suspense fallback={<Spinner label="Loading..." color="primary" />}>
-          <InterviewManagerJobDetails />
+          <InterviewSchedule />
         </Suspense>
         </InterviewerLayout>
     </main>
