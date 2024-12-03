@@ -69,6 +69,20 @@ const FilterSection = (): React.JSX.Element => {
           Completed Jobs
         </p>
       </div>
+      <div
+        className="flex justify-start py-2 w-full cursor-pointer"
+        onClick={() => handleClick(5)}
+      >
+        <p
+          className={`text-base px-1 text-${
+            statusJobFilterIndex === 5
+              ? "themeDark border-b-2"
+              : "foreground-400"
+          }`}
+        >
+          Deleted Jobs
+        </p>
+      </div>
     </div>
   );
 };
