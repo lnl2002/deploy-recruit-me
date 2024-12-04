@@ -3,8 +3,10 @@
 interface Message {
   id: string;
   content: string;
-  sender: "user" | "ai";
+  sender: "user" | "model" | "jobs";
   timestamp: Date;
+  job?: TJob[];
+  inVisible?: boolean;
 }
 
 interface ChatBoxProps {
@@ -19,16 +21,16 @@ interface ExampleQuestion {
 
 const EXAMPLE_QUESTIONS: ExampleQuestion[] = [
   { id: "1", text: "What is RecruitMe" },
+  {
+    id: "4",
+    text: "Can you help me to find a job?",
+  },
   { id: "5", text: "How can i apply to a job ?" },
   {
     id: "2",
     text: "How my interview process will occur?",
   },
   { id: "3", text: "How my data is sercured?" },
-  {
-    id: "4",
-    text: "What is FPT education ecosystem?",
-  },
 ];
 
 import React, {
@@ -41,17 +43,31 @@ import React, {
 import { MessageCircle, Send, X } from "lucide-react";
 import systemApi from "@/api/systemApi";
 import Markdown from "react-markdown";
+import { TJob } from "@/api/jobApi";
+import Job from "@/screens/home/ListJob/components/Job";
+import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
+import Image from "next/image";
+import { Images } from "@/images";
+import { useRouter } from "next/navigation";
 
 export default function ChatBox({
   onClose,
   onSendMessage,
 }: ChatBoxProps): JSX.Element {
+  const router = useRouter();
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([
     {
+      id: "start",
+      content: "Start chat",
+      sender: "user",
+      inVisible: true,
+      timestamp: new Date(),
+    },
+    {
       id: "welcome",
       content: "Hello! I'm your AI assistant. How can I help you today?",
-      sender: "ai",
+      sender: "model",
       timestamp: new Date(),
     },
   ]);
@@ -87,21 +103,38 @@ export default function ChatBox({
     try {
       const transformedHistory = history.map((msg) => ({
         role: msg.sender,
-        content: msg.content,
+        parts: [{ text: msg.content }],
       }));
       const response = await systemApi.getAIResponse(input, transformedHistory);
       const aiMessage: Message = {
         id: Date.now().toString(),
         content: response.response,
-        sender: "ai",
+        sender: "model",
         timestamp: new Date(),
       };
+      console.log(response.data.readyToFind);
       setMessages((prev) => [...prev, aiMessage]);
+      if (response.data.readyToFind) {
+        const res = await systemApi.getAIJobsResponse(response.data);
+
+        console.log("ready", res);
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: "jobs",
+            content: "There are jobs that may suit you:",
+            id: Date.now().toString(),
+            timestamp: new Date(),
+            job: res,
+          },
+        ]);
+      }
     } catch (error) {
       const errorMessage: Message = {
         id: Date.now().toString(),
         content: "Sorry, I couldn't process your request. Please try again.",
-        sender: "ai",
+        sender: "model",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -131,35 +164,67 @@ export default function ChatBox({
   const renderMessages = () => {
     return (
       <>
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex items-start space-x-3 mb-4 ${
-              msg.sender === "user" ? "flex-row-reverse space-x-reverse" : ""
-            }`}
-          >
-            {msg.sender === "ai" && (
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <span className="text-themeOrange text-sm font-semibold">
-                  AI
-                </span>
-              </div>
-            )}
-            <div
-              className={`flex-1 ${msg.sender === "user" ? "text-right" : ""}`}
-            >
+        {messages.map(
+          (msg) =>
+            !msg.inVisible && (
               <div
-                className={`inline-block p-3 rounded-lg shadow-sm ${
+                key={msg.id}
+                className={`flex items-start space-x-3 mb-4 ${
                   msg.sender === "user"
-                    ? "bg-themeOrange text-white"
-                    : "bg-white border border-textSecondary text-textSecondary"
+                    ? "flex-row-reverse space-x-reverse"
+                    : ""
                 }`}
               >
-                <Markdown>{msg.content}</Markdown>
+                {msg.sender === "model" && (
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-themeOrange text-sm font-semibold">
+                      AI
+                    </span>
+                  </div>
+                )}
+                <div
+                  className={`flex-1 ${
+                    msg.sender === "user" ? "text-right" : ""
+                  }`}
+                >
+                  <div
+                    className={`inline-block p-3 rounded-lg shadow-sm ${
+                      msg.sender === "user"
+                        ? "bg-themeOrange text-white"
+                        : "bg-white border border-textSecondary text-textSecondary"
+                    }`}
+                  >
+                    <Markdown>{msg.content}</Markdown>
+                    {msg.sender === "jobs" && (
+                      <div className="rounded-xl grid bg-blue-100 w-full items-center gap-5 justify-center flex-shrink-0 py-5">
+                        {msg.job?.map((j, i) => (
+                          <button
+                            onClick={() =>
+                              router.push("/job-details?id=" + j._id)
+                            }
+                          >
+                            <Card className="py-4 grid-cols-1">
+                              <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
+                                <p className="text-tiny uppercase font-bold">
+                                  {j.type}
+                                </p>
+                                <small className="text-default-500">
+                                  {"12 days left"}
+                                </small>
+                                <h4 className="font-bold text-large">
+                                  {j.title}
+                                </h4>
+                              </CardHeader>
+                            </Card>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            )
+        )}
 
         {isLoading && (
           <div className="flex items-start space-x-3 mb-4 animate-fadeIn">
@@ -210,7 +275,7 @@ export default function ChatBox({
         {renderMessages()}
 
         {/* Example Questions Section */}
-        {messages.length === 1 && !isLoading && (
+        {messages.length === 2 && !isLoading && (
           <div className="my-4">
             <p className="text-sm text-themeOrange mb-2">You can try asking:</p>
             <div className="grid grid-cols-1 gap-2">

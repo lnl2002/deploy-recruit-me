@@ -12,6 +12,7 @@ example body
     "receivers": ["garenaobama@gmail.com"]
 }
 */
+systemRouter.get('/ai-chat/jobs', systemController.getAIJobQuery)
 systemRouter.post('/ai-chat', systemController.getAIAnswer)
 
 /*email*/
