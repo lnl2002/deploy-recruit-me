@@ -13,7 +13,7 @@ const jobApi = {
     params: string,
     owner?: boolean
   ): Promise<{ jobs: TJob[]; total: number }> => {
-    let newParams = "?expiredDate=1&sort_by=createdAt&order=1" + params;
+    let newParams = "?sort_by=createdAt&order=1" + params;
     console.log(newParams);
 
     try {
@@ -191,6 +191,34 @@ const jobApi = {
     } catch (error) {
       console.error("Error update job status:", error);
       return null;
+    }
+  },
+
+  deleteJob: async (id: string): Promise<{ job: Partial<TJob> }> => {
+    try {
+      const res = await axios.delete(`${BACKEND_URL}/api/v1/jobs/${id}`);
+
+      return { job: res.data.data };
+    } catch (error: any) {
+      const { status } = error as AxiosError;
+      if (status === 401) {
+        window.location.href = "/login";
+      }
+      return { job: {} };
+    }
+  },
+
+  restoreJob: async (id: string): Promise<{ job: Partial<TJob> }> => {
+    try {
+      const res = await axios.post(`${BACKEND_URL}/api/v1/jobs/${id}/restore`);
+
+      return { job: res.data.data };
+    } catch (error: any) {
+      const { status } = error as AxiosError;
+      if (status === 401) {
+        window.location.href = "/login";
+      }
+      return { job: {} };
     }
   },
 };

@@ -5,6 +5,7 @@ import JobSection from "@/components/JobSection";
 import JobApplicationCard from "../JobApplicationCard";
 import JobState from "./components/JobState";
 import { Modal, ModalContent, useDisclosure } from "@nextui-org/react";
+import { getStatusJob } from "@/utils/getStatus";
 
 type InformationJobProps = {
   job: Partial<TJob>;
@@ -53,7 +54,16 @@ const InformationJob: React.FC<InformationJobProps> = ({
       </div>
       <div className="col-span-1 px-8">
         <div className="p-6 bg-white rounded-2xl shadow-xl border mb-10">
-          <JobState state={job.status || ''} />
+          {/* <JobState state={job.status || ''} /> */}
+          <JobState
+            state={
+              getStatusJob(
+                new Date(job?.startDate ?? ""),
+                new Date(job?.expiredDate ?? ""),
+                job?.status ?? ""
+              ) || ""
+            }
+          />
         </div>
         <div className="mb-5 flex justify-center" onClick={disclosure.onOpen}>
           <img
@@ -62,7 +72,11 @@ const InformationJob: React.FC<InformationJobProps> = ({
             className="w-full cursor-pointer hover:bg-backgroundDecor200 transition-colors rounded-lg"
           />
         </div>
-        <Modal className="min-w-[90vw]" isOpen={disclosure.isOpen} onClose={disclosure.onClose}>
+        <Modal
+          className="min-w-[90vw]"
+          isOpen={disclosure.isOpen}
+          onClose={disclosure.onClose}
+        >
           <ModalContent>
             <div className="flex justify-center">
               <img

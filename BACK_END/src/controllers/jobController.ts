@@ -98,7 +98,7 @@ const jobController = {
                         value = parseInt(value, 10)
                         if (isNaN(value)) return obj // Bỏ qua nếu không phải số hợp lệ
                     } else if (expectedType === 'boolean') {
-                        value = Boolean(value === '1' || value === true)
+                        value = Boolean(value === '1' || value === true || value === 'true')
                     } else if (expectedType === 'date') {
                         value = new Date(value)
                         if (isNaN(value.getTime())) return obj // Bỏ qua nếu không phải ngày hợp lệ
@@ -130,7 +130,7 @@ const jobController = {
                 filteredQuery.title = { $regex: title, $options: 'i' }
             }
 
-            if (!filteredQuery.isDelete) {
+            if (filteredQuery.isDelete === undefined) {
                 filteredQuery.isDelete = false
             }
 
@@ -197,12 +197,75 @@ const jobController = {
     deleteJob: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
             const { id } = req.params
+            const account = req.user
 
             if (!Types.ObjectId.isValid(id)) {
                 return res.status(400).json({ message: 'Invalid job ID format' })
             }
+
+            // Kiểm tra quyền truy cập
+            if (account.role !== 'RECRUITER') {
+                return res.status(403).json({ message: 'Forbidden' })
+            }
+
+            const job = await jobService.getJobById(new mongoose.Types.ObjectId(id))
+
+            if (!job) {
+                return res.status(404).json({ message: 'Job not found' })
+            }
+
+            // Kiểm tra quyền truy cập
+            if (String(account._id) !== String(job.account?._id ?? '')) {
+                return res.status(403).json({ message: 'Forbidden' })
+            }
+
+            if (job.status === 'approved') {
+                return res.status(403).json({ message: 'Cannot deleted an approved job' })
+            }
+
             // Gọi service để xoá công việc
-            const deletedJob = await jobService.deleteJob(new Types.ObjectId(id))
+            const deletedJob = await jobService.deleteJob(new Types.ObjectId(id), job.isDelete)
+
+            if (!deletedJob) {
+                return res.status(404).json({ message: 'Job not found' })
+            }
+
+            return res.json(deletedJob)
+        } catch (error: unknown) {
+            next(error)
+        }
+    },
+    restoreJob: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        try {
+            const { jobId } = req.params
+            const account = req.user
+
+            if (!Types.ObjectId.isValid(jobId)) {
+                return res.status(400).json({ message: 'Invalid job ID format' })
+            }
+
+            // Kiểm tra quyền truy cập
+            if (account.role !== 'RECRUITER') {
+                return res.status(403).json({ message: 'Forbidden' })
+            }
+
+            const job = await jobService.getJobById(new mongoose.Types.ObjectId(jobId))
+
+            if (!job) {
+                return res.status(404).json({ message: 'Job not found' })
+            }
+
+            // Kiểm tra quyền truy cập
+            if (String(account._id) !== String(job.account?._id ?? '')) {
+                return res.status(403).json({ message: 'Forbidden' })
+            }
+
+            if (!job.isDelete) {
+                return res.status(403).json({ message: 'Cant not restore job with isDelete false' })
+            }
+
+            // Gọi service để xoá công việc
+            const deletedJob = await jobService.restoreJob(new Types.ObjectId(jobId), job.isDelete)
 
             if (!deletedJob) {
                 return res.status(404).json({ message: 'Job not found' })
@@ -251,6 +314,15 @@ const jobController = {
 
             if (!job) {
                 return res.status(404).json({ message: 'Job not found' })
+            }
+
+            // Kiểm tra quyền truy cập
+            if (String(account._id) !== String(job.account?._id ?? '')) {
+                return res.status(403).json({ message: 'Forbidden' })
+            }
+
+            if (job.status === 'approved') {
+                return res.status(403).json({ message: 'Cannot update an approved job' })
             }
 
             // Object chứa các trường cần cập nhật
@@ -325,7 +397,7 @@ const jobController = {
 
             if (address) updateFields.address = address
 
-            const today = resetToStartOfDay(new Date())
+            const today = resetToStartOfDay(new Date().toString())
 
             if (expiredDate) {
                 const expirationDate = resetToStartOfDay(expiredDate)
@@ -373,7 +445,10 @@ const jobController = {
             }
 
             // Thực hiện cập nhật
-            const updatedJob = await jobService.updateJob(new mongoose.Types.ObjectId(jobId), updateFields)
+            const updatedJob = await jobService.updateJob(new mongoose.Types.ObjectId(jobId), {
+                ...updateFields,
+                status: 'pending',
+            })
 
             return res.json(updatedJob)
         } catch (error: unknown) {
@@ -454,7 +529,7 @@ const jobController = {
 
             const expirationDate = resetToStartOfDay(expiredDate)
             const startionDate = resetToStartOfDay(startDate)
-            const today = resetToStartOfDay(new Date())
+            const today = resetToStartOfDay(new Date().toString())
 
             if (isNaN(expirationDate.getTime()) || expirationDate <= today) {
                 return res.status(400).json({ message: 'Expired date must be a valid future date' })
@@ -481,10 +556,6 @@ const jobController = {
             const criteriaObjId = criterias.map((critera) => new mongoose.Types.ObjectId(critera))
 
             const existingCriterias = await criteriaService.getListCriteria({ _id: { $in: criteriaObjId } })
-
-            console.log({ _id: { $in: criteriaObjId } })
-
-            console.log(existingCriterias)
 
             if (existingCriterias.length !== criterias.length) {
                 return res.status(400).json({ message: 'Some criteria do not exist' })
@@ -627,7 +698,7 @@ const jobController = {
     },
 }
 
-function resetToStartOfDay(date) {
+function resetToStartOfDay(date: string) {
     const newDate = new Date(date)
     newDate.setHours(0, 0, 0, 0)
     return newDate

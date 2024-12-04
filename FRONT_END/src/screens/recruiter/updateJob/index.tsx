@@ -117,7 +117,7 @@ export const UpdateJob: React.FC<PageProps> = ({
 
       if (!job) {
         toast.error("Job not found.");
-        router.push("/recruiter/list-jobs");
+        router.push("/recruiter/list-job");
         return;
       }
       setFormValue({

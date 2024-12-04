@@ -3,22 +3,27 @@ import { useEffect, useState } from "react";
 
 import jobApi, { TJob } from "@/api/jobApi";
 import { Plus } from "lucide-react";
-import { Button } from "@nextui-org/react";
+import { Button, useDisclosure } from "@nextui-org/react";
 import { useSelector } from "react-redux";
 import { RootState, useAppSelector } from "@/store/store";
 import { useRouter } from "next/navigation";
 
 import JobSection from "./components/jobSection";
 import FilterSection from "./components/filterSection";
+import ConfirmDeleteModal from "./components/customModal";
+import { isEmpty } from "@/utils/isEmpty";
+import { toast } from "react-toastify";
 
 export const ListJob = (): React.JSX.Element => {
   const router = useRouter();
   const [limit] = useState(10);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { userInfo, isLoggedIn } = useAppSelector((state) => state.user);
   const { statusJobFilterIndex } = useSelector((state: RootState) => state.job);
   const [params, setParams] = useState<string>("");
   const [jobTotal, setJobTotal] = useState<number>(0);
-  const [listJob, setListJob] = useState<TJob[] | []>();
+  const [listJob, setListJob] = useState<TJob[]>([]);
+  const [jobDelete, setJobDelete] = useState<Partial<TJob>>({});
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   useEffect(() => {
@@ -31,6 +36,13 @@ export const ListJob = (): React.JSX.Element => {
     } else if (statusJobFilterIndex == 4) {
       params = `&status=expired`;
     }
+
+    if (statusJobFilterIndex == 5) {
+      params += "&isDelete=1";
+    } else {
+      params += "&isDelete=0";
+    }
+
     if (currentPage) params += `&limit=${limitPage}&skip=${limitPage - limit}`;
 
     setParams(params);
@@ -49,6 +61,18 @@ export const ListJob = (): React.JSX.Element => {
 
   const handleChangePage = (pageNumber: number) => {
     setCurrentPage(pageNumber);
+  };
+
+  const confirmDelete = async () => {
+    if (isEmpty(jobDelete)) return;
+
+    const { job: newJob } = await jobApi.deleteJob(jobDelete?._id as string);
+    if (!isEmpty(newJob)) {
+      setListJob(listJob.filter((job) => job._id !== jobDelete._id));
+      setJobDelete({});
+    } else {
+      toast.error("Failed to delete job");
+    }
   };
 
   return (
@@ -72,6 +96,8 @@ export const ListJob = (): React.JSX.Element => {
           <div className="col-span-4">
             <JobSection
               listJob={listJob ?? []}
+              setListJob={setListJob}
+              setJobDelete={setJobDelete}
               totalPage={jobTotal / limit}
               statusJobFilterIndex={statusJobFilterIndex}
               handleChangePage={handleChangePage}
@@ -79,6 +105,12 @@ export const ListJob = (): React.JSX.Element => {
           </div>
         </div>
       </div>
+      <ConfirmDeleteModal
+        isOpen={!isEmpty(jobDelete)}
+        onClose={() => setJobDelete({})}
+        onConfirm={confirmDelete}
+        jobName={jobDelete?.title || undefined}
+      />
     </div>
   );
 };

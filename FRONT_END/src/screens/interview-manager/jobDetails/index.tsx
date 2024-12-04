@@ -13,6 +13,7 @@ import { setJob as saveJob } from "@/store/jobState";
 import { TUnit } from "@/api/unitApi";
 import { TLocation } from "@/api/locationApi";
 import JobStatus from "./components/JobStatus";
+import { getStatusJob } from "@/utils/getStatus";
 
 //example: /job-details?id=67055dd3e22b9a4790729550
 export const InterviewManagerJobDetails = (): React.JSX.Element => {
@@ -48,7 +49,18 @@ export const InterviewManagerJobDetails = (): React.JSX.Element => {
             />
             <div className="flex items-center gap-2">
               <h1 className="text-themeDark text-3xl font-bold">{job.title}</h1>
-              <JobStatus status={job.status || ""} key={job.status} />
+              <JobStatus
+                status={getStatusJob(
+                  new Date(job?.startDate ?? ""),
+                  new Date(job?.expiredDate ?? ""),
+                  job?.status ?? ""
+                )}
+                key={getStatusJob(
+                  new Date(job.startDate ?? ""),
+                  new Date(job.expiredDate ?? ""),
+                  job?.status ?? ""
+                )}
+              />
             </div>
             <div className="flex gap-1 items-center">
               <span className="text-sm text-blurEffect">

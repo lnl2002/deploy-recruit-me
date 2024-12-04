@@ -1,4 +1,6 @@
-import { TJob } from "@/api/jobApi";
+import jobApi, { TJob } from "@/api/jobApi";
+import { getStatusJob } from "@/utils/getStatus";
+import { isEmpty } from "@/utils/isEmpty";
 import {
   Table,
   TableHeader,
@@ -11,10 +13,12 @@ import {
   AvatarGroup,
   Avatar,
   Pagination,
+  Button,
 } from "@nextui-org/react";
-import { ArrowRight, Dot } from "lucide-react";
+import { ArchiveRestore, ArrowRight, Dot } from "lucide-react";
 import Link from "next/link";
 import React, { useCallback, useMemo } from "react";
+import { toast } from "react-toastify";
 
 const columnsRoot = [
   {
@@ -70,6 +74,8 @@ type ListJobProps = {
   totalPage: number;
   statusJobFilterIndex: number;
   handleChangePage: (page: number) => void;
+  setListJob: React.Dispatch<React.SetStateAction<TJob[]>>;
+  setJobDelete: React.Dispatch<React.SetStateAction<Partial<TJob>>>;
 };
 
 const JobSection: React.FC<ListJobProps> = ({
@@ -77,6 +83,8 @@ const JobSection: React.FC<ListJobProps> = ({
   totalPage,
   statusJobFilterIndex,
   handleChangePage,
+  setListJob,
+  setJobDelete,
 }): React.JSX.Element => {
   const columns = useMemo(() => {
     const updatedColumns = [...columnsRoot];
@@ -127,14 +135,30 @@ const JobSection: React.FC<ListJobProps> = ({
       const statusFormat = (statusValue: string): string => {
         const words = statusValue.split("-");
 
-        // Chuyển mỗi từ thành chữ cái đầu viết hoa
         const formattedString = words
           .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(" ");
         return formattedString;
       };
 
-      const chipColor = statusColorMap[cellValue] || "default";
+      const handleRestore = async () => {
+        const { job } = await jobApi.restoreJob(item._id);
+        if (!isEmpty(job)) {
+          toast.success("Job restored successfully!");
+          setListJob((prevs) => prevs.filter((job) => job._id !== item._id));
+        } else {
+          toast.error("Error restoring job!");
+        }
+      };
+
+      const chipColor =
+        statusColorMap[
+          getStatusJob(
+            new Date(item.startDate),
+            new Date(item.expiredDate),
+            cellValue
+          )
+        ] || "default";
 
       switch (columnKey) {
         case "title":
@@ -179,13 +203,16 @@ const JobSection: React.FC<ListJobProps> = ({
           return (
             <div className="flex flex-col">
               <Chip
-                startContent={<Dot />}
                 classNames={{ content: "font-bold text-sm" }}
                 variant="flat"
                 color={chipColor}
               >
                 {statusFormat(
-                  cellValue == "approved" ? "published" : cellValue
+                  getStatusJob(
+                    new Date(item.startDate),
+                    new Date(item.expiredDate),
+                    cellValue
+                  )
                 )}
               </Chip>
             </div>
@@ -215,7 +242,28 @@ const JobSection: React.FC<ListJobProps> = ({
             </div>
           );
         case "action":
-          return (
+          return item.isDelete ? (
+            <div className="flex gap-2 select-none">
+              <Button
+                size="sm"
+                variant="light"
+                color="primary"
+                className="text-md"
+                onPress={handleRestore}
+              >
+                Restore
+              </Button>
+              <Button
+                size="sm"
+                variant="light"
+                color="danger"
+                className="text-md"
+                onPress={() => setJobDelete(item)}
+              >
+                Delete Permanently
+              </Button>
+            </div>
+          ) : (
             <Link
               href={`/recruiter/job-details?id=${item._id}`}
               className="relative flex justify-start items-center gap-2"

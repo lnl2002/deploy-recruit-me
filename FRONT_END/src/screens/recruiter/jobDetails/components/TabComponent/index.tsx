@@ -1,4 +1,5 @@
-import { TJob } from "@/api/jobApi";
+import jobApi, { TJob } from "@/api/jobApi";
+import { isEmpty } from "@/utils/isEmpty";
 import {
   Dropdown,
   DropdownItem,
@@ -7,6 +8,7 @@ import {
 } from "@nextui-org/react";
 import { EllipsisVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 type TabComponentProps = {
   tabSelected: string;
@@ -20,6 +22,16 @@ const TabComponent: React.FC<TabComponentProps> = ({
   job,
 }): React.JSX.Element => {
   const router = useRouter();
+
+  const handleDeleteJob = async () => {
+    if (isEmpty(job)) return;
+    const { job: newJob } = await jobApi.deleteJob(job?._id ?? "");
+    if (newJob) {
+      toast.success("Job deleted successfully!");
+      router.push("/recruiter/list-job");
+    }
+  };
+
   return (
     <div className="flex justify-between">
       <div>
@@ -80,7 +92,7 @@ const TabComponent: React.FC<TabComponentProps> = ({
       </div>
       {job?.status !== "approved" && (
         <div>
-          <Dropdown>
+          <Dropdown placement="bottom-end">
             <DropdownTrigger>
               <EllipsisVertical
                 size={43}
@@ -97,7 +109,12 @@ const TabComponent: React.FC<TabComponentProps> = ({
               >
                 Edit
               </DropdownItem>
-              <DropdownItem key="delete" className="text-danger" color="danger">
+              <DropdownItem
+                key="delete"
+                className="text-danger"
+                color="danger"
+                onClick={handleDeleteJob}
+              >
                 Delete
               </DropdownItem>
             </DropdownMenu>
