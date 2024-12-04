@@ -3,14 +3,17 @@ import React from "react";
 type FilterSectionProps = {
   setFilterValue: (value: string) => void;
   filterValue: string;
+  setCurrentPage: (value: number) => void;
 };
 
 const FilterSection: React.FC<FilterSectionProps> = ({
   setFilterValue,
   filterValue,
+  setCurrentPage,
 }): React.JSX.Element => {
   const handleClick = (value: string) => {
     setFilterValue(value);
+    setCurrentPage(1);
   };
 
   return (
