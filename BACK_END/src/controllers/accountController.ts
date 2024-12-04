@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { NextFunction, Request, Response } from 'express'
-import { IAccount } from '../models/accountModel'
+import { IAccount, IAccoutStatus } from '../models/accountModel'
 import accountService from '../services/accountService'
+import { isValidObjectId } from 'mongoose'
+import validator from 'validator';
 
 const accountController = {
     getListAccounts: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -10,9 +14,9 @@ const accountController = {
             const pageLimit = parseInt(limit as string, 10) || 10
             const pageSkip = parseInt(skip as string, 10) || 0
 
-            if (pageLimit <= pageSkip) {
-                return res.status(400).json('Limit must be greater than skip')
-            }
+            // if (pageLimit <= pageSkip) {
+            //     return res.status(400).json('Limit must be greater than skip')
+            // }
 
             const query: any = {
                 limit: pageLimit,
@@ -36,6 +40,7 @@ const accountController = {
                 cvs: 'objectId',
                 role: 'objectId',
                 unit: 'objectId',
+                status: 'string',
             }
 
             // Filter and validate the query parameters based on field types
@@ -93,6 +98,75 @@ const accountController = {
             next(error)
         }
     },
+
+    updateStatus: async (req: Request, res: Response) => {
+        try {
+            const { accountId } = req.params
+            const { status } = req.body
+
+            if (!isValidObjectId(accountId)) {
+                return res.status(400).json({
+                    message: 'INVALID_ID',
+                })
+            }
+
+            // Ensure the newStatus is a valid enum value
+            if (!Object.values(IAccoutStatus).includes(status)) {
+                return res.status(400).json({
+                    message: 'INVALID_STATUS',
+                })
+            }
+
+            // Call the service to update the status
+            const updatedAccount = await accountService.updateStatus(accountId.toString(), status as IAccoutStatus)
+
+            if (!updatedAccount) {
+                return res.status(404).json({ message: 'Account not found.' })
+            }
+
+            return res.status(200).json({ message: 'Account status updated successfully.', data: updatedAccount })
+        } catch (error: any) {
+            return res.status(400).json({ message: error?.message || 'Failed to update account status.' })
+        }
+    },
+
+    createAccount: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        try {
+            const { name, email, role, unit } = req.body
+
+            // Validate required fields
+            if (!name || !email || !role) {
+                return res.status(400).json({ message: 'Missing required fields: name, email, or role.' })
+            }
+
+            if(!isValidObjectId(role)){
+                return res.status(400).json({ message: 'INVALID_OBJECTID' })
+            }
+
+            const sanitizedData = sanitizeAccountData({ name, email, role, unit });
+            if (!validator.isEmail(sanitizedData.email)) {
+                res.status(400).json({ message: 'INVALID_EMAIL' })
+              }
+
+            // Call service to create account
+            const account = await accountService.createAccount({
+                ...sanitizedData
+            })
+
+            return res.status(201).json({ message: 'Account created successfully.', data: account })
+        } catch (error) {
+            next(error)
+        }
+    },
 }
+
+const sanitizeAccountData = (accountData: Partial<IAccount>) => {
+    return {
+      name: validator.trim(accountData.name || ''),
+      email: validator.normalizeEmail(accountData.email || '', { gmail_remove_dots: false }) || '',
+      role: accountData.role,
+      unit: accountData.unit,
+    };
+  };
 
 export default accountController

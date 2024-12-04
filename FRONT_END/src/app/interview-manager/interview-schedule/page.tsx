@@ -7,12 +7,18 @@ import { InterviewSchedule } from "@/screens/interview-manager/inteviewSchedule"
 
 export default function Page() {
   return (
-    <main>
-       <InterviewerLayout>
+    <div
+      style={{
+        background: `url("/background-login.png")`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <InterviewerLayout>
         <Suspense fallback={<Spinner label="Loading..." color="primary" />}>
           <InterviewSchedule />
         </Suspense>
-        </InterviewerLayout>
-    </main>
+      </InterviewerLayout>
+    </div>
   );
 }

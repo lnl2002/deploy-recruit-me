@@ -91,13 +91,13 @@ const jobService = {
 
         return job as IJob | null
     },
-    deleteJob: async (jobId: Types.ObjectId): Promise<IJob | null> => {
-        try {
-            const job = await Job.findByIdAndUpdate(jobId, { isDelete: true })
-            return job
-        } catch (error) {
-            throw new Error('Could not soft delete job')
-        }
+    deleteJob: async (jobId: Types.ObjectId, isDelete: boolean): Promise<IJob | null> => {
+        if (isDelete) {
+            return await Job.findByIdAndDelete(jobId)
+        } else return await Job.findByIdAndUpdate(jobId, { isDelete: true }, { new: true })
+    },
+    restoreJob: async (jobId: Types.ObjectId, isDelete: boolean): Promise<IJob | null> => {
+        return await Job.findByIdAndUpdate(jobId, { isDelete: false }, { new: true })
     },
     updateJob: async (jobId: Types.ObjectId, newJob: Partial<IJob>): Promise<IJob | null> => {
         const job = await Job.findByIdAndUpdate(jobId, newJob, { new: true })

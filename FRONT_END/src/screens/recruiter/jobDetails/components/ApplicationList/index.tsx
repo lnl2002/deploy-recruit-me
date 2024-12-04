@@ -26,7 +26,9 @@ import { formatVietnamPhoneNumber } from "@/utils/formatPhone";
 import ModalCommon from "@/components/Modals/ModalCommon";
 import { CvViewer } from "@/components/CvViewer";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import AIScoreModal, { Criterion } from "@/screens/interview-manager/jobDetails/components/ApplicationList/components/DetailScore";
+import AIScoreModal, {
+  Criterion,
+} from "@/screens/interview-manager/jobDetails/components/ApplicationList/components/DetailScore";
 
 const ApplicationList: React.FC<{ jobId: string }> = ({
   jobId,
@@ -35,15 +37,15 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
 }) => {
   const [filter, setFilter] = useState({
     status: "",
-    sort: "desc"
-  })
+    sort: "desc",
+  });
 
   const handleChangeFilter = (name: string, value: string) => {
     setFilter({
       ...filter,
-      [name]: value
-    })
-  }
+      [name]: value,
+    });
+  };
 
   return (
     <div className="">
@@ -64,7 +66,7 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
           />
         </div>
         <div className="flex gap-2 text-themeDark">
-        <Select
+          <Select
             defaultSelectedKeys={[filter.status]}
             className="min-w-[250px]"
             value={filter.status}
@@ -74,28 +76,57 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
               All status
             </SelectItem>
             <SelectItem key={"New"} value={"New"} className="text-themeDark">
-              New
+              Stage 1: New
             </SelectItem>
-            <SelectItem key={"Shortlisted"} value={"Shortlisted"} className="text-themeDark">
-              Applicant shortlisted
+            <SelectItem
+              key={"Shortlisted"}
+              value={"Shortlisted"}
+              className="text-themeDark"
+            >
+              Stage 2: Applicant shortlisted
             </SelectItem>
-            <SelectItem key={"Pending Interview Confirmation"} value={"Pending Interview Confirmation"} className="text-themeDark">
-              Pending Interview Confirmation
+            <SelectItem
+              key={"Pending Interview Confirmation"}
+              value={"Pending Interview Confirmation"}
+              className="text-themeDark"
+            >
+              Stage 3: Pending Interview Confirmation
             </SelectItem>
-            <SelectItem key={"Interview Rescheduled"} value={"Interview Rescheduled"} className="text-themeDark">
-              Applicant Requests Reschedule
+
+            <SelectItem
+              key={"Interview Scheduled"}
+              value={"Interview Scheduled"}
+              className="text-themeDark"
+            >
+              Stage 4: Interview Waiting
             </SelectItem>
-            <SelectItem key={"Interview Scheduled"} value={"Interview Scheduled"} className="text-themeDark">
-              Interview Waiting
+            <SelectItem
+              key={"Interview Rescheduled"}
+              value={"Interview Rescheduled"}
+              className="text-themeDark"
+            >
+              Stage 5: Applicant Requests Reschedule
             </SelectItem>
-            <SelectItem key={"Interviewed"} value={"Inteviewed"} className="text-themeDark">
-              Applicant Inteviewed
+            <SelectItem
+              key={"Interviewed"}
+              value={"Inteviewed"}
+              className="text-themeDark"
+            >
+              Stage 6: Applicant Interviewed
             </SelectItem>
-            <SelectItem key={"Accepted"} value={"Accepted"} className="text-themeDark">
-              Applicant Accepted
+            <SelectItem
+              key={"Accepted"}
+              value={"Accepted"}
+              className="text-themeDark"
+            >
+              Stage 7: Applicant Accepted
             </SelectItem>
-            <SelectItem key={"Rejected"} value={"Rejected"} className="text-themeDark">
-              Applicant Rejected
+            <SelectItem
+              key={"Rejected"}
+              value={"Rejected"}
+              className="text-themeDark"
+            >
+              Stage 8: Applicant Rejected
             </SelectItem>
           </Select>
           <Select
@@ -113,9 +144,13 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
           </Select>
         </div>
       </div>
-      
+
       <div>
-        <ApplicantTable _id={jobId} filter={filter} key={`${filter.status}-${filter.sort}`}/>
+        <ApplicantTable
+          _id={jobId}
+          filter={filter}
+          key={`${filter.status}-${filter.sort}`}
+        />
       </div>
       <div className="flex justify-center"></div>
     </div>
@@ -127,9 +162,9 @@ export default ApplicationList;
 type TableProps = {
   _id: string;
   filter: {
-    status: string
-    sort: string
-  }
+    status: string;
+    sort: string;
+  };
 };
 const ApplicantTable = ({ _id, filter }: TableProps) => {
   const cvViewDisclosure = useDisclosure();
@@ -152,15 +187,21 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
   }, [_id, page]);
 
   useEffect(() => {
-    if(_id && loadAgain){
+    if (_id && loadAgain) {
       getApplicants();
     }
-  }, [loadAgain])
+  }, [loadAgain]);
 
   const getApplicants = async () => {
     setIsLoading(true);
-    const data = await applyApi.getApplyByJob({ _id, page, limit: 10, status: filter.status, sort: filter.sort });
-    setLoadAgain(false)
+    const data = await applyApi.getApplyByJob({
+      _id,
+      page,
+      limit: 10,
+      status: filter.status,
+      sort: filter.sort,
+    });
+    setLoadAgain(false);
     setUsers(data.data);
     setTotalPages(data.totalPages);
     setIsLoading(false);
@@ -186,10 +227,10 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
   };
 
   const handleOpenScore = async (criteria: Criterion[], userId: string) => {
-    setCriterias(criteria)
+    setCriterias(criteria);
     await getApplicant(userId);
-    scoreDetailDisclosure.onOpen()
-  }
+    scoreDetailDisclosure.onOpen();
+  };
 
   return (
     <div>
@@ -235,14 +276,19 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
                     {formatDateTime(user.createdAt)}
                   </TableCell>
                   <TableCell className="py-4 font-bold">
-                    <Status status={user.status.name} key={user.status.name}/>
+                    <Status status={user.status.name} key={user.status.name} />
                   </TableCell>
-                  <TableCell className="py-4 font-bold text-themeOrange cursor-pointer" onClick={() => handleOpenScore(user?.cvScore?.detailScore, user._id)}>
+                  <TableCell
+                    className="py-4 font-bold text-themeOrange cursor-pointer"
+                    onClick={() =>
+                      handleOpenScore(user?.cvScore?.detailScore, user._id)
+                    }
+                  >
                     {user?.cvScore?.averageScore || (
                       <div className="flex gap-2 items-center">
-                        <LoadingSpinner/> Caculating...
+                        <LoadingSpinner /> Caculating...
                       </div>
-                    )} 
+                    )}
                   </TableCell>
                   <TableCell className="py-4 font-bold">
                     <button
@@ -272,12 +318,12 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
       <ApplicantCard
         apply={user}
         image={user?.createdBy?.image}
-        name={`${user?.cv?.firstName || ''} ${user?.cv?.lastName || ''}`}
-        email={user?.cv?.email || ''}
-        phoneNumber={formatVietnamPhoneNumber(user?.cv?.phoneNumber || '') }
-        gender={user?.cv?.gender?.toUpperCase() || ''}
-        address={user?.cv?.address || ''}
-        state={user?.status?.name || ''}
+        name={`${user?.cv?.firstName || ""} ${user?.cv?.lastName || ""}`}
+        email={user?.cv?.email || ""}
+        phoneNumber={formatVietnamPhoneNumber(user?.cv?.phoneNumber || "")}
+        gender={user?.cv?.gender?.toUpperCase() || ""}
+        address={user?.cv?.address || ""}
+        state={user?.status?.name || ""}
         onViewCv={() => onViewCv(user?.cv._id)}
         onDecline={() => {
           console.log("Applicant Declined");
@@ -287,12 +333,12 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
         }}
         isOpen={isOpenModal}
         onClose={() => handleCloseModal()}
-        applyId={user?._id || ''}
+        applyId={user?._id || ""}
         setLoadAgain={setLoadAgain}
         cv={{
           ...user?.cv,
           image: user?.createdBy?.image,
-          name: `${user?.cv?.firstName || ''} ${user?.cv?.lastName || ''}`
+          name: `${user?.cv?.firstName || ""} ${user?.cv?.lastName || ""}`,
         }}
       />
       <ModalCommon size={"5xl"} disclosure={cvViewDisclosure}>

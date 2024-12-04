@@ -12,6 +12,10 @@ export * from "./interview-manager/jobDetails";
 export * from "./myApplications";
 export * from "./interview-manager/candidate-list";
 
+export * from "./admin/ListJob";
+export * from "./admin/jobDetails";
+export * from "./admin/list-account";
+
 export * from "./meeting/index";
 
 export * from "./login";

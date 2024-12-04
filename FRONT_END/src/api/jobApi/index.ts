@@ -13,7 +13,7 @@ const jobApi = {
     params: string,
     owner?: boolean
   ): Promise<{ jobs: TJob[]; total: number }> => {
-    let newParams = "?expiredDate=1&sort_by=createdAt&order=1" + params;
+    let newParams = "?sort_by=createdAt&order=1" + params;
     console.log(newParams);
 
     try {
@@ -112,6 +112,62 @@ const jobApi = {
     }
   },
 
+  getJobsByAdmin: async ({
+    limit,
+    page,
+    status,
+    search,
+  }: {
+    limit: number;
+    page: number;
+    status?: string;
+    search?: string;
+  }) => {
+    try {
+      const skip = (page - 1) * limit;
+      const params: Record<string, any> = {
+        skip,
+        limit,
+        status,
+        title: search
+      };
+  
+      // Loại bỏ các giá trị undefined hoặc null
+      const filteredParams = Object.fromEntries(
+        Object.entries(params).filter(([_, value]) => value !== undefined && value !== null && value !== '')
+      );
+
+      const res = await axios.get(
+        `${BACKEND_URL}/api/v1/jobs`,
+        {
+          params: {
+            sort_by: "createdAt",
+            order: 1,
+            ...filteredParams
+          }
+        }
+      );
+      if (res.status === 200) {
+        return res.data.data;
+      } else {
+        return {
+          page: 1,
+          data: [],
+          total: 0,
+          totalPages: 0,
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching career list:", error);
+      return {
+        page: 1,
+        data: [],
+        total: 0,
+        totalPages: 0,
+      };
+    }
+  },
+
   updateJobStatus: async ({
     jobId,
     status,
@@ -135,6 +191,34 @@ const jobApi = {
     } catch (error) {
       console.error("Error update job status:", error);
       return null;
+    }
+  },
+
+  deleteJob: async (id: string): Promise<{ job: Partial<TJob> }> => {
+    try {
+      const res = await axios.delete(`${BACKEND_URL}/api/v1/jobs/${id}`);
+
+      return { job: res.data.data };
+    } catch (error: any) {
+      const { status } = error as AxiosError;
+      if (status === 401) {
+        window.location.href = "/login";
+      }
+      return { job: {} };
+    }
+  },
+
+  restoreJob: async (id: string): Promise<{ job: Partial<TJob> }> => {
+    try {
+      const res = await axios.post(`${BACKEND_URL}/api/v1/jobs/${id}/restore`);
+
+      return { job: res.data.data };
+    } catch (error: any) {
+      const { status } = error as AxiosError;
+      if (status === 401) {
+        window.location.href = "/login";
+      }
+      return { job: {} };
     }
   },
 };

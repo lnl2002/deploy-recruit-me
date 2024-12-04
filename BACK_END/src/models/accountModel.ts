@@ -7,18 +7,23 @@ export interface IAccount extends Document {
     googleId: string
     name: string
     email: string
-    password: string
     role: mongoose.Types.ObjectId | IRole
     unit: mongoose.Types.ObjectId | IUnit
     cvs: mongoose.Types.ObjectId[] | ICV[]
     image: string
+    status: IAccoutStatus
+}
+
+export enum IAccoutStatus {
+    ACTIVE = "ACTIVE",
+    INACTIVE = "INACTIVE",
+    SUSPENDED = "SUSPENDED"
 }
 
 const accountSchema: Schema = new Schema(
     {
         googleId: {
             type: 'string',
-            required: true,
             unique: true,
             trim: true,
         },
@@ -52,6 +57,11 @@ const accountSchema: Schema = new Schema(
                 ref: 'CV',
             },
         ],
+        status: {
+            type: String,
+            enum: ['ACTIVE', 'INACTIVE', 'SUSPENDED'],
+            default: 'INACTIVE',
+        },
     },
     {
         timestamps: true,

@@ -18,7 +18,9 @@ const ListJob = (): React.JSX.Element => {
   useEffect(() => {
     (async () => {
       if (!params) return;
-      const { jobs, total } = (await jobApi.getJobList(params)) as {
+      const { jobs, total } = (await jobApi.getJobList(
+        "&expiredDate=1" + params
+      )) as {
         jobs: TJob[];
         total: number;
       };

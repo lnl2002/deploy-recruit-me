@@ -1,4 +1,5 @@
 import { TJob } from "@/api/jobApi";
+import { getStatusJob } from "@/utils/getStatus";
 import {
   Table,
   TableHeader,
@@ -134,7 +135,14 @@ const JobSection: React.FC<ListJobProps> = ({
         return formattedString;
       };
 
-      const chipColor = statusColorMap[cellValue] || "default";
+      const chipColor =
+        statusColorMap[
+          getStatusJob(
+            new Date(item.startDate),
+            new Date(item.expiredDate),
+            cellValue
+          )
+        ] || "default";
 
       switch (columnKey) {
         case "title":
@@ -179,7 +187,13 @@ const JobSection: React.FC<ListJobProps> = ({
           return (
             <div className="flex flex-col">
               <Chip startContent={<Dot />} variant="flat" color={chipColor}>
-                {statusFormat(cellValue)}
+                {statusFormat(
+                  getStatusJob(
+                    new Date(item.startDate),
+                    new Date(item.expiredDate),
+                    cellValue
+                  )
+                )}
               </Chip>
             </div>
           );

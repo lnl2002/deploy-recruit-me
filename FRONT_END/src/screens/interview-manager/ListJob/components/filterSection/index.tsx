@@ -33,7 +33,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
       >
         <p
           className={`text-base px-1 text-${
-            filterValue === "approved"
+            filterValue === "pending"
               ? "themeDark border-b-2"
               : "foreground-400"
           }
