@@ -15,78 +15,33 @@ const FilterSection: React.FC<FilterSectionProps> = ({
 
   return (
     <div className="px-4">
-      <div
-        className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick("")}
-      >
-        <p
-          className={`text-base px-1 text-${
-            !filterValue ? "themeDark border-b-2" : "foreground-400"
-          }`}
+      {filterOptions.map((filter) => (
+        <div
+          key={filter.value}
+          className="flex justify-start py-2 w-full cursor-pointer"
+          onClick={() => handleClick(filter.value)}
         >
-          All Job
-        </p>
-      </div>
-      <div
-        className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick("pending")}
-      >
-        <p
-          className={`text-base px-1 text-${
-            filterValue === "pending"
-              ? "themeDark border-b-2"
-              : "foreground-400"
-          }
-          `}
-        >
-          Pending Approve Jobs
-        </p>
-      </div>
-      <div
-        className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick("approved")}
-      >
-        <p
-          className={`text-base px-1 text-${
-            filterValue === "approved"
-              ? "themeDark border-b-2"
-              : "foreground-400"
-          }
-          `}
-        >
-          Approved Jobs
-        </p>
-      </div>
-      <div
-        className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick("reopened,published")}
-      >
-        <p
-          className={`text-base px-1 text-${
-            filterValue === "reopened,published"
-              ? "themeDark border-b-2"
-              : "foreground-400"
-          }`}
-        >
-          Active Jobs
-        </p>
-      </div>
-      <div
-        className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick("expired")}
-      >
-        <p
-          className={`text-base px-1 text-${
-            filterValue === "expired"
-              ? "themeDark border-b-2"
-              : "foreground-400"
-          }`}
-        >
-          Completed Jobs
-        </p>
-      </div>
+          <p
+            className={`text-base px-1 text-${
+              filterValue === filter.value
+                ? "themeDark border-b-2"
+                : "foreground-400"
+            }`}
+          >
+            {filter.label}
+          </p>
+        </div>
+      ))}
     </div>
   );
 };
+
+const filterOptions = [
+  { value: "", label: "All Job" },
+  { value: "pending", label: "Pending Approve Jobs" },
+  { value: "approved", label: "Approved Jobs" },
+  { value: "expired", label: "Expired Jobs" },
+  { value: "completed", label: "Completed Jobs" },
+];
 
 export default FilterSection;
