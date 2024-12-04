@@ -72,54 +72,58 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
             value={filter.status}
             onChange={(e) => handleChangeFilter("status", e.target.value)}
           >
+            <SelectItem key={""} value={""} className="text-themeDark">
+              All Applicant
+            </SelectItem>
             <SelectItem
               key={"Shortlisted"}
               value={"Shortlisted"}
               className="text-themeDark"
             >
-              Applicant shortlisted
+              Stage 2: Applicant shortlisted
             </SelectItem>
             <SelectItem
               key={"Pending Interview Confirmation"}
               value={"Waiting"}
               className="text-themeDark"
             >
-              Pending Interview Confirmation
+              Stage 3: Pending Interview Confirmation
+            </SelectItem>
+
+            <SelectItem
+              key={"Interview Scheduled"}
+              value={"Waiting"}
+              className="text-themeDark"
+            >
+              Stage 4: Interview Waiting
             </SelectItem>
             <SelectItem
               key={"Interview Rescheduled"}
               value={"Waiting"}
               className="text-themeDark"
             >
-              Applicant Requests Reschedule
-            </SelectItem>
-            <SelectItem
-              key={"Interview Scheduled"}
-              value={"Waiting"}
-              className="text-themeDark"
-            >
-              Interview Waiting
+              Stage 5: Applicant Requests Reschedule
             </SelectItem>
             <SelectItem
               key={"Interviewed"}
               value={"Inteviewed"}
               className="text-themeDark"
             >
-              Applicant Inteviewed
+              Stage 6: Applicant Interviewed
             </SelectItem>
             <SelectItem
               key={"Accepted"}
               value={"Inteviewed"}
               className="text-themeDark"
             >
-              Applicant Accepted
+              Stage 7: Applicant Accepted
             </SelectItem>
             <SelectItem
               key={"Rejected"}
               value={"Inteviewed"}
               className="text-themeDark"
             >
-              Applicant Rejected
+              Stage 8: Applicant Rejected
             </SelectItem>
           </Select>
           <Select
@@ -138,8 +142,12 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
         </div>
       </div>
       <div>
-        {filter.status === "Shortlisted" ? (
-          <ApplicantTable _id={jobId} filter={filter} />
+        {filter.status === "Shortlisted" || filter.status === "" ? (
+          <ApplicantTable
+            _id={jobId}
+            filter={filter}
+            key={`${filter.status}-${filter.sort}`}
+          />
         ) : ["Interviewed", "Accepted", "Rejected"].includes(filter.status) ? (
           <ApplicantScheduledTableAfterInterviewed
             _id={jobId}
@@ -200,7 +208,7 @@ const ApplicantTable = ({ _id, filter }: TableProps) => {
       _id,
       page,
       limit: 10,
-      status: "Shortlisted",
+      status: filter.status,
       sort: filter.sort,
     });
     setLoadAgain(false);

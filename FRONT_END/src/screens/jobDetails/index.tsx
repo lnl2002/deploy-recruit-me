@@ -54,7 +54,7 @@ const JobDetails = (): React.JSX.Element => {
       setTimeout(() => {
         setState(asyncState.success);
         setResponseMessage(
-          "Your applycation has been sent, response will be sent to your email."
+          "Your cv has been encrypted and sent to recruiter, response will be sent to your email."
         );
       }, 500);
     } catch (error) {
