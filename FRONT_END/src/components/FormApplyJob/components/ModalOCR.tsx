@@ -216,7 +216,7 @@ const ModalOCR = ({
                     isClickToPauseDisabled={true}
                     width={"100%"}
                   />
-                  <div>Scanning your CV ...</div>
+                  <div>OCR your CV ...</div>
                 </div>
               ) : null}
 

@@ -77,49 +77,50 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
               value={"Shortlisted"}
               className="text-themeDark"
             >
-              Applicant shortlisted
+              Stage 2: Applicant shortlisted
             </SelectItem>
             <SelectItem
               key={"Pending Interview Confirmation"}
               value={"Waiting"}
               className="text-themeDark"
             >
-              Pending Interview Confirmation
+              Stage 3: Pending Interview Confirmation
+            </SelectItem>
+            
+            <SelectItem
+              key={"Interview Scheduled"}
+              value={"Waiting"}
+              className="text-themeDark"
+            >
+              Stage 4: Interview Waiting
             </SelectItem>
             <SelectItem
               key={"Interview Rescheduled"}
               value={"Waiting"}
               className="text-themeDark"
             >
-              Applicant Requests Reschedule
-            </SelectItem>
-            <SelectItem
-              key={"Interview Scheduled"}
-              value={"Waiting"}
-              className="text-themeDark"
-            >
-              Interview Waiting
+              Stage 5: Applicant Requests Reschedule
             </SelectItem>
             <SelectItem
               key={"Interviewed"}
               value={"Inteviewed"}
               className="text-themeDark"
             >
-              Applicant Inteviewed
+              Stage 6: Applicant Interviewed
             </SelectItem>
             <SelectItem
               key={"Accepted"}
               value={"Inteviewed"}
               className="text-themeDark"
             >
-              Applicant Accepted
+              Stage 7: Applicant Accepted
             </SelectItem>
             <SelectItem
               key={"Rejected"}
               value={"Inteviewed"}
               className="text-themeDark"
             >
-              Applicant Rejected
+              Stage 8: Applicant Rejected
             </SelectItem>
           </Select>
           <Select
