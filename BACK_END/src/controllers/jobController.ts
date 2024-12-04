@@ -39,12 +39,12 @@ const jobController = {
             const pageSkip = parseInt(skip as string, 10) || 0
             const isOwner = owner === '1'
 
-            if (pageLimit <= pageSkip) {
-                return res.status(400).json({
-                    status: 'error',
-                    message: 'Limit must be greater than to skip',
-                })
-            }
+            // if (pageLimit <= pageSkip) {
+            //     return res.status(400).json({
+            //         status: 'error',
+            //         message: 'Limit must be greater than to skip',
+            //     })
+            // }
 
             const query: any = {
                 limit: pageLimit,

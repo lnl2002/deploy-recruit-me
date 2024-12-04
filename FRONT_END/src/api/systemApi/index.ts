@@ -1,8 +1,9 @@
 import { BACKEND_URL } from "@/utils/env";
 import axios from "axios";
+import { TJob } from "../jobApi";
 
 export interface INoti {
-  _id:string
+  _id: string;
   receiver: string;
   content: string;
   url: string;
@@ -14,15 +15,22 @@ export interface INoti {
 // Adjust the Content type to use the Part type
 interface Content {
   role: string;
-  content: string;
+  parts: { text: string }[];
   // Add other properties as needed
+}
+
+interface DataQuery {
+  location?: string;
+  career?: string;
+  salaryMin?: number;
+  readyToFind?: boolean;
 }
 
 const systemApi = {
   getAIResponse: async (
     input: string,
     history: Content[]
-  ): Promise<{ response: string; data: Object }> => {
+  ): Promise<{ response: string; data: DataQuery }> => {
     try {
       const res = await axios.post(`${BACKEND_URL}/api/v1/system/ai-chat`, {
         input: input,
@@ -43,6 +51,26 @@ const systemApi = {
         response: "Some error occur, we can answer you right now.",
         data: {},
       };
+    }
+  },
+
+  getAIJobsResponse: async (data: DataQuery): Promise<TJob[]> => {
+    try {
+      const url = `${BACKEND_URL}/api/v1/system/ai-chat/jobs?city=${
+        data.location ?? ""
+      }&career=${data.career ?? ""}&minSalary=${data.salaryMin ?? 0}`;
+      console.log(url);
+
+      const res = await axios.get(url);
+
+      if (res.status === 200) {
+        return res.data.data;
+      } else {
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching units list:", error);
+      return [];
     }
   },
 
@@ -96,7 +124,9 @@ const systemApi = {
 
   markAsSeen: async (notificationId: string) => {
     try {
-      const response = await axios.patch(`${BACKEND_URL}/api/v1/system/notifications/${notificationId}/seen`);
+      const response = await axios.patch(
+        `${BACKEND_URL}/api/v1/system/notifications/${notificationId}/seen`
+      );
       console.log("Notification marked as seen:", response.data);
     } catch (error) {
       console.error("Error:", error);

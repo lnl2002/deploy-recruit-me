@@ -1,6 +1,6 @@
 import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
-import Account, { IAccount } from './models/accountModel'
+import Account, { IAccount, IAccoutStatus } from './models/accountModel'
 import Role, { IRole } from './models/roleModel'
 import validator from 'validator'
 
@@ -20,7 +20,9 @@ passport.use(
                 }
                 const sanitizedEmail = String(email).trim()
 
-                let user: IAccount = await Account.findOne({ email: sanitizedEmail }).setOptions({sanitizeFilter: true}).populate('role')
+                let user: IAccount = await Account.findOne({ email: sanitizedEmail })
+                    .setOptions({ sanitizeFilter: true })
+                    .populate('role')
 
                 if (!user) {
                     const defaultRole = await Role.findOne({ roleName: 'CANDIDATE' })
@@ -37,15 +39,36 @@ passport.use(
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     user.role = defaultRole as any
                 }
-                const tokenPayload = {
-                    _id: user._id,
-                    displayName: user.name,
-                    email: user.email,
-                    role: (user.role as IRole)?.roleName || '',
-                    image: user.image,
+
+                if (!user?.status || user.status === IAccoutStatus.INACTIVE){
+                    user = await Account.findOneAndUpdate({
+                        email: sanitizedEmail
+                    }, {
+                        name: profile.displayName,
+                        image: profile?.photos[0]?.value || '',
+                        googleId: profile.id,
+                        status: IAccoutStatus.ACTIVE
+                    }, {
+                        new: true
+                    })
                 }
 
-                done(null, tokenPayload)
+                if (user?.status && user.status === IAccoutStatus.SUSPENDED) {
+                    done(null, {
+                        status: IAccoutStatus.SUSPENDED,
+                    })
+                } else {
+                    const tokenPayload = {
+                        _id: user._id,
+                        displayName: user.name,
+                        email: user.email,
+                        role: (user.role as IRole)?.roleName || '',
+                        image: user.image,
+                        status: user?.status || '',
+                    }
+
+                    done(null, tokenPayload)
+                }
             } catch (error) {
                 done(error, null)
             }

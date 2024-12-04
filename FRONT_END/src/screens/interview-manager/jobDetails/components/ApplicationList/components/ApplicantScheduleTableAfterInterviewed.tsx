@@ -219,10 +219,10 @@ export const ApplicantScheduledTableAfterInterviewed = ({
           <TableHeader>
             <TableColumn key="name">CANDIDATE NAME</TableColumn>
             <TableColumn key="role">INTERVIEW TIME</TableColumn>
-            <TableColumn key="role">PARTICIPANTS</TableColumn>
+            <TableColumn key="participants">PARTICIPANTS INTERVIEW</TableColumn>
             <TableColumn key="status">STATUS</TableColumn>
             <TableColumn key="cvScore">AI Score</TableColumn>
-            <TableColumn key="action">CV</TableColumn>
+            <TableColumn key="viewCv">CV</TableColumn>
             <TableColumn key="action">INTERVIEW NOTES</TableColumn>
           </TableHeader>
           <TableBody

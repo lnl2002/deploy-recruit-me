@@ -129,7 +129,7 @@ export const interviewerNavLink = [
   {
     id: 1,
     name: "Home",
-    path: "/",
+    path: "/interview-manager/list-job",
     expandable: false,
     loginRequired: false,
     expand: [],
@@ -165,12 +165,12 @@ export const interviewerNavLink = [
     loginRequired: false,
     expand: [],
   },
-  {
-    id: 4,
-    name: "Contact Us",
-    path: "/contact-us",
-    expandable: false,
-    loginRequired: false,
-    expand: [],
-  },
+  // {
+  //   id: 4,
+  //   name: "Contact Us",
+  //   path: "/contact-us",
+  //   expandable: false,
+  //   loginRequired: false,
+  //   expand: [],
+  // },
 ];
