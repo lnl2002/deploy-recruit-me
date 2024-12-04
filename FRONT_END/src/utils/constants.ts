@@ -26,7 +26,7 @@ export const inputSlots = {
 export enum Role {
   Common,
   Recruiter,
-  Interviewer
+  Interviewer,
 }
 export const navLinks = [
   {
@@ -80,14 +80,14 @@ export const hrNavLinks = [
       },
       {
         id: 2,
-        name: "Posted Jobs",
+        name: "New Jobs",
         path: "/recruiter/list-job",
         expandable: false,
         loginRequired: true,
       },
       {
         id: 3,
-        name: "Active Jobs",
+        name: "Approved Jobs",
         path: "/recruiter/list-job",
         expandable: false,
         loginRequired: true,
@@ -95,6 +95,20 @@ export const hrNavLinks = [
       {
         id: 4,
         name: "Completed Jobs",
+        path: "/recruiter/list-job",
+        expandable: false,
+        loginRequired: true,
+      },
+      {
+        id: 5,
+        name: "Expired Jobs",
+        path: "/recruiter/list-job",
+        expandable: false,
+        loginRequired: true,
+      },
+      {
+        id: 6,
+        name: "Deleted Jobs",
         path: "/recruiter/list-job",
         expandable: false,
         loginRequired: true,
@@ -110,7 +124,6 @@ export const hrNavLinks = [
     expand: [],
   },
 ];
-
 
 export const interviewerNavLink = [
   {

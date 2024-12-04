@@ -30,14 +30,16 @@ export const ListJob = (): React.JSX.Element => {
     let params = "";
     const limitPage = currentPage * limit;
     if (statusJobFilterIndex == 2) {
-      params = `&status=pending,rejected`;
+      params = `&status=pending`;
     } else if (statusJobFilterIndex == 3) {
-      params = `&status=reopened,approved,published`;
+      params = `&status=approved`;
     } else if (statusJobFilterIndex == 4) {
-      params = `&status=expired`;
+      params = `&status=completed`;
+    } else if (statusJobFilterIndex == 5) {
+      params = `&status=rejected`;
     }
 
-    if (statusJobFilterIndex == 5) {
+    if (statusJobFilterIndex == 6) {
       params += "&isDelete=1";
     } else {
       params += "&isDelete=0";

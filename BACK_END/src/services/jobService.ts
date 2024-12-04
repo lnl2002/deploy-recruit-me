@@ -96,7 +96,7 @@ const jobService = {
             return await Job.findByIdAndDelete(jobId)
         } else return await Job.findByIdAndUpdate(jobId, { isDelete: true }, { new: true })
     },
-    restoreJob: async (jobId: Types.ObjectId, isDelete: boolean): Promise<IJob | null> => {
+    restoreJob: async (jobId: Types.ObjectId): Promise<IJob | null> => {
         return await Job.findByIdAndUpdate(jobId, { isDelete: false }, { new: true })
     },
     updateJob: async (jobId: Types.ObjectId, newJob: Partial<IJob>): Promise<IJob | null> => {

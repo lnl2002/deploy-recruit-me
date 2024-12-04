@@ -265,7 +265,7 @@ const jobController = {
             }
 
             // Gọi service để xoá công việc
-            const deletedJob = await jobService.restoreJob(new Types.ObjectId(jobId), job.isDelete)
+            const deletedJob = await jobService.restoreJob(new Types.ObjectId(jobId))
 
             if (!deletedJob) {
                 return res.status(404).json({ message: 'Job not found' })
@@ -668,8 +668,26 @@ const jobController = {
                 return res.status(401).json({ message: 'UNAUTHORIZED' })
             }
 
-            if (!['pending', 'approved', 'published', 'expired', 'reopened', 'rejected'].includes(status)) {
+            if (
+                !['pending', 'approved', 'published', 'expired', 'reopened', 'rejected', 'completed'].includes(status)
+            ) {
                 return res.status(400).json({ message: 'BAD REQUEST' })
+            }
+
+            const job = await jobService.getJobById(new mongoose.Types.ObjectId(jobId))
+
+            const isValidDate = isCurrentDateInRange(job.startDate.toString(), job.expiredDate.toString())
+
+            if (status === 'completed') {
+                if (job.status !== 'approved' || !isValidDate) {
+                    return res
+                        .status(400)
+                        .json({ message: 'You can not complete job without job approval or job expired' })
+                } else if (userId !== job.account._id) {
+                    return res
+                        .status(401)
+                        .json({ message: 'You do not have permission to move to completed status for this job' })
+                }
             }
 
             if (status === 'rejected' && !rejectReason) {
@@ -702,6 +720,14 @@ function resetToStartOfDay(date: string) {
     const newDate = new Date(date)
     newDate.setHours(0, 0, 0, 0)
     return newDate
+}
+
+function isCurrentDateInRange(startDate: string, expiredDate: string) {
+    const currentDate = resetToStartOfDay(new Date().toString())
+    const start = resetToStartOfDay(startDate)
+    const end = resetToStartOfDay(expiredDate)
+
+    return currentDate >= start && currentDate <= end
 }
 
 export default jobController

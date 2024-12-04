@@ -1,4 +1,4 @@
-import jobApi, { TJob } from "@/api/jobApi";
+import jobApi, { JobStatus, TJob } from "@/api/jobApi";
 import { isEmpty } from "@/utils/isEmpty";
 import {
   Dropdown,
@@ -14,12 +14,14 @@ type TabComponentProps = {
   tabSelected: string;
   handleTabChange: (tab: string) => void;
   job: Partial<TJob>;
+  onOpenModalClose: () => void;
 };
 
 const TabComponent: React.FC<TabComponentProps> = ({
   handleTabChange,
   tabSelected,
   job,
+  onOpenModalClose,
 }): React.JSX.Element => {
   const router = useRouter();
 
@@ -100,8 +102,23 @@ const TabComponent: React.FC<TabComponentProps> = ({
                 color="#000"
               />
             </DropdownTrigger>
-            <DropdownMenu aria-label="Static Actions">
+            <DropdownMenu
+              aria-label="Static Actions"
+              disabledKeys={[
+                ...(job.status === JobStatus.COMPLETED ? ["close"] : []),
+                ...(job.status === JobStatus.APPROVED ? ["edit"] : []),
+                ...(job.isDelete ? ["edit"] : []),
+              ]}
+            >
               <DropdownItem
+                key="close"
+                className="text-themeDark"
+                onClick={onOpenModalClose}
+              >
+                Close
+              </DropdownItem>
+              <DropdownItem
+                key="edit"
                 className="text-themeDark"
                 onClick={() => {
                   router.push(`/recruiter/update-job/${job?._id ?? ""}`);
