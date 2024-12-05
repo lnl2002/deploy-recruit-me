@@ -189,7 +189,7 @@ const jobApi = {
         return null;
       }
     } catch (error) {
-      console.error("Error update job status:", error);
+      console.error("Error update job status:", (error as AxiosError).message);
       return null;
     }
   },
@@ -260,4 +260,5 @@ export enum JobStatus {
   EXPIRED = "expired",
   REOPENED = "reopened",
   REJECTED = "rejected",
+  COMPLETED = "completed",
 }

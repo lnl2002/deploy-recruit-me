@@ -15,7 +15,7 @@ jobRouter.get(
 jobRouter.post('/', requireRole(['RECRUITER']), jobController.addJob)
 jobRouter.post('/:jobId/restore', requireRole(['RECRUITER']), jobController.restoreJob)
 
-jobRouter.put('/update-status', requireRole(['INTERVIEW_MANAGER']), jobController.updateJobStatus)
+jobRouter.put('/update-status', requireRole(['INTERVIEW_MANAGER', 'RECRUITER']), jobController.updateJobStatus)
 jobRouter.patch('/:jobId', requireRole(['RECRUITER']), jobController.updateJob)
 
 jobRouter.delete('/:id', requireRole(['RECRUITER']), jobController.deleteJob)

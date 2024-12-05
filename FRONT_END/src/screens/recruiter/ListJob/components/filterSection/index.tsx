@@ -12,79 +12,34 @@ const FilterSection = (): React.JSX.Element => {
 
   return (
     <div className="px-4">
-      <div
-        className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick(1)}
-      >
-        <p
-          className={`text-base px-1 text-${
-            statusJobFilterIndex === 1
-              ? "themeDark border-b-2"
-              : "foreground-400"
-          }`}
+      {jobFilters.map((filter) => (
+        <div
+          key={filter.id}
+          className="flex justify-start py-2 w-full cursor-pointer"
+          onClick={() => handleClick(filter.id)}
         >
-          All My Job
-        </p>
-      </div>
-      <div
-        className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick(2)}
-      >
-        <p
-          className={`text-base px-1 text-${
-            statusJobFilterIndex === 2
-              ? "themeDark border-b-2"
-              : "foreground-400"
-          }
-          `}
-        >
-          Posted Jobs
-        </p>
-      </div>
-      <div
-        className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick(3)}
-      >
-        <p
-          className={`text-base px-1 text-${
-            statusJobFilterIndex === 3
-              ? "themeDark border-b-2"
-              : "foreground-400"
-          }`}
-        >
-          Active Jobs
-        </p>
-      </div>
-      <div
-        className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick(4)}
-      >
-        <p
-          className={`text-base px-1 text-${
-            statusJobFilterIndex === 4
-              ? "themeDark border-b-2"
-              : "foreground-400"
-          }`}
-        >
-          Completed Jobs
-        </p>
-      </div>
-      <div
-        className="flex justify-start py-2 w-full cursor-pointer"
-        onClick={() => handleClick(5)}
-      >
-        <p
-          className={`text-base px-1 text-${
-            statusJobFilterIndex === 5
-              ? "themeDark border-b-2"
-              : "foreground-400"
-          }`}
-        >
-          Deleted Jobs
-        </p>
-      </div>
+          <p
+            className={`text-base px-1 text-${
+              statusJobFilterIndex === filter.id
+                ? "themeDark border-b-2"
+                : "foreground-400"
+            }`}
+          >
+            {filter.label}
+          </p>
+        </div>
+      ))}
     </div>
   );
 };
+
+const jobFilters = [
+  { id: 1, label: "All My Job" },
+  { id: 2, label: "New Jobs" },
+  { id: 3, label: "Approved Jobs" },
+  { id: 4, label: "Completed Jobs" },
+  { id: 5, label: "Rejected Jobs" },
+  { id: 6, label: "Deleted Jobs" },
+];
 
 export default FilterSection;

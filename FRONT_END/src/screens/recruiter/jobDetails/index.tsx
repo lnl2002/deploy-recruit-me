@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import jobApi, { TJob } from "@/api/jobApi";
-import { Image, Tab, Tabs } from "@nextui-org/react";
+import jobApi, { TJob, JobStatus } from "@/api/jobApi";
+import { Image, Tab, Tabs, useDisclosure } from "@nextui-org/react";
 import { useSearchParams } from "next/navigation";
 import { Dot } from "lucide-react";
 import InformationJob from "./components/InformationJob";
@@ -13,11 +13,15 @@ import { setJob as saveJob } from "@/store/jobState";
 import { TUnit } from "@/api/unitApi";
 import { TLocation } from "@/api/locationApi";
 import { ScheduleInterview } from "./components/ScheduleInterview";
+import { ConfirmCloseJobModal } from "./components/ConfirmCloseJobModal";
+import { toast } from "react-toastify";
+import { isEmpty } from "@/utils/isEmpty";
 
 //example: /job-details?id=67055dd3e22b9a4790729550
 export const JobDetails = (): React.JSX.Element => {
   const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const jobId = searchParams.get("id");
   const [job, setJob] = useState<Partial<TJob>>({});
   const [tabSelected, setTabSelected] = useState<string>("overview");
@@ -32,6 +36,27 @@ export const JobDetails = (): React.JSX.Element => {
 
   const handleTabChange = (tab: string) => {
     setTabSelected(tab);
+  };
+
+  const handleConfirm = async () => {
+    if (isEmpty(jobId)) {
+      toast.warning(`Can not close ${job?.title}`);
+      return;
+    }
+
+    const newJob = await jobApi.updateJobStatus({
+      jobId: jobId ?? "",
+      status: "completed",
+    });
+
+    console.log(newJob);
+
+    if (!isEmpty(newJob)) {
+      setJob((prev) => ({ ...prev, status: "completed" as JobStatus }));
+      toast.success("Close job is successfully");
+    } else {
+      toast.error("Error closing job!");
+    }
   };
 
   return (
@@ -63,6 +88,7 @@ export const JobDetails = (): React.JSX.Element => {
             handleTabChange={handleTabChange}
             tabSelected={tabSelected}
             job={job}
+            onOpenModalClose={onOpen}
           />
           {tabSelected === "overview" && <InformationJob job={job} />}
           {tabSelected === "applicants-list" && (
@@ -73,6 +99,11 @@ export const JobDetails = (): React.JSX.Element => {
           )}
         </div>
       </div>
+      <ConfirmCloseJobModal
+        isOpen={isOpen}
+        onClose={onOpenChange}
+        onConfirm={handleConfirm}
+      />
     </>
   );
 };
