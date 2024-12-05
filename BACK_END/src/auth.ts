@@ -50,7 +50,7 @@ passport.use(
                         status: IAccoutStatus.ACTIVE
                     }, {
                         new: true
-                    })
+                    }).populate("role")
                 }
 
                 if (user?.status && user.status === IAccoutStatus.SUSPENDED) {
