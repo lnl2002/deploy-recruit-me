@@ -40,17 +40,21 @@ passport.use(
                     user.role = defaultRole as any
                 }
 
-                if (!user?.status || user.status === IAccoutStatus.INACTIVE){
-                    user = await Account.findOneAndUpdate({
-                        email: sanitizedEmail
-                    }, {
-                        name: profile.displayName,
-                        image: profile?.photos[0]?.value || '',
-                        googleId: profile.id,
-                        status: IAccoutStatus.ACTIVE
-                    }, {
-                        new: true
-                    })
+                if (!user?.status || user.status === IAccoutStatus.INACTIVE) {
+                    user = await Account.findOneAndUpdate(
+                        {
+                            email: sanitizedEmail,
+                        },
+                        {
+                            name: profile.displayName,
+                            image: profile?.photos[0]?.value || '',
+                            googleId: profile.id,
+                            status: IAccoutStatus.ACTIVE,
+                        },
+                        {
+                            new: true,
+                        },
+                    ).populate('role')
                 }
 
                 if (user?.status && user.status === IAccoutStatus.SUSPENDED) {

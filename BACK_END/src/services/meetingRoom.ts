@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from 'mongoose'
 import MeetingRoom, { IMeetingApproveStatus, IMeetingRoom, IParticipantStatus } from '../models/meetingRoomModel'
 import Account, { IAccount } from '../models/accountModel'
@@ -138,6 +139,7 @@ const meetingService = {
     },
     getCandidateList: async ({
         sortOrder = 'asc',
+        sortField = 'createdAt', // Default sort field
         statusFilter,
         page = 1,
         limit = 1,
@@ -145,15 +147,16 @@ const meetingService = {
         jobId,
     }: {
         sortOrder?: 'asc' | 'desc'
+        sortField?: 'timeStart' | 'createdAt' | 'apply.cvScore.averageScore' | string
         statusFilter?: string
         page?: number
         limit?: number
         userId: string
-        jobId: string
+        jobId?: string
     }) => {
         try {
             const skip = (page - 1) * limit
-
+            const sortDirection = sortOrder === 'asc' ? 1 : -1 // Convert to 1 or -1
             let statusId = null
 
             if (statusFilter) {
@@ -165,11 +168,10 @@ const meetingService = {
                         totalPages: 0,
                         data: [],
                     }
-
                 statusId = status._id
             }
 
-            const aggregatePipeline = [
+            const aggregatePipeline: any[] = [
                 {
                     $match: {
                         'participants.participant': new mongoose.Types.ObjectId(userId),
@@ -206,8 +208,8 @@ const meetingService = {
                 ...(jobId ? [{ $match: { 'jobDetails._id': new mongoose.Types.ObjectId(jobId) } }] : []),
                 {
                     $lookup: {
-                        from: 'cvs', // reference the CV model
-                        localField: 'applyDetails.cv', // field in apply that references CV
+                        from: 'cvs',
+                        localField: 'applyDetails.cv',
                         foreignField: '_id',
                         as: 'cvDetails',
                     },
@@ -234,7 +236,7 @@ const meetingService = {
                     $project: {
                         _id: 1,
                         url: 1,
-                        timeStart: 1,
+                        timeStart: 1, // Ensure timeStart is included
                         timeEnd: 1,
                         rejectCount: 1,
                         isActive: 1,
@@ -264,6 +266,17 @@ const meetingService = {
                             url: '$cvDetails.url',
                         },
                         applyStatus: '$statusDetails',
+                        parsedScore: {
+                            $cond: {
+                                if: { $not: ['$applyDetails.cvScore.averageScore'] },
+                                then: null,
+                                else: {
+                                    $toDouble: {
+                                        $arrayElemAt: [{ $split: ['$applyDetails.cvScore.averageScore', '/'] }, 0],
+                                    },
+                                },
+                            },
+                        },
                         participants: {
                             $map: {
                                 input: '$participantsDetails',
@@ -285,20 +298,46 @@ const meetingService = {
                                             },
                                             0,
                                         ],
-                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     } as any,
                                 },
                             },
                         },
                     },
                 },
-                { $sort: { createdAt: sortOrder === 'asc' ? 1 : -1 } },
+                ...(sortField === 'apply.cvScore.averageScore'
+                    ? [
+                          {
+                              $addFields: {
+                                  hasScore: {
+                                      $cond: {
+                                          if: { $not: ['$parsedScore'] },
+                                          then: 1, // Mark nulls
+                                          else: 0, // Mark records with score
+                                      },
+                                  },
+                              },
+                          },
+                          {
+                              $sort: {
+                                  hasScore: 1, // Prioritize records with scores (0 comes first)
+                                  parsedScore: sortDirection,
+                                  createdAt: 1, // Tie-breaker
+                              },
+                          },
+                      ]
+                    : [
+                          {
+                              $sort: {
+                                  [sortField]: sortDirection,
+                                  createdAt: 1, // Tie-breaker
+                              },
+                          },
+                      ]),
                 { $skip: skip },
                 { $limit: limit },
             ]
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const meetings = await MeetingRoom.aggregate(aggregatePipeline as any[])
+            const meetings = await MeetingRoom.aggregate(aggregatePipeline)
 
             const totalMeetingPipeline = [
                 { $match: { 'participants.participant': new mongoose.Types.ObjectId(userId) } },
@@ -356,6 +395,7 @@ const meetingService = {
             throw error
         }
     },
+
     getMeetingRoom: async (url: string): Promise<IMeetingRoom> => {
         return await MeetingRoom.findOne({ url: url })
     },
@@ -457,8 +497,6 @@ const meetingService = {
         try {
             const now = truncateToMinutes(new Date())
             const oneHourFromNow = truncateToMinutes(new Date(now.getTime() + 60 * 60 * 1000))
-            console.log("oneHourFromNow", oneHourFromNow);
-
 
             const rooms = await MeetingRoom.find({
                 timeStart: oneHourFromNow,
@@ -469,7 +507,6 @@ const meetingService = {
                     select: '_id email name',
                 })
 
-                console.log(rooms)
 
             const result = rooms.flatMap((meeting) =>
                 meeting.participants

@@ -7,5 +7,7 @@ export const FRONTEND_URL_RECRUITER_HOME =
   process.env.NEXT_PUBLIC_RECRUITER_HOME || "";
 export const FRONTEND_URL_INTERVIEW_MANAGER_HOME =
   process.env.NEXT_PUBLIC_INTERVIEW_MANAGER_HOME || "";
+export const FRONTEND_URL_INTERVIEWER_HOME =
+  process.env.NEXT_PUBLIC_INTERVIEWER_HOME || "";
 export const FRONTEND_URL_ADMIN_HOME = process.env.NEXT_PUBLIC_ADMIN_HOME || "";
 export const FRONTEND_URL = process.env.NEXT_PUBLIC_BASE_URL || "";

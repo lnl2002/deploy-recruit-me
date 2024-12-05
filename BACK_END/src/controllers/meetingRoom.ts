@@ -121,7 +121,7 @@ const meetingController = {
     },
     getListCandidates: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const { sortOrder, statusFilter, page, limit, jobId } = req.query
+            const { sortOrder, statusFilter, page, limit, jobId, sortField } = req.query
 
             const userId = req?.user?._id
 
@@ -129,7 +129,13 @@ const meetingController = {
                 throw new Error('UNAUTHORIZED')
             }
 
+            let sort = 'createdAt'
+            if(['timeStart', 'createdAt', 'apply.cvScore.averageScore'].includes(sortField?.toString())){
+                sort = sortField.toString()
+            }
+
             const data = await meetingService.getCandidateList({
+                sortField: sort as string,
                 sortOrder: sortOrder as 'asc' | 'desc' | undefined,
                 statusFilter: statusFilter as string | undefined,
                 page: page ? parseInt(page as string, 10) : undefined,

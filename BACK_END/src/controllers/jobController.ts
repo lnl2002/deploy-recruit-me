@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { NextFunction, Request, Response } from 'express'
 import mongoose, { Types } from 'mongoose'
 import jobService from '../services/jobService'
