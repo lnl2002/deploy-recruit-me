@@ -150,17 +150,37 @@ export const meetingApi = {
     sortOrder,
     statusFilter,
     jobId,
+    sortField
   }: {
     limit?: number;
     page?: number;
     sortOrder?: string;
     statusFilter?: string;
     jobId?: string;
+    sortField?: 'timeStart' | 'createdAt' | 'apply.cvScore.averageScore'; 
   }) => {
     try {
-      const res = await axios.get(
-        `${BACKEND_URL}/api/v1/meeting-room/list-candidate?page=${page}&limit=${limit}&sortOrder=${sortOrder}&statusFilter=${statusFilter}&jobId=${jobId}`
+      const params: Record<string, any> = {
+        limit,
+        page,
+        sortOrder,
+        statusFilter,
+        jobId,
+        sortField,
+      };
+  
+      // Loại bỏ các giá trị undefined hoặc null hoặc ''
+      const filteredParams = Object.fromEntries(
+        Object.entries(params).filter(([_, value]) => value !== undefined && value !== null && value !== '')
       );
+
+
+      const res = await axios.get(
+        `${BACKEND_URL}/api/v1/meeting-room/list-candidate`, {
+          params: filteredParams
+        }
+      );
+      
       if (res.status === 200) {
         return res.data.data;
       } else {
