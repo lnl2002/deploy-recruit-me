@@ -24,7 +24,6 @@ const accountSchema: Schema = new Schema(
     {
         googleId: {
             type: 'string',
-            unique: true,
             trim: true,
         },
         email: {

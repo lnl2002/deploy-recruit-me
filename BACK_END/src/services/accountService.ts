@@ -6,12 +6,24 @@ import Role from '../models/roleModel'
 
 const accountService = {
     getAccountList: async (query: any, filteredQuery: any): Promise<{ accounts: IAccount[]; total: number }> => {
-        const { sort_field = 'createdAt', order = 'asc', limit, skip, role } = query
+        const { sort_field = 'createdAt', order = 'asc', limit = 5, skip = 0, role } = query
 
-        if(role) {
+        if(limit < 0 || skip < 0){
+            throw new Error('BAD_REQUEST');
+        }
+
+        if (role) {
             const roleInfo = await Role.findOne({
-                roleName: role
+                roleName: role,
             })
+
+            if(!roleInfo) {
+                return {
+                    accounts: [],
+                    total: 0
+                }
+            }
+
             filteredQuery.role = roleInfo._id
         }
 
@@ -54,12 +66,12 @@ const accountService = {
 
         if (!roleInterviewer) {
             console.log('Cannot find INTERVIEWER role')
-            return undefined
+            return []
         }
 
         if (!roleInterviewManager) {
             console.log('Cannot find INTERVIEW_MANAGER role')
-            return undefined
+            return []
         }
 
         const listInterviewer = await Account.find({
@@ -77,16 +89,16 @@ const accountService = {
             { status: newStatus },
             { new: true, runValidators: true },
         )
-        return updatedAccount;
+        return updatedAccount
     },
 
     createAccount: async (accountData: Partial<IAccount>) => {
         const account = new Account({
-            ...accountData
+            ...accountData,
         })
 
-        return await account.save();
-    }
+        return await account.save()
+    },
 }
 
 export default accountService
