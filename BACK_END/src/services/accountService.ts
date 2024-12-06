@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Types } from 'mongoose'
+import { isValidObjectId, Types } from 'mongoose'
 import Account, { IAccount, IAccoutStatus } from '../models/accountModel'
 import Role from '../models/roleModel'
 
@@ -12,7 +12,9 @@ const accountService = {
             throw new Error('BAD_REQUEST');
         }
 
-        if (role) {
+        if (!isValidObjectId(role) && role) {
+            console.log("role", role);
+
             const roleInfo = await Role.findOne({
                 roleName: role,
             })
