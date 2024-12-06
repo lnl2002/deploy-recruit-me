@@ -8,11 +8,11 @@ const accountService = {
     getAccountList: async (query: any, filteredQuery: any): Promise<{ accounts: IAccount[]; total: number }> => {
         const { sort_field = 'createdAt', order = 'asc', limit, skip, role } = query
 
-        if(role) {
+        if (role) {
             const roleInfo = await Role.findOne({
-                roleName: role
+                roleName: role,
             })
-            filteredQuery.role = roleInfo._id
+            if (roleInfo) filteredQuery.role = roleInfo._id
         }
 
         const total = await Account.countDocuments(filteredQuery)
@@ -77,16 +77,16 @@ const accountService = {
             { status: newStatus },
             { new: true, runValidators: true },
         )
-        return updatedAccount;
+        return updatedAccount
     },
 
     createAccount: async (accountData: Partial<IAccount>) => {
         const account = new Account({
-            ...accountData
+            ...accountData,
         })
 
-        return await account.save();
-    }
+        return await account.save()
+    },
 }
 
 export default accountService
