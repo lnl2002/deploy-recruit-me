@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Types } from 'mongoose'
@@ -184,6 +185,15 @@ describe('accountService', () => {
             const result = await accountService.getInterviewerByUnit(unitId.toString())
 
             expect(result).toHaveLength(0)
+        })
+
+        it('should return empty array if INTERVIEW_MANAGER role is missing', async () => {
+            await Role.create({ roleName: 'INTERVIEWER' }) // Only create INTERVIEWER role
+            const unitId = new Types.ObjectId()
+
+            const result = await accountService.getInterviewerByUnit(unitId.toString())
+
+            expect(result).toHaveLength(0) // Expect an empty array since INTERVIEW_MANAGER role is not found
         })
     })
 
