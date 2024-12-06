@@ -7,7 +7,6 @@ import { InterviewerLayout } from "@/components";
 export default function CandidateList() {
   return (
     <div
-      className="flex flex-col w-screen h-screen"
       style={{
         background: `url("/background-login.png")`,
         backgroundSize: "cover",

@@ -1,18 +1,33 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Types } from 'mongoose'
+import { isValidObjectId, Types } from 'mongoose'
 import Account, { IAccount, IAccoutStatus } from '../models/accountModel'
 import Role from '../models/roleModel'
 
 const accountService = {
     getAccountList: async (query: any, filteredQuery: any): Promise<{ accounts: IAccount[]; total: number }> => {
-        const { sort_field = 'createdAt', order = 'asc', limit, skip, role } = query
+        const { sort_field = 'createdAt', order = 'asc', limit = 5, skip = 0, role } = query
 
-        if (role) {
+        if (limit < 0 || skip < 0) {
+            throw new Error('BAD_REQUEST')
+        }
+
+        if (!isValidObjectId(role) && role) {
+            console.log('role', role)
+
             const roleInfo = await Role.findOne({
                 roleName: role,
             })
             if (roleInfo) filteredQuery.role = roleInfo._id
+
+            if (!roleInfo) {
+                return {
+                    accounts: [],
+                    total: 0,
+                }
+            }
+
+            filteredQuery.role = roleInfo._id
         }
 
         const total = await Account.countDocuments(filteredQuery)
@@ -54,12 +69,12 @@ const accountService = {
 
         if (!roleInterviewer) {
             console.log('Cannot find INTERVIEWER role')
-            return undefined
+            return []
         }
 
         if (!roleInterviewManager) {
             console.log('Cannot find INTERVIEW_MANAGER role')
-            return undefined
+            return []
         }
 
         const listInterviewer = await Account.find({
