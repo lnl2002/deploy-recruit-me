@@ -1,6 +1,6 @@
+"use client"
 import meetingApi, { IMeeting } from "@/api/meetingApi";
-import { Input, Select, SelectItem, user } from "@nextui-org/react";
-import { Search, View } from "lucide-react";
+import { Select, SelectItem } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import CalendarTimeline from "./component/weeklyCalendar";
 import WeekSelector from "./component/weekSelector";
