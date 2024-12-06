@@ -18,7 +18,6 @@ const accountService = {
             const roleInfo = await Role.findOne({
                 roleName: role,
             })
-            if (roleInfo) filteredQuery.role = roleInfo._id
 
             if (!roleInfo) {
                 return {
