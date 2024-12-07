@@ -41,10 +41,21 @@ const validationSchema = Yup.object().shape({
       "fileType",
       "Please upload a PDF file.",
       (value) => !!value && value.type === "application/pdf"
-    ),
+    )
+    .test(
+      "fileSize",
+      "File size must be less than or equal to 5MB.",
+      (value) => !!value && value.size <= 5 * 1024 * 1024
+    ),// 5MB in bytes 
 });
 
-export const FormApplyJob = ({ job, onApply, onCancel, ocrCV, setOcrCV }: FormProps) => {
+export const FormApplyJob = ({
+  job,
+  onApply,
+  onCancel,
+  ocrCV,
+  setOcrCV,
+}: FormProps) => {
   const OCRModal = useDisclosure();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -65,7 +76,6 @@ export const FormApplyJob = ({ job, onApply, onCancel, ocrCV, setOcrCV }: FormPr
       const response = await applyApi.getOcrCV(file);
       setOcrCV(response?.data?.data);
       setIsLoading(false);
-      
     } catch (error) {
       console.error("Error uploading file:", error);
       setIsLoading(false);
@@ -287,7 +297,10 @@ export const FormApplyJob = ({ job, onApply, onCancel, ocrCV, setOcrCV }: FormPr
                   }}
                 />
                 {ocrCV && (
-                  <Button className="border-1 border-themeOrange bg-opacity-0 text-themeOrange" onPress={() => OCRModal.onOpen()}>
+                  <Button
+                    className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
+                    onPress={() => OCRModal.onOpen()}
+                  >
                     CV Information
                   </Button>
                 )}
