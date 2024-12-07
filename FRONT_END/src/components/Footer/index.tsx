@@ -39,18 +39,18 @@ export const Footer: React.FC<FooterProp> = ({}): React.JSX.Element => {
           <h4 className="text-themeDark text-sm font-bold">Contact Us</h4>
           <div className="flex gap-2">
             <Phone size={20} color="#999" />
-            <span className="text-sm text-themeDark">1-791-463-5020 x9458</span>
+            <span className="text-sm text-themeDark">0984068859</span>
           </div>
           <div className="flex gap-2">
             <Mail size={20} color="#999" />
             <span className="text-sm text-themeDark">
-              Myron_Senger53@hotmail.com
+              fptCPG35@fpt.cr.vn
             </span>
           </div>
           <div className="flex gap-2">
             <Facebook size={20} color="#999" />
             <span className="text-sm text-themeDark">
-              https://impure-immigration.com
+              https://fe-deploy-recruit-me.vercel.app/
             </span>
           </div>
         </div>

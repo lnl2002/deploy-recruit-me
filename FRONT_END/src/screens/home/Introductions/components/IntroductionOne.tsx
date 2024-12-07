@@ -9,19 +9,19 @@ const IntroductionOne = (): React.JSX.Element => {
       <div className="grid lg:grid-cols-4 sm:grid-cols-2 ">
         <div className="flex gap-2 flex-row">
           <Globe />
-          <span>https://impure-immigration.com</span>
+          <span>https://fe-deploy-recruit-me.vercel.app/</span>
         </div>
         <div className="flex gap-2 flex-row">
           <Mail />
-          <span>Myron_Senger53@hotmail.com</span>
+          <span>fptCPG35@fpt.cr.vn</span>
         </div>
         <div className="flex gap-2 flex-row">
           <Phone />
-          <span>1-791-463-5020 x9458</span>
+          <span>1-791-463-5020 x9458</span>df
         </div>
         <div className="flex gap-2 flex-row">
           <Facebook />
-          <span>https://impure-immigration.com</span>
+          <span>https://fe-deploy-recruit-me.vercel.app/</span>
         </div>
       </div>
     </div>
