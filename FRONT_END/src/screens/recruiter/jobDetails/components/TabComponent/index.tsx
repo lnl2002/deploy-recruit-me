@@ -1,4 +1,5 @@
 import jobApi, { JobStatus, TJob } from "@/api/jobApi";
+import { getStatusJob } from "@/utils/getStatus";
 import { isEmpty } from "@/utils/isEmpty";
 import {
   Dropdown,
@@ -92,52 +93,63 @@ const TabComponent: React.FC<TabComponentProps> = ({
           </div>
         </div>
       </div>
-      {job?.status !== "approved" && (
-        <div>
-          <Dropdown placement="bottom-end">
-            <DropdownTrigger>
-              <EllipsisVertical
-                size={43}
-                className="p-2.5 border rounded-full cursor-pointer"
-                color="#000"
-              />
-            </DropdownTrigger>
-            <DropdownMenu
-              aria-label="Static Actions"
-              disabledKeys={[
-                ...(job.status === JobStatus.COMPLETED ? ["close"] : []),
-                ...(job.status === JobStatus.APPROVED ? ["edit"] : []),
-                ...(job.isDelete ? ["edit"] : []),
-              ]}
+      {/* {job?.status !== "approved" && ( */}
+      <div>
+        <Dropdown placement="bottom-end">
+          <DropdownTrigger>
+            <EllipsisVertical
+              size={43}
+              className="p-2.5 border rounded-full cursor-pointer"
+              color="#000"
+            />
+          </DropdownTrigger>
+          <DropdownMenu
+            aria-label="Static Actions"
+            disabledKeys={[
+              ...(job.status === JobStatus.COMPLETED ||
+              job.status === JobStatus.REJECTED
+                ? ["close"]
+                : []),
+              ...(job.status === JobStatus.APPROVED ? ["delete"] : []),
+              ...(job.status === JobStatus.APPROVED &&
+              getStatusJob(
+                new Date(job.startDate as string),
+                new Date(job.expiredDate as string),
+                job.status
+              ) !== JobStatus.EXPIRED
+                ? ["edit"]
+                : []),
+              ...(job.isDelete ? ["edit"] : []),
+            ]}
+          >
+            <DropdownItem
+              key="close"
+              className="text-themeDark"
+              onClick={onOpenModalClose}
             >
-              <DropdownItem
-                key="close"
-                className="text-themeDark"
-                onClick={onOpenModalClose}
-              >
-                Close
-              </DropdownItem>
-              <DropdownItem
-                key="edit"
-                className="text-themeDark"
-                onClick={() => {
-                  router.push(`/recruiter/update-job/${job?._id ?? ""}`);
-                }}
-              >
-                Edit
-              </DropdownItem>
-              <DropdownItem
-                key="delete"
-                className="text-danger"
-                color="danger"
-                onClick={handleDeleteJob}
-              >
-                Delete
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
-        </div>
-      )}
+              Close
+            </DropdownItem>
+            <DropdownItem
+              key="edit"
+              className="text-themeDark"
+              onClick={() => {
+                router.push(`/recruiter/update-job/${job?._id ?? ""}`);
+              }}
+            >
+              Edit
+            </DropdownItem>
+            <DropdownItem
+              key="delete"
+              className="text-danger"
+              color="danger"
+              onClick={handleDeleteJob}
+            >
+              Hide
+            </DropdownItem>
+          </DropdownMenu>
+        </Dropdown>
+      </div>
+      {/* )} */}
     </div>
   );
 };

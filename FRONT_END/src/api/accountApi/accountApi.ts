@@ -83,11 +83,11 @@ const accountApi = {
     limit = 10,
     name,
     email,
-    sort_by = 'createdAt',
+    sort_by = "createdAt",
     order = 1,
     role,
     page = 1,
-    status
+    status,
   }: {
     limit?: number;
     name?: string;
@@ -102,7 +102,7 @@ const accountApi = {
     total: number;
   }> => {
     try {
-      const skip = (page - 1) * limit
+      const skip = (page - 1) * limit;
 
       const params: Record<string, any> = {
         skip,
@@ -114,10 +114,12 @@ const accountApi = {
         role,
         status,
       };
-  
+
       // Loại bỏ các giá trị undefined hoặc null
       const filteredParams = Object.fromEntries(
-        Object.entries(params).filter(([_, value]) => value !== undefined && value !== null && value !== '')
+        Object.entries(params).filter(
+          ([_, value]) => value !== undefined && value !== null && value !== ""
+        )
       );
 
       const { status: code, data } = await axios.get(

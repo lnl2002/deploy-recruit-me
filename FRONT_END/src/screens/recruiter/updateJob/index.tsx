@@ -328,7 +328,7 @@ export const UpdateJob: React.FC<PageProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (criteriasSelected.length === 0) {
+    if (!criteriasSelected.length) {
       toast.warning("Please select at least one criteria");
       return;
     }
@@ -363,7 +363,7 @@ export const UpdateJob: React.FC<PageProps> = ({
       return;
     }
 
-    const criteriaIds = criteriasSelected.map((criteria) => criteria._id);
+    const criteriaIds = criteriasSelected?.map((criteria) => criteria._id);
 
     const { job: newJob } = await jobApi.updateJob(jobId, {
       ...formValue,
@@ -752,7 +752,7 @@ export const UpdateJob: React.FC<PageProps> = ({
                           title={criteria?.name}
                           startContent={
                             <Checkbox
-                              isSelected={criteriasSelected.some(
+                              isSelected={criteriasSelected?.some(
                                 (item) => item?._id === criteria._id
                               )}
                               onValueChange={handleSelectedCriterias(criteria)}
@@ -783,7 +783,7 @@ export const UpdateJob: React.FC<PageProps> = ({
                     variant="light"
                     className="bg-gradient-to-tr from-themeOrange to-blurEffectGold text-themeWhite shadow-lg w-[174px] h-[44px]"
                     onClick={() => {
-                      if (criteriasSelected.length === 0) {
+                      if (!criteriasSelected.length) {
                         toast.warning("Please select at least one criteria");
                         return;
                       }
@@ -802,7 +802,7 @@ export const UpdateJob: React.FC<PageProps> = ({
                       List criteria for {formValue.title}
                     </p>
                     <Accordion>
-                      {criteriasSelected.map((criteria) => (
+                      {criteriasSelected?.map((criteria) => (
                         <AccordionItem
                           key={criteria?._id}
                           aria-label={criteria?.name}

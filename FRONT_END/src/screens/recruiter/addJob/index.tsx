@@ -29,6 +29,7 @@ import groupCriteriaApi, { IGroupCriteria } from "@/api/groupCriteriaApi";
 import { ICriteria } from "@/api/criteriaApi";
 import CriteriaDetail from "./criteriaDetail";
 import { isEmpty } from "@/utils/isEmpty";
+import formatSalary from "@/utils/formatSalary";
 
 const CustomEditor = dynamic(() => import("./custom"), {
   ssr: false,
@@ -56,8 +57,6 @@ interface JobType {
   name: string;
 }
 
-const LEVELs = ["BASIC", "BEGINER", "INTERMEDIATE", "ADVANCED", "EXPERT"];
-
 const types: JobType[] = [
   { _id: "fulltime", name: "Fulltime" },
   { _id: "parttime", name: "Parttime" },
@@ -66,11 +65,6 @@ const types: JobType[] = [
   { _id: "remote-fulltime", name: "Remote Fulltime" },
   { _id: "remote-parttime", name: "Remote Parttime" },
 ];
-
-type TCriteriaSelected = {
-  groupCriteriaId: string;
-  criteria: ICriteria;
-};
 
 export const AddJob = (): React.JSX.Element => {
   const router = useRouter();
@@ -109,8 +103,8 @@ export const AddJob = (): React.JSX.Element => {
   }, []);
 
   useEffect(() => {
-    console.log(criteriasSelected);
-  }, [criteriasSelected]);
+    console.log(formValue);
+  }, [formValue]);
 
   useEffect(() => {
     (async () => {
@@ -118,7 +112,7 @@ export const AddJob = (): React.JSX.Element => {
 
       const params = `&unit=${
         formValue?.unit as string
-      }&role=${"6718eb41b203b7efd13871ca"}`;
+      }&role=${"INTERVIEW_MANAGER"}`;
       const { accounts } = await accountApi.getListAccount(params);
       const { unit } = await unitApi.getUnit(formValue?.unit as string);
       setUnit(unit);
@@ -267,18 +261,33 @@ export const AddJob = (): React.JSX.Element => {
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value, name } = event.target;
 
-    let parsedValue: string | number = "";
-    if (value) {
-      parsedValue = isNaN(Number(value)) ? value : Number(value);
-    }
+    const fieldsTypeNumber = ["maxSalary", "minSalary", "numberPerson"];
 
     let errorMessage = "";
-    const minSalary = formValue?.minSalary;
-    if (name === "maxSalary" && minSalary) {
-      if ((parsedValue as number) < minSalary) {
-        errorMessage =
-          "Maximum salary must be greater than or equal to minimum salary";
+    let parseValue: string | number = value;
+    if (fieldsTypeNumber.includes(name)) {
+      const parseNumber = Number(value.replace(/[.,]/g, ""));
+
+      console.log(parseNumber);
+
+      if (!parseNumber) {
+        errorMessage = "Please enter a valid number";
+      } else if (parseNumber < 0) {
+        errorMessage = "Must be a positive number";
+      } else if (name === "numberPerson" && parseNumber <= 0) {
+        errorMessage = "Number of people must be greater than 0";
+      } else {
+        const minSalary = Number(
+          String(formValue?.minSalary ?? "").replace(/[.,]/g, "")
+        );
+        if (name === "maxSalary" && minSalary) {
+          if (parseNumber < minSalary) {
+            errorMessage =
+              "Maximum salary must be greater than or equal to minimum salary";
+          }
+        }
       }
+      if (!errorMessage) parseValue = Number(parseNumber);
     }
 
     setFormValueError(
@@ -287,7 +296,7 @@ export const AddJob = (): React.JSX.Element => {
     setFormValue(
       (pre): Partial<TJob> => ({
         ...pre,
-        [name as keyof TJob]: parsedValue,
+        [name as keyof TJob]: parseValue,
       })
     );
   };
@@ -531,7 +540,6 @@ export const AddJob = (): React.JSX.Element => {
                           label="Location"
                           placeholder="Select Location"
                           selectedKey={formValue.location as string | null}
-                          // onSelectionChange={onSelectionLocationChange}
                           onSelectionChange={(value: Key | null) => {
                             onSelectedChange("location", value);
                           }}
@@ -548,14 +556,19 @@ export const AddJob = (): React.JSX.Element => {
                       </div>
                       <div className="flex w-full flex-wrap md:flex-nowrap gap-4 mt-[32px]">
                         <InputComponent
-                          type="number"
+                          type="text"
                           isRequired
-                          min={1}
                           label="Quantity"
                           name="numberPerson"
                           labelPlacement="outside"
                           placeholder="Add Quantity"
-                          value={formValue.numberPerson?.toString() ?? ""}
+                          value={
+                            Number(formValue?.numberPerson ?? 0)
+                              ? Number(
+                                  formValue?.numberPerson ?? 0
+                                )?.toLocaleString("vi-VN")
+                              : formValue?.numberPerson
+                          }
                           onChange={onChange}
                           isInvalid={!!formValueError.numberPerson}
                           errorMessage={
@@ -601,15 +614,20 @@ export const AddJob = (): React.JSX.Element => {
                       <div className="flex w-full flex-wrap md:flex-nowrap gap-4 mt-[32px]">
                         <div className="relative flex-1">
                           <InputComponent
-                            type="number"
+                            type="text"
                             isRequired
                             name="minSalary"
                             label="Min Budget"
                             labelPlacement="outside"
                             placeholder="Enter min budget"
-                            min={0}
                             className="w-full"
-                            value={formValue.minSalary?.toString() ?? ""}
+                            value={
+                              Number(formValue?.minSalary ?? 0)
+                                ? Number(
+                                    formValue?.minSalary ?? 0
+                                  )?.toLocaleString("vi-VN")
+                                : formValue?.minSalary
+                            }
                             onChange={onChange}
                             endContent={
                               <DollarSign
@@ -628,15 +646,20 @@ export const AddJob = (): React.JSX.Element => {
                         </div>
                         <div className="relative flex-1 mb-[38px]">
                           <InputComponent
-                            type="number"
+                            type="text"
                             isRequired
                             name="maxSalary"
                             label="Max Budget"
                             labelPlacement="outside"
                             placeholder="Enter max budget"
-                            min={0}
                             className="w-full"
-                            value={formValue.maxSalary?.toString() ?? ""}
+                            value={
+                              Number(formValue?.maxSalary ?? 0)
+                                ? Number(
+                                    formValue?.maxSalary ?? 0
+                                  )?.toLocaleString("vi-VN")
+                                : formValue?.maxSalary
+                            }
                             onChange={onChange}
                             disabled={
                               !formValue.minSalary && formValue.minSalary !== 0
