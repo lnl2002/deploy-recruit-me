@@ -8,21 +8,21 @@ const accountService = {
     getAccountList: async (query: any, filteredQuery: any): Promise<{ accounts: IAccount[]; total: number }> => {
         const { sort_field = 'createdAt', order = 'asc', limit = 5, skip = 0, role } = query
 
-        if(limit < 0 || skip < 0){
-            throw new Error('BAD_REQUEST');
+        if (limit < 0 || skip < 0) {
+            throw new Error('BAD_REQUEST')
         }
 
         if (!isValidObjectId(role) && role) {
-            console.log("role", role);
+            console.log('role', role)
 
             const roleInfo = await Role.findOne({
                 roleName: role,
             })
 
-            if(!roleInfo) {
+            if (!roleInfo) {
                 return {
                     accounts: [],
-                    total: 0
+                    total: 0,
                 }
             }
 
