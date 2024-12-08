@@ -31,9 +31,7 @@ describe('cvService', () => {
 
     afterAll(async () => {
         await mongoose.disconnect()
-        if (mongoServer && mongoServer.instanceInfo) {
-            await mongoServer.stop({ force: true })
-        }
+        await mongoServer.stop()
     })
 
     beforeEach(async () => {
@@ -222,16 +220,19 @@ describe('cvService', () => {
         it('should return error null if ID is invalid', async () => {
             jest.spyOn(CV, 'findById').mockRejectedValueOnce(new Error('ID is invalid'))
             await expect(cvService.getCVById("invalid-id")).rejects.toThrow('ID is invalid')
+            jest.clearAllMocks()
         })
 
         it('should return null if CV does not exist', async () => {
             jest.spyOn(CV, 'findById').mockRejectedValueOnce(new Error('CV does not exist'))
             await expect(cvService.getCVById(new Types.ObjectId().toString())).rejects.toThrow('CV does not exist')
+            jest.clearAllMocks()
         })
 
         it('should handle errors gracefully', async () => {
             jest.spyOn(CV, 'findById').mockRejectedValueOnce(new Error('Database error'))
             await expect(cvService.getCVById('123')).rejects.toThrow('Database error')
+            jest.clearAllMocks()
         })
 
         it('should return correct CV if multiple CVs exist', async () => {

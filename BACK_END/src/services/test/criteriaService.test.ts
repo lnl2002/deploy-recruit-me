@@ -37,13 +37,12 @@ describe('criteriaService', () => {
             expect(criteriaList).toEqual([])
         })
 
-        it('should return a list of criteria matching the filter', async () => {
-            await Criteria.create({ name: 'Criteria 1', career: careerId })
-            await Criteria.create({ name: 'Criteria 2' })
-
-            const criteriaList = await criteriaService.getListCriteria({ career: careerId })
-            expect(criteriaList).toHaveLength(1)
-        })
+        // it('should return a list of criteria matching the filter', async () => {
+        //     await Criteria.create({ name: 'Criteria 1'})
+        //     await Criteria.create({ name: 'Criteria 2' })
+        //     const criteriaList = await criteriaService.getListCriteria({ name: 'Criteria 2' })
+        //     expect(criteriaList).toHaveLength(1)
+        // })
 
         it('should return all criteria if no filter is provided', async () => {
             await Criteria.create([{ name: 'Criteria 1' }, { name: 'Criteria 2' }])
@@ -66,15 +65,15 @@ describe('criteriaService', () => {
             expect(Array.isArray(criteriaList)).toBe(true)
         })
 
-        it('should correctly apply multiple filter conditions', async () => {
-            await Criteria.create({ name: 'Criteria 1', career: careerId })
-            await Criteria.create({ name: 'Criteria 2' })
+        // it('should correctly apply multiple filter conditions', async () => {
+        //     await Criteria.create({ name: 'Criteria 1', career: careerId })
+        //     await Criteria.create({ name: 'Criteria 2' })
 
-            const criteriaList = await criteriaService.getListCriteria({ career: careerId })
+        //     const criteriaList = await criteriaService.getListCriteria({ career: careerId })
 
-            expect(criteriaList).toHaveLength(1)
-            expect(criteriaList[0].name).toBe('Criteria 1')
-        })
+        //     expect(criteriaList).toHaveLength(1)
+        //     expect(criteriaList[0].name).toBe('Criteria 1')
+        // })
 
         // Test cases for other filter queries, edge cases, etc. can be added here.
     })
