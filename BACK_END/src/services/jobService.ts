@@ -1,9 +1,21 @@
 import { PipelineStage, Types } from 'mongoose'
 import Job, { IJob } from '../models/jobModel'
 
+const VALID_SORT_FIELDS = ['createdAt', 'title', 'minSalary', 'maxSalary']
+
 const jobService = {
     getListJobs: async (query: any, filteredQuery: any, isowner: boolean): Promise<{ jobs: IJob[]; total: number }> => {
         const { sort_field = 'createdAt', order = 'asc', limit, skip } = query
+
+        // Validate sort field
+        if (!VALID_SORT_FIELDS.includes(sort_field)) {
+            throw new Error('Invalid query parameter:', sort_field)
+        }
+
+        // Validate order
+        if (order !== 'asc' && order !== 'desc') {
+            throw new Error('Invalid query parameter: order')
+        }
 
         const pipeline: PipelineStage[] = [
             { $match: { ...filteredQuery } },
@@ -63,7 +75,7 @@ const jobService = {
         const jobs = await Job.aggregate([
             ...pipeline,
             {
-                $sort: { [sort_field]: order === 'asc' ? 1 : -1 },
+                $sort: { [sort_field as keyof IJob]: order === 'asc' ? 1 : -1 },
             },
             {
                 $skip: Number(skip),

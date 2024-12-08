@@ -44,11 +44,11 @@ const jobSchema: Schema = new Schema(
         },
         introduction: {
             type: String,
-            required: false,
+            required: true,
         },
         description: {
             type: String,
-            required: false,
+            required: true,
         },
         requests: {
             type: String,
@@ -60,15 +60,21 @@ const jobSchema: Schema = new Schema(
         },
         minSalary: {
             type: Number,
-            required: false,
+            required: true,
+            validate: {
+                validator: function (this: IJob, v: number) {
+                    return v < this.maxSalary // Accessing maxSalary correctly
+                },
+                message: (props: string) => `${props.value} should be less than maxSalary!`,
+            },
         },
         maxSalary: {
             type: Number,
-            required: false,
+            required: true,
         },
         numberPerson: {
             type: Number,
-            required: false,
+            required: true,
         },
         unit: {
             type: mongoose.Types.ObjectId,
@@ -104,7 +110,7 @@ const jobSchema: Schema = new Schema(
         ],
         address: {
             type: String,
-            required: false,
+            required: true,
         },
         expiredDate: {
             type: Date,
@@ -112,11 +118,11 @@ const jobSchema: Schema = new Schema(
         },
         startDate: {
             type: Date,
-            required: false,
+            required: true,
         },
         isDelete: {
             type: Boolean,
-            default: false,
+            required: true,
         },
         type: {
             type: String,
@@ -127,6 +133,7 @@ const jobSchema: Schema = new Schema(
             type: String,
             required: true,
             enum: ['pending', 'approved', 'expired', 'reopened', 'rejected', 'completed'],
+            default: 'pending',
         },
         rejectReason: {
             type: String,
