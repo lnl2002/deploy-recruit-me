@@ -45,7 +45,7 @@ const applicantReportSchema: Schema = new Schema(
         },
         isPass: {
             type: Boolean,
-            required: true,
+            required: false,
         },
     },
     { timestamps: true },

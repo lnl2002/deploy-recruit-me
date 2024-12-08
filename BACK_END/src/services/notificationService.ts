@@ -1,4 +1,4 @@
-import Notification from '~/models/notificationModel'
+import Notification from '../models/notificationModel'
 
 const notificationService = {
     insertNotification: async (receiverId, content, url) => {
@@ -18,6 +18,10 @@ const notificationService = {
     },
 
     getNotifications: async (receiverId) => {
+        if (!receiverId) {
+            throw new Error('receiverId is required');
+        }
+
         const notifications = await Notification.find({ receiver: receiverId }).sort({ createdAt: -1 })
         return notifications
     },

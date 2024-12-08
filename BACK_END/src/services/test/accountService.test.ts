@@ -199,7 +199,8 @@ describe('accountService', () => {
 
     describe('updateStatus', () => {
         it('should update the status of an account', async () => {
-            const role1 = (await Role.create({ roleName: 'Admin' })) as any
+            const role1 = await Role.create({ roleName: 'Admin' })
+
             const account = await Account.create({
                 name: 'User',
                 email: 'user@example.com',
@@ -211,6 +212,31 @@ describe('accountService', () => {
 
             expect(updatedAccount?.status).toBe(IAccoutStatus.ACTIVE)
         })
+
+        it('should return null if account does not exist', async () => {
+            const nonExistentId = new Types.ObjectId().toString()
+
+            const updatedAccount = await accountService.updateStatus(nonExistentId, IAccoutStatus.ACTIVE)
+
+            expect(updatedAccount).toBeNull()
+        })
+
+
+        it('should not change the status if the new status is the same', async () => {
+            const role1 = await Role.create({ roleName: 'Admin' })
+
+            const account = await Account.create({
+                name: 'User',
+                email: 'user@example.com',
+                status: IAccoutStatus.ACTIVE,
+                role: role1._id,
+            })
+
+            const updatedAccount = await accountService.updateStatus(account._id.toString(), IAccoutStatus.ACTIVE)
+
+            expect(updatedAccount?.status).toBe(IAccoutStatus.ACTIVE)
+        })
+
     })
 
     describe('createAccount', () => {
@@ -225,5 +251,56 @@ describe('accountService', () => {
             expect(account).not.toBeNull()
             expect(account.name).toBe('Test User')
         })
+
+        it('should throw validation error if required fields are missing', async () => {
+            await expect(
+                accountService.createAccount({
+                    email: 'missingname@example.com', // Missing 'name' field
+                } as any),
+            ).rejects.toThrowError("Account validation failed: role: Path `role` is required., name: Path `name` is required.");
+        });
+
+        it('should throw an error for duplicate email', async () => {
+            const role1 = await Role.create({ roleName: 'Admin' });
+
+            await accountService.createAccount({
+                name: 'Original User',
+                email: 'duplicate@example.com',
+                role: role1._id,
+            });
+
+            await expect(
+                accountService.createAccount({
+                    name: 'Duplicate User',
+                    email: 'duplicate@example.com',
+                    role: role1._id,
+                }),
+            ).rejects.toThrowError(/duplicate key error/);
+        });
+
+        it('should assign a default status if not provided', async () => {
+            const role1 = await Role.create({ roleName: 'Admin' });
+
+            const account = await accountService.createAccount({
+                name: 'User Without Status',
+                email: 'defaultstatus@example.com',
+                role: role1._id,
+            });
+
+            expect(account.status).toBeDefined();
+            expect(account.status).toBe(IAccoutStatus.INACTIVE); // Assuming default status is INACTIVE
+        });
+
+        it('should throw an error if role ID is invalid', async () => {
+            const invalidRoleId = 'invalid-role-id';
+
+            await expect(
+                accountService.createAccount({
+                    name: 'Invalid Role',
+                    email: 'invalidrole@example.com',
+                    role: invalidRoleId,
+                }),
+            ).rejects.toThrowError("Account validation failed: role: Cast to ObjectId failed for value \"invalid-role-id\" (type string) at path \"role\" because of \"BSONError\"");
+        });
     })
 })
