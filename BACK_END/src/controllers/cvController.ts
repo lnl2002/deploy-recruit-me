@@ -33,7 +33,6 @@ const cvController = {
       const { file } = req;
       const key = Buffer.from(process.env.ENCRYPTION_KEY, "hex");
       const iv = Buffer.from(process.env.INITIALIZATION_KEY, "hex");
-      console.log(file);
       
       const encryptedBuffer = await cvService.encryptFileInMemory(
         file.buffer,

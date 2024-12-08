@@ -30,8 +30,6 @@ const cvService = {
     encryptFileInMemory: async (fileBuffer: Buffer, key: Buffer, iv: Buffer): Promise<Buffer> => {
         try {
             const cipher = crypto.createCipheriv('aes-256-cbc', key, iv)
-            console.log(fileBuffer);
-            
             let encryptedChunks = [cipher.update(fileBuffer)]
             encryptedChunks.push(cipher.final())
             return Buffer.concat(encryptedChunks)
