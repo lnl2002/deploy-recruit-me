@@ -69,6 +69,14 @@ const meetingService = {
         startTime,
         endTime,
     }: InterviewScheduleParams): Promise<IMeetingRoom[]> => {
+        if(!interviewerId || !startTime || !endTime) {
+            return [];
+        }
+
+        if (startTime > endTime) {
+            return [];
+        }
+
         const schedules = await MeetingRoom.find({
             participants: {
                 $elemMatch: { participant: interviewerId },
@@ -100,6 +108,37 @@ const meetingService = {
               message: string
           }
     > => {
+        if(participants.length <= 0) {
+            return {
+                isError: true,
+                message: 'Participants are required.',
+            }
+        }
+
+        if(timeStart > timeEnd) {
+            return {
+                isError: true,
+                message: 'Invalid time range.',
+            }
+        }
+
+        for (let index = 0; index < participants.length; index++) {
+            const participant = participants[index];
+            if(!["pending", "approved", "rejected"].includes(participant.status)){
+                return {
+                    isError: true,
+                    message: 'Invalid participant status found.',
+                }
+            }
+
+            if(participant.status !== "rejected" && !!participant.declineReason){
+                return {
+                    isError: true,
+                    message: 'Decline reason should only be provided for declined status.',
+                }
+            }
+        }
+
         // Lấy danh sách participant IDs
         const participantIds = participants.map((p) => p.participant.toString())
 
