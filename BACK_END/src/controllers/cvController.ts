@@ -31,31 +31,23 @@ const cvController = {
         req.body;
 
       const { file } = req;
-
-    //   // caculate cv score with job
-    //   cvService.extractTextFromPdf(file.path, jobId);
-
-
-      // Mã hóa file
       const key = Buffer.from(process.env.ENCRYPTION_KEY, "hex");
       const iv = Buffer.from(process.env.INITIALIZATION_KEY, "hex");
-      const encryptedFilePath = await cvService.encryptFile(
-        file.path,
+      
+      const encryptedBuffer = await cvService.encryptFileInMemory(
+        file.buffer,
         key,
         iv
       );
-      console.log("Encryption Key (hex):", key.toString('hex'));
-      console.log("IV (hex):", iv.toString('hex'));
 
-      // Upload file mã hóa lên S3
-      const s3Result = await cvService.uploadEncryptedFileToS3(
-        encryptedFilePath,
-        process.env.S3_BUCKET_NAME
+      const fileName = `${Date.now()}-${req.file.originalname}`; // Generate a unique file name
+
+      // Upload encrypted buffer directly to S3
+      const s3Result = await cvService.uploadEncryptedBufferToS3(
+          encryptedBuffer,
+          process.env.S3_BUCKET_NAME,
+          fileName // Use the generated file name
       );
-
-      // Xóa file tạm sau khi upload
-      fs.unlinkSync(file.path);
-      fs.unlinkSync(encryptedFilePath);
 
       // Create a new CV instance
       const newCV = new CV({

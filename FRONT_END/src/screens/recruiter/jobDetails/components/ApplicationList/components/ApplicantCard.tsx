@@ -5,7 +5,6 @@ import { AlarmClock, ChevronLeft } from "lucide-react";
 import { IStateProps } from "../types/status";
 import applyApi, { IApply } from "@/api/applyApi";
 import { toast } from "react-toastify";
-import ScheduleInterviewModal from "./BookSchedule";
 import ModalConfirm from "@/components/Modals/ModalConfirm";
 import meetingApi from "@/api/meetingApi";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -436,22 +435,7 @@ const ShortlistedStatus = ({
         </p>
       </div>
       <div className="grid grid-cols-1 gap-4">
-        <Button
-          className="bg-themeOrange text-[#fff]"
-          radius="full"
-          onClick={() => disclosure.onOpen()}
-        >
-          Schedule a interview time
-        </Button>
       </div>
-      <ScheduleInterviewModal
-        disclosure={disclosure}
-        onClose={() => disclosure.onClose()}
-        onSend={() => console.log("test")}
-        cv={cv}
-        changeStatus={changeStatus}
-        applyId={applyId || ""}
-      />
     </div>
   );
 };
