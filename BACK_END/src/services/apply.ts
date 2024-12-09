@@ -13,9 +13,23 @@ const applyService = {
         applyId: string
         newStatusId: string
     }): Promise<IApply | null> => {
-        const updatedApply = await Apply.findByIdAndUpdate(applyId, { status: newStatusId }, { new: true })
+        try {
+            // Validate applyId and newStatusId as ObjectIDs
+            if (!mongoose.Types.ObjectId.isValid(applyId)) {
+                throw new Error('Invalid applyId')
+            }
+            if (!mongoose.Types.ObjectId.isValid(newStatusId)) {
+                throw new Error('Invalid newStatusId')
+            }
 
-        return updatedApply
+            const updatedApply = await Apply.findByIdAndUpdate(applyId, { status: newStatusId }, { new: true })
+
+            return updatedApply
+        } catch (error) {
+            // Handle errors (e.g., log and re-throw)
+            console.error('Error updating application status in applyService:', error)
+            throw error // Re-throw for the controller to handle
+        }
     },
 
     getApplyListByJob: async (jobId: Types.ObjectId): Promise<IApply[] | []> => {
@@ -30,13 +44,19 @@ const applyService = {
 
     createApply: async ({ cvId, jobId, defaultStatusId, createdBy }) => {
         try {
-            const newApply = new Apply({
-                cv: cvId,
-                job: jobId,
-                status: defaultStatusId,
-                createdBy: createdBy,
-            })
-
+            if (!mongoose.Types.ObjectId.isValid(cvId)) {
+                throw new Error('Invalid cvId')
+            }
+            if (!mongoose.Types.ObjectId.isValid(jobId)) {
+                throw new Error('Invalid jobId')
+            }
+            if (!mongoose.Types.ObjectId.isValid(createdBy)) {
+                throw new Error('Invalid jobId')
+            }
+            if (!mongoose.Types.ObjectId.isValid(defaultStatusId)) {
+                throw new Error('Invalid jobId')
+            }
+            const newApply = new Apply({ cv: cvId, job: jobId, status: defaultStatusId, createdBy: createdBy })
             const savedApply = await newApply.save()
             return savedApply
         } catch (error) {
