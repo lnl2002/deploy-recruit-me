@@ -980,7 +980,7 @@ describe('meetingService', () => {
         })
     })
 
-    describe('meetingService.getCandidateList', () => {
+    describe('getCandidateList', () => {
         const mockUserId = '605c72b6f1d4e1a84e307dac' // Ví dụ mock ObjectId
         const mockJobId = '605c72b6f1d4e1a84e307dbe' // Ví dụ mock ObjectId
 
