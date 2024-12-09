@@ -38,7 +38,6 @@ const accountService = {
             .sort({ [sort_field]: order === 'asc' ? 1 : -1 })
             .limit(limit)
             .skip(skip)
-            .lean()
             .exec()
 
         return { accounts, total }

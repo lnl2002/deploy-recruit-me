@@ -11,7 +11,7 @@ const unitService = {
         return listUnit
     },
     getListUnitByLocationId: async (locationId: Types.ObjectId): Promise<IUnit[] | []> => {
-        const listUnit = await Unit.find({ location: locationId }).populate('locations')
+        const listUnit = await Unit.find({ locations: locationId }).populate('locations')
         return listUnit
     },
     addUnit: async (unit: Partial<IUnit>): Promise<IUnit> => {

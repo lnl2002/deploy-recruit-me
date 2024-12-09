@@ -22,10 +22,6 @@ const DetailCriteriaSchema: Schema = new Schema({
         type: String,
         required: false,
     },
-    explanation: {
-        type: String,
-        required: false,
-    },
 })
 
 const applicantReportSchema: Schema = new Schema(

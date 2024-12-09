@@ -63,7 +63,7 @@ const jobService = {
         const jobs = await Job.aggregate([
             ...pipeline,
             {
-                $sort: { [sort_field]: order === 'asc' ? 1 : -1 },
+                $sort: { [sort_field as keyof IJob]: order === 'asc' ? 1 : -1 },
             },
             {
                 $skip: Number(skip),
