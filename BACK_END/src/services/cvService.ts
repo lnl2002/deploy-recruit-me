@@ -72,7 +72,6 @@ const cvService = {
             throw err // Re-throw to handle the error at a higher level
         }
     },
-
 }
 
 export default cvService

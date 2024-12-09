@@ -65,7 +65,7 @@ const jobSchema: Schema = new Schema(
                 validator: function (this: IJob, v: number) {
                     return v < this.maxSalary // Accessing maxSalary correctly
                 },
-                message: (props: string) => `${props.value} should be less than maxSalary!`,
+                message: (props: any) => `${props.value} should be less than maxSalary!`,
             },
         },
         maxSalary: {

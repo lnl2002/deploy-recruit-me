@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Types } from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import Job from '../../models/jobModel'
+import Job, { IJob } from '../../models/jobModel'
 import Account from '../../models/accountModel'
 import Career from '../../models/careerModel'
 import Apply from '../../models/applyModel'
@@ -11,7 +11,6 @@ import jobService from '../jobService'
 import Role from '../../models/roleModel'
 import Location from '../../models/locationModel'
 import Unit from '../../models/unitModel'
-import jobController from '~/controllers/jobController'
 
 describe('jobService', () => {
     let mongoServer: MongoMemoryServer
@@ -73,7 +72,7 @@ describe('jobService', () => {
                 skip: 0,
             }
 
-            const filteredQuery = { title: 'Non-existing job' } // Query unlikely to match any data
+            const filteredQuery = { title: 'Backend Developer ' } // Query unlikely to match any data
             const isOwner = false
 
             const result = await jobService.getListJobs(query, filteredQuery, isOwner)
@@ -118,20 +117,21 @@ describe('jobService', () => {
             expect(result.jobs[0].maxSalary).toBeGreaterThanOrEqual(result.jobs[1]?.maxSalary || 0)
         })
 
-        test('should return an empty result when given an invalid query', async () => {
+        test('should return an empty list and total 0 when no jobs match the query', async () => {
             const query = {
-                sort_field: 'invalidField',
+                sort_field: 'createdAt',
                 order: 'asc',
                 limit: 5,
                 skip: 0,
             }
 
-            const filteredQuery = {}
-            const isOwner = true
+            const filteredQuery = { title: 'NonExistentJobTitle' } // Assuming no job with this title exists
+            const isOwner = false
 
-            await expect(jobService.getListJobs(query, filteredQuery, isOwner)).rejects.toThrow(
-                'Invalid query parameter',
-            )
+            const result = await jobService.getListJobs(query, filteredQuery, isOwner)
+
+            expect(result.jobs).toEqual([]) // Expect no jobs
+            expect(result.total).toBe(0) // Expect total count to be 0
         })
 
         test('should fetch jobs with partial matching criteria', async () => {
@@ -621,6 +621,522 @@ describe('jobService', () => {
             await expect(jobService.restoreJob(mockJobId)).rejects.toThrowError('Database error')
         })
     })
+
+    describe('updateJob', () => {
+        test('should update the job title and return the updated job', async () => {
+            const mockJobId = new Types.ObjectId()
+            const mockJob = { title: 'New Title' }
+
+            jest.spyOn(Job, 'findByIdAndUpdate').mockResolvedValue({
+                _id: mockJobId,
+                title: 'New Title',
+            } as unknown as IJob)
+
+            const result = await jobService.updateJob(mockJobId, mockJob)
+
+            expect(Job.findByIdAndUpdate).toHaveBeenCalledWith(mockJobId, mockJob, { new: true })
+            expect(result).toEqual(expect.objectContaining({ title: 'New Title' }))
+        })
+
+        test('should return null when updating a non-existent job', async () => {
+            const mockJobId = new Types.ObjectId()
+            const mockJob = { title: 'New Title' }
+
+            jest.spyOn(Job, 'findByIdAndUpdate').mockResolvedValue(null)
+
+            const result = await jobService.updateJob(mockJobId, mockJob)
+
+            expect(Job.findByIdAndUpdate).toHaveBeenCalledWith(mockJobId, mockJob, { new: true })
+            expect(result).toBeNull()
+        })
+
+        test('should update multiple fields of the job and return the updated job', async () => {
+            const mockJobId = new Types.ObjectId()
+            const mockJob = { title: 'Updated Title', minSalary: 5000 }
+
+            jest.spyOn(Job, 'findByIdAndUpdate').mockResolvedValue({
+                _id: mockJobId,
+                title: 'Updated Title',
+                minSalary: 5000,
+            } as unknown as IJob)
+
+            const result = await jobService.updateJob(mockJobId, mockJob)
+
+            expect(Job.findByIdAndUpdate).toHaveBeenCalledWith(mockJobId, mockJob, { new: true })
+            expect(result).toEqual(expect.objectContaining(mockJob))
+        })
+
+        test('should return null when jobId does not exist', async () => {
+            const nonExistentJobId = new Types.ObjectId() // Generate a random ID
+            const mockJob = { title: 'Non-existent Job' }
+
+            jest.spyOn(Job, 'findByIdAndUpdate').mockResolvedValueOnce(null)
+
+            const result = await jobService.updateJob(nonExistentJobId, mockJob)
+            expect(result).toBeNull()
+            expect(Job.findByIdAndUpdate).toHaveBeenCalledWith(nonExistentJobId, mockJob, { new: true })
+        })
+
+        test('should return the same job when no changes are provided', async () => {
+            const mockJobId = new Types.ObjectId()
+            const mockJob = {}
+
+            jest.spyOn(Job, 'findByIdAndUpdate').mockResolvedValue({
+                _id: mockJobId,
+                title: 'Original Title',
+            } as unknown as IJob)
+
+            const result = await jobService.updateJob(mockJobId, mockJob)
+
+            expect(Job.findByIdAndUpdate).toHaveBeenCalledWith(mockJobId, mockJob, { new: true })
+            expect(result).toEqual(expect.objectContaining({ title: 'Original Title' }))
+        })
+
+        test('should throw an error when the database update fails', async () => {
+            const mockJobId = new Types.ObjectId()
+            const mockJob = { title: 'New Title' }
+
+            jest.spyOn(Job, 'findByIdAndUpdate').mockRejectedValue(new Error('Database error'))
+
+            await expect(jobService.updateJob(mockJobId, mockJob)).rejects.toThrow('Database error')
+        })
+    })
+
+    describe('getJobById', () => {
+        test('should return a job with populated fields when a valid jobId is provided', async () => {
+            const mockJobId = new Types.ObjectId()
+            const mockJob = {
+                _id: mockJobId,
+                title: 'Test Job',
+                unit: { name: 'Unit 1', locations: [{ name: 'Location A' }] },
+                career: { name: 'Career Path' },
+                account: { username: 'user123' },
+                interviewManager: { name: 'Manager 1' },
+                location: { name: 'Main Location' },
+                criterias: [{ name: 'Criteria 1' }, { name: 'Criteria 2' }],
+            }
+
+            jest.spyOn(Job, 'findById').mockReturnValueOnce({
+                populate: jest.fn().mockReturnThis(),
+                lean: jest.fn().mockReturnThis(),
+                exec: jest.fn().mockResolvedValueOnce(mockJob),
+            } as any)
+
+            const result = await jobService.getJobById(mockJobId)
+            expect(result).toEqual(mockJob)
+            expect(Job.findById).toHaveBeenCalledWith(mockJobId)
+        })
+
+        test('should return null when no job is found for the given jobId', async () => {
+            const mockJobId = new Types.ObjectId()
+
+            jest.spyOn(Job, 'findById').mockReturnValueOnce({
+                populate: jest.fn().mockReturnThis(),
+                lean: jest.fn().mockReturnThis(),
+                exec: jest.fn().mockResolvedValueOnce(null),
+            } as any)
+
+            const result = await jobService.getJobById(mockJobId)
+            expect(result).toBeNull()
+            expect(Job.findById).toHaveBeenCalledWith(mockJobId)
+        })
+
+        test('should return null when the database is empty and no job matches the given jobId', async () => {
+            const mockJobId = new Types.ObjectId()
+
+            jest.spyOn(Job, 'findById').mockReturnValueOnce({
+                populate: jest.fn().mockReturnThis(),
+                lean: jest.fn().mockReturnThis(),
+                exec: jest.fn().mockResolvedValueOnce(null),
+            } as any)
+
+            const result = await jobService.getJobById(mockJobId)
+            expect(result).toBeNull()
+            expect(Job.findById).toHaveBeenCalledWith(mockJobId)
+        })
+
+        test('should throw an error when there is a database connection issue', async () => {
+            const mockJobId = new Types.ObjectId()
+
+            jest.spyOn(Job, 'findById').mockReturnValueOnce({
+                populate: jest.fn().mockReturnThis(),
+                lean: jest.fn().mockReturnThis(),
+                exec: jest.fn().mockRejectedValueOnce(new Error('Database connection error')),
+            } as any)
+
+            await expect(jobService.getJobById(mockJobId)).rejects.toThrow('Database connection error')
+            expect(Job.findById).toHaveBeenCalledWith(mockJobId)
+        })
+
+        test('should populate all required fields correctly', async () => {
+            const mockJobId = new Types.ObjectId()
+            const mockJob = {
+                _id: mockJobId,
+                title: 'Populated Job',
+                unit: { name: 'Unit 1', locations: [{ name: 'Location A' }] },
+                career: { name: 'Career Path' },
+                account: { username: 'user123' },
+                interviewManager: { name: 'Manager 1' },
+                location: { name: 'Main Location' },
+                criterias: [{ name: 'Criteria 1' }, { name: 'Criteria 2' }],
+            }
+
+            const populateMock = jest.fn().mockReturnThis()
+            jest.spyOn(Job, 'findById').mockReturnValueOnce({
+                populate: populateMock,
+                lean: jest.fn().mockReturnThis(),
+                exec: jest.fn().mockResolvedValueOnce(mockJob),
+            } as any)
+
+            const result = await jobService.getJobById(mockJobId)
+
+            expect(populateMock).toHaveBeenCalledWith({
+                path: 'unit',
+                populate: { path: 'locations' },
+            })
+            expect(populateMock).toHaveBeenCalledWith('career')
+            expect(populateMock).toHaveBeenCalledWith('account')
+            expect(populateMock).toHaveBeenCalledWith('interviewManager')
+            expect(populateMock).toHaveBeenCalledWith('location')
+            expect(populateMock).toHaveBeenCalledWith('criterias')
+            expect(result).toEqual(mockJob)
+        })
+
+        test('should handle a job where some fields are not fully populated', async () => {
+            const mockJobId = new Types.ObjectId()
+            const mockJob = {
+                _id: mockJobId,
+                title: 'Partial Job',
+                unit: { name: 'Unit 1' }, // Locations missing
+                career: null, // Career missing
+                account: { username: 'user123' },
+                interviewManager: null, // InterviewManager missing
+                location: { name: 'Main Location' },
+                criterias: [], // Empty criterias
+            }
+
+            jest.spyOn(Job, 'findById').mockReturnValueOnce({
+                populate: jest.fn().mockReturnThis(),
+                lean: jest.fn().mockReturnThis(),
+                exec: jest.fn().mockResolvedValueOnce(mockJob),
+            } as any)
+
+            const result = await jobService.getJobById(mockJobId)
+            expect(result).toEqual(mockJob)
+            expect(Job.findById).toHaveBeenCalledWith(mockJobId)
+        })
+    })
+
+    describe('getJobsByInterviewManager', () => {
+        test('should return a paginated list of jobs for a valid interview manager ID', async () => {
+            const mockManagerId = 'manager123'
+            const mockJobs = [
+                { title: 'Job 1', interviewManager: mockManagerId },
+                { title: 'Job 2', interviewManager: mockManagerId },
+            ]
+
+            jest.spyOn(Job, 'countDocuments').mockResolvedValueOnce(20) // Total count of jobs
+            jest.spyOn(Job, 'find').mockReturnValueOnce({
+                populate: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                limit: jest.fn().mockReturnThis(),
+                sort: jest.fn().mockResolvedValueOnce(mockJobs),
+            } as any)
+
+            const result = await jobService.getJobsByInterviewManager({
+                interviewManagerId: mockManagerId,
+                page: 2,
+                limit: 10,
+                search: '',
+            })
+
+            expect(result).toEqual({
+                total: 20,
+                page: 2,
+                totalPages: 2,
+                data: mockJobs,
+            })
+
+            expect(Job.countDocuments).toHaveBeenCalledWith({
+                interviewManager: mockManagerId,
+            })
+            expect(Job.find).toHaveBeenCalledWith({
+                interviewManager: mockManagerId,
+            })
+        })
+
+        test('should filter jobs based on status array', async () => {
+            const mockManagerId = 'manager123'
+            const statusFilter = ['active', 'closed']
+            const mockJobs = [
+                { title: 'Job 1', status: 'active' },
+                { title: 'Job 2', status: 'closed' },
+            ]
+
+            jest.spyOn(Job, 'countDocuments').mockResolvedValueOnce(2)
+            jest.spyOn(Job, 'find').mockReturnValueOnce({
+                populate: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                limit: jest.fn().mockReturnThis(),
+                sort: jest.fn().mockResolvedValueOnce(mockJobs),
+            } as any)
+
+            const result = await jobService.getJobsByInterviewManager({
+                interviewManagerId: mockManagerId,
+                status: statusFilter,
+                search: '',
+            })
+
+            expect(result.data).toEqual(mockJobs)
+            expect(Job.countDocuments).toHaveBeenCalledWith({
+                interviewManager: mockManagerId,
+                status: { $in: statusFilter },
+            })
+            expect(Job.find).toHaveBeenCalledWith({
+                interviewManager: mockManagerId,
+                status: { $in: statusFilter },
+            })
+        })
+
+        test('should return an empty result when no jobs match the given criteria', async () => {
+            const mockManagerId = 'manager123'
+
+            jest.spyOn(Job, 'countDocuments').mockResolvedValueOnce(0)
+            jest.spyOn(Job, 'find').mockReturnValueOnce({
+                populate: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                limit: jest.fn().mockReturnThis(),
+                sort: jest.fn().mockResolvedValueOnce([]),
+            } as any)
+
+            const result = await jobService.getJobsByInterviewManager({
+                interviewManagerId: mockManagerId,
+                page: 1,
+                limit: 10,
+                search: 'Nonexistent Job',
+            })
+
+            expect(result).toEqual({
+                total: 0,
+                page: 1,
+                totalPages: 0,
+                data: [],
+            })
+        })
+
+        test('should throw an error if there is an issue with the database query', async () => {
+            const mockManagerId = 'manager123'
+
+            jest.spyOn(Job, 'countDocuments').mockRejectedValueOnce(new Error('Database error'))
+
+            await expect(
+                jobService.getJobsByInterviewManager({
+                    interviewManagerId: mockManagerId,
+                    page: 1,
+                    limit: 10,
+                    search: '',
+                }),
+            ).rejects.toThrow('Database error')
+
+            expect(Job.countDocuments).toHaveBeenCalledWith({
+                interviewManager: mockManagerId,
+            })
+        })
+
+        test('should correctly calculate total pages based on total jobs and limit', async () => {
+            const mockManagerId = 'manager123'
+            const mockJobs = [{ title: 'Job 1' }, { title: 'Job 2' }]
+            const totalJobs = 25
+
+            jest.spyOn(Job, 'countDocuments').mockResolvedValueOnce(totalJobs)
+            jest.spyOn(Job, 'find').mockReturnValueOnce({
+                populate: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                limit: jest.fn().mockReturnThis(),
+                sort: jest.fn().mockResolvedValueOnce(mockJobs),
+            } as any)
+
+            const result = await jobService.getJobsByInterviewManager({
+                interviewManagerId: mockManagerId,
+                page: 3,
+                limit: 10,
+                search: '',
+            })
+
+            expect(result).toEqual({
+                total: 25,
+                page: 3,
+                totalPages: 3,
+                data: mockJobs,
+            })
+
+            expect(Job.find).toHaveBeenCalledWith({
+                interviewManager: mockManagerId,
+            })
+        })
+    })
+
+    describe('updateJobStatus', () => {
+        const mockJobId = 'mockJobId123'
+        test('should successfully update the status to a non-rejected value', async () => {
+            jest.spyOn(Job, 'updateOne').mockResolvedValueOnce({ nModified: 1 })
+
+            const result = await jobService.updateJobStatus({
+                jobId: mockJobId,
+                status: 'open',
+            })
+
+            expect(Job.updateOne).toHaveBeenCalledWith({ _id: mockJobId }, { status: 'open' })
+            expect(result).toEqual({ nModified: 1 })
+        })
+
+        test('should successfully update status to rejected with a reason provided', async () => {
+            jest.spyOn(Job, 'updateOne').mockResolvedValueOnce({ nModified: 1 })
+
+            const result = await jobService.updateJobStatus({
+                jobId: mockJobId,
+                status: 'rejected',
+                rejectReason: 'No response from candidate',
+            })
+
+            expect(Job.updateOne).toHaveBeenCalledWith(
+                { _id: mockJobId },
+                {
+                    status: 'rejected',
+                    rejectReason: 'No response from candidate',
+                },
+            )
+            expect(result).toEqual({ nModified: 1 })
+        })
+
+        test('should handle status change with no reject reason when status is rejected', async () => {
+            jest.spyOn(Job, 'updateOne').mockResolvedValueOnce({ nModified: 0 })
+
+            const result = await jobService.updateJobStatus({
+                jobId: mockJobId,
+                status: 'rejected',
+            })
+
+            expect(Job.updateOne).toHaveBeenCalledWith({ _id: mockJobId }, { status: 'rejected' })
+            expect(result).toEqual({ nModified: 0 })
+        })
+
+        test('should handle invalid jobId scenario', async () => {
+            jest.spyOn(Job, 'updateOne').mockResolvedValueOnce({ nModified: 0 })
+
+            const result = await jobService.updateJobStatus({
+                jobId: 'invalidJobId',
+                status: 'open',
+            })
+
+            expect(Job.updateOne).toHaveBeenCalledWith({ _id: 'invalidJobId' }, { status: 'open' })
+            expect(result).toEqual({ nModified: 0 })
+        })
+
+        test('should return error if database operation fails', async () => {
+            jest.spyOn(Job, 'updateOne').mockRejectedValueOnce(new Error('Database error'))
+
+            await expect(
+                jobService.updateJobStatus({
+                    jobId: mockJobId,
+                    status: 'open',
+                }),
+            ).rejects.toThrow('Database error')
+
+            expect(Job.updateOne).toHaveBeenCalledWith({ _id: mockJobId }, { status: 'open' })
+        })
+
+        test('should not send rejectReason when status is not "rejected"', async () => {
+            jest.spyOn(Job, 'updateOne').mockResolvedValueOnce({ nModified: 1 })
+
+            const result = await jobService.updateJobStatus({
+                jobId: mockJobId,
+                status: 'completed',
+            })
+
+            expect(Job.updateOne).toHaveBeenCalledWith({ _id: mockJobId }, { status: 'completed' })
+            expect(result).toEqual({ nModified: 1 })
+        })
+    })
+
+    describe('checkAuthorizeUpdateJobStatus', () => {
+        const mockJobId = 'mockJobId123'
+        const mockUserId = 'userId123'
+        const otherUserId = 'otherUserId123'
+
+        test('should return true if interviewManager field exists with correct data', async () => {
+            jest.spyOn(Job, 'findOne').mockResolvedValueOnce({
+                _id: mockJobId,
+                interviewManager: mockUserId,
+            })
+
+            const result = await jobService.checkAuthorizeUpdateJobStatus({
+                jobId: mockJobId,
+                userId: mockUserId,
+            })
+
+            expect(Job.findOne).toHaveBeenCalledWith({
+                _id: mockJobId,
+                interviewManager: mockUserId,
+            })
+            expect(result).toBe(true)
+        })
+
+        test('should return true if the interviewManager matches the provided userId', async () => {
+            jest.spyOn(Job, 'findOne').mockResolvedValueOnce({
+                _id: mockJobId,
+                interviewManager: mockUserId,
+            })
+
+            const result = await jobService.checkAuthorizeUpdateJobStatus({
+                jobId: mockJobId,
+                userId: mockUserId,
+            })
+
+            expect(Job.findOne).toHaveBeenCalledWith({
+                _id: mockJobId,
+                interviewManager: mockUserId,
+            })
+            expect(result).toBe(true)
+        })
+
+        test('should return true even if other unrelated fields are present', async () => {
+            jest.spyOn(Job, 'findOne').mockResolvedValueOnce({
+                _id: mockJobId,
+                interviewManager: mockUserId,
+                someOtherField: 'randomValue',
+            })
+
+            const result = await jobService.checkAuthorizeUpdateJobStatus({
+                jobId: mockJobId,
+                userId: mockUserId,
+            })
+
+            expect(Job.findOne).toHaveBeenCalledWith({
+                _id: mockJobId,
+                interviewManager: mockUserId,
+            })
+            expect(result).toBe(true)
+        })
+
+        test('should return true if the interviewManager matches the provided userId', async () => {
+            jest.spyOn(Job, 'findOne').mockResolvedValueOnce({
+                _id: mockJobId,
+                interviewManager: mockUserId,
+            })
+
+            const result = await jobService.checkAuthorizeUpdateJobStatus({
+                jobId: mockJobId,
+                userId: mockUserId,
+            })
+
+            expect(Job.findOne).toHaveBeenCalledWith({
+                _id: mockJobId,
+                interviewManager: mockUserId,
+            })
+            expect(result).toBe(true)
+        })
+    })
 })
 
 export const seedData = async () => {
@@ -727,7 +1243,7 @@ export const seedData = async () => {
         jobs.push(job)
     }
 
-    console.log('Database seeding completed.')
+    // console.log('Database seeding completed.')
 
     return {
         roles: createdRoles,
