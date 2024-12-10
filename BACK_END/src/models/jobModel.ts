@@ -44,7 +44,7 @@ const jobSchema: Schema = new Schema(
         },
         introduction: {
             type: String,
-            required: true,
+            // required: true,
         },
         description: {
             type: String,
