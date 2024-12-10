@@ -226,7 +226,7 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
               </Button>
               <Button
                 className="bg-themeOrange text-[#fff]"
-                onClick={() => router.push("/register")}
+                onClick={() => router.push("/login")}
               >
                 Register
               </Button>
