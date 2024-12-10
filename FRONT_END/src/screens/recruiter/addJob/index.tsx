@@ -270,7 +270,7 @@ export const AddJob = (): React.JSX.Element => {
 
       console.log(parseNumber);
 
-      if (!parseNumber) {
+      if (isNaN(parseNumber)) {
         errorMessage = "Please enter a valid number";
       } else if (parseNumber < 0) {
         errorMessage = "Must be a positive number";
@@ -287,7 +287,7 @@ export const AddJob = (): React.JSX.Element => {
           }
         }
       }
-      if (!errorMessage) parseValue = Number(parseNumber);
+      if (!isNaN(parseNumber)) parseValue = Number(parseNumber);
     }
 
     setFormValueError(
@@ -301,53 +301,76 @@ export const AddJob = (): React.JSX.Element => {
     );
   };
 
+  /**
+   * Handles the submission of the form to create a new job
+   * If there is an error, it will return and show the error message
+   * If there is no error, it will create the job and redirect to the list job page
+   */
   const handleSubmit = async () => {
+    // Validate if criteria is selected
     if (criteriasSelected.length === 0) {
       toast.warning("Please select at least one criteria");
       return;
     }
 
-    for (const field of requiredFields) {
-      if (isEmpty(formValue[field as keyof TJob])) {
-        setFormValueError((pre) => ({
-          ...pre,
-          [field]: "Please enter a field value!",
-        }));
-      } else {
-        setFormValueError((pre) => ({
-          ...pre,
-          [field]: "",
-        }));
+    // Validate required fields
+    let hasErrors = false;
+    const updatedFormErrors: any = { ...formValueError };
+
+    requiredFields.forEach((field) => {
+      if (!isEmpty(formValueError[field as keyof TJob])) {
+        hasErrors = true;
       }
+
+      if (isEmpty(formValue[field as keyof TJob])) {
+        updatedFormErrors[field] = "Please enter a field value!";
+        hasErrors = true;
+      } else {
+        updatedFormErrors[field] = "";
+      }
+    });
+
+    // Validate number of people
+    if (formValue["numberPerson"] == 0) {
+      updatedFormErrors["numberPerson" as keyof TJob] =
+        "Please enter a value greater than 0!";
+      hasErrors = true;
     }
 
-    if (formValue["numberPerson"] === 0) {
-      setFormValueError((pre) => ({
-        ...pre,
-        ["numberPerson" as keyof TJob]: "Please enter a value greater than 0!",
-      }));
+    if (
+      typeof formValue?.minSalary === "number" &&
+      typeof formValue?.maxSalary === "number" &&
+      formValue?.minSalary > formValue?.maxSalary
+    ) {
+      updatedFormErrors["minSalary"] =
+        "Minimum salary must be less than maximum salary!";
+      hasErrors = true;
     }
 
-    const missingFields = requiredFields.filter(
-      (field) => !isEmpty(formValueError[field as keyof TJob])
-    );
+    // Update form errors if any and stop submission
+    setFormValueError(updatedFormErrors);
 
-    if (missingFields.length > 0) {
-      toast.warning("Please add all missing fields");
+    if (hasErrors) {
+      toast.warning("Please correct the errors in the form.");
       return;
     }
 
+    // Prepare criteria IDs
     const criteriaIds = criteriasSelected.map((criteria) => criteria._id);
 
+    // Create the job with the form values and criteria ids
     const { job: newJob } = await jobApi.addJob({
       ...formValue,
       criterias: criteriaIds,
     });
 
+    // Handle successful job creation
     if (newJob?._id) {
       toast.success("Add job successfully");
       router.push("/recruiter/list-job");
-    } else toast.error("Error creating job!");
+    } else {
+      toast.error("Error creating job!");
+    }
   };
 
   const handleSelectedCriterias =

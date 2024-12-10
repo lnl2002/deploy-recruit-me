@@ -44,7 +44,7 @@ const jobSchema: Schema = new Schema(
         },
         introduction: {
             type: String,
-            // required: true,
+            required: false,
         },
         description: {
             type: String,
@@ -63,18 +63,21 @@ const jobSchema: Schema = new Schema(
             required: true,
             validate: {
                 validator: function (this: IJob, v: number) {
-                    return v < this.maxSalary // Accessing maxSalary correctly
+                    return v <= this.maxSalary // Accessing maxSalary correctly
                 },
                 message: (props: any) => `${props.value} should be less than maxSalary!`,
             },
+            default: 0,
         },
         maxSalary: {
             type: Number,
             required: true,
+            default: 0,
         },
         numberPerson: {
             type: Number,
             required: true,
+            default: 1,
         },
         unit: {
             type: mongoose.Types.ObjectId,
