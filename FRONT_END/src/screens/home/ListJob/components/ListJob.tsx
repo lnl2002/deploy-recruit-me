@@ -54,6 +54,7 @@ const ListJobView: React.FC<ListJobProps> = ({
             showControls
             total={totalPage}
             initialPage={1}
+            color="warning"
           />
         </div>
       )}
