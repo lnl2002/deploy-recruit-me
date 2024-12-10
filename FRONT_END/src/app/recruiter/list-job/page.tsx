@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { HrLayout } from "@/components";
 import { ListJob } from "@/screens";
+import { MainLayout } from "@/components";
 
 export default function ContactUsPage() {
   return (
@@ -14,11 +14,11 @@ export default function ContactUsPage() {
         backgroundPosition: "center",
       }}
     >
-      <HrLayout>
+      <MainLayout>
         <div className="flex-1">
           <ListJob />
         </div>
-      </HrLayout>
+      </MainLayout>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import React, { Suspense } from "react";
 import { CandidateList as Candidates } from "@/screens";
-import { HrLayout, InterviewerLayout } from "@/components";
+import { MainLayout } from "@/components";
 
 export default function CandidateList() {
   return (
@@ -14,11 +14,11 @@ export default function CandidateList() {
         backgroundPosition: "center",
       }}
     >
-      <InterviewerLayout>
+      <MainLayout>
         <div className="flex-1">
           <Candidates />
         </div>
-      </InterviewerLayout>
+      </MainLayout>
     </div>
   );
 }

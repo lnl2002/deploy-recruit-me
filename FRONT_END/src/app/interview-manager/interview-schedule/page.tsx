@@ -2,8 +2,8 @@
 
 import React, { Suspense } from "react";
 import { Spinner } from "@nextui-org/react";
-import { InterviewerLayout } from "@/components";
 import { InterviewSchedule } from "@/screens/interview-manager/inteviewSchedule";
+import { MainLayout } from "@/components";
 
 export default function Page() {
   return (
@@ -14,11 +14,11 @@ export default function Page() {
         backgroundPosition: "center",
       }}
     >
-      <InterviewerLayout>
+      <MainLayout>
         <Suspense fallback={<Spinner label="Loading..." color="primary" />}>
           <InterviewSchedule />
         </Suspense>
-      </InterviewerLayout>
+      </MainLayout>
     </div>
   );
 }

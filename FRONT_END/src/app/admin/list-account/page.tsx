@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ListAccount } from "@/screens";
-import { InterviewerLayout } from "@/components";
+import { MainLayout } from "@/components";
 
 export default function CandidateList() {
   return (
@@ -13,11 +13,11 @@ export default function CandidateList() {
         backgroundPosition: "center",
       }}
     >
-      <InterviewerLayout>
+      <MainLayout>
         <div className="flex-1">
           <ListAccount />
         </div>
-      </InterviewerLayout>
+      </MainLayout>
     </div>
   );
 }

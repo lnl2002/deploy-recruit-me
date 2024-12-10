@@ -3,16 +3,16 @@
 import React, { Suspense } from "react";
 import { Spinner } from "@nextui-org/react";
 import { InterviewManagerJobDetailsAdmin } from "@/screens";
-import { InterviewerLayout } from "@/components";
+import { MainLayout } from "@/components";
 
 export default function JobDetailsPage() {
   return (
     <main>
-       <InterviewerLayout>
+       <MainLayout>
         <Suspense fallback={<Spinner label="Loading..." color="primary" />}>
           <InterviewManagerJobDetailsAdmin />
         </Suspense>
-        </InterviewerLayout>
+        </MainLayout>
     </main>
   );
 }

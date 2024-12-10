@@ -23,10 +23,13 @@ export const inputSlots = {
 };
 
 //nav header
-export enum Role {
-  Common,
-  Recruiter,
-  Interviewer,
+export const Role = {
+  common : "GUEST", //client side only
+  recruiter : "RECRUITER",
+  interviewer: "INTERVIEWER",
+  candidate: "CANDIDATE",
+  interviewManager: "INTERVIEW_MANAGER",
+  admin: "ADMIN"
 }
 export const navLinks = [
   {

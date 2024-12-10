@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { HrLayout } from "@/components";
+import { MainLayout } from "@/components";
 import { AddJob } from "@/screens";
 
 export default function AddJobPage() {
@@ -13,9 +13,9 @@ export default function AddJobPage() {
         backgroundPosition: "center",
       }}
     >
-      <HrLayout>
+      <MainLayout>
         <AddJob />
-      </HrLayout>
+      </MainLayout>
     </div>
   );
 }
