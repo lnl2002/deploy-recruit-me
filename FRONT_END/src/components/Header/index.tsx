@@ -68,6 +68,7 @@ export const Header = ({ role }: { role?: string }): React.JSX.Element => {
 
   //fetch noti each 30s
   useEffect(() => {
+    fetchNoti();
     const intervalId = setInterval(() => {
       fetchNoti();
     }, 30000);
@@ -77,11 +78,11 @@ export const Header = ({ role }: { role?: string }): React.JSX.Element => {
   const fetchNoti = async () => {
     const data = (await systemApi.getUserNotifications()) as any;
     setNotis(data.data);
-    console.log(data.data);
   };
 
-  const handleNotiClick = async (id: string) => {
-    await systemApi.markAsSeen(id);
+  const handleNotiClick = async (noti: INoti) => {
+    await systemApi.markAsSeen(noti._id);
+    router.push(noti.url)
     fetchNoti();
   };
 
@@ -154,7 +155,7 @@ export const Header = ({ role }: { role?: string }): React.JSX.Element => {
                     notis.map((n, index) => (
                       <DropdownItem
                         key={index}
-                        onClick={() => handleNotiClick(n._id)}
+                        onClick={() => handleNotiClick(n)}
                         className={twMerge(
                           "gap-2 py-3 my-1",
                           n.seen ? "bg-surfaceTertiary" : "bg-themeWhite"
@@ -162,8 +163,8 @@ export const Header = ({ role }: { role?: string }): React.JSX.Element => {
                       >
                         <div>
                           <div className="flex gap-2 items-center">
-                            <img
-                              src="./logo.svg"
+                            <Image
+                              src={Images.Logo}
                               alt="RecruitMe Logo"
                               className="h-10"
                             />
