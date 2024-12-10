@@ -4,8 +4,10 @@ import React, { Suspense } from "react";
 import { Spinner } from "@nextui-org/react";
 import { InterviewScheduleInterviewer } from "@/screens";
 import { MainLayout } from "@/components";
+import withAuth from "@/utils/auth";
+import { Role } from "@/utils/constants";
 
-export default function Page() {
+function Page() {
   return (
     <div
       style={{
@@ -22,3 +24,6 @@ export default function Page() {
     </div>
   );
 }
+
+export default withAuth(Page, [Role.interviewer, Role.interviewManager]);
+

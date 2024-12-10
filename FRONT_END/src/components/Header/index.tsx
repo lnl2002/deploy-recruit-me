@@ -23,8 +23,10 @@ import { logout } from "@/store/userState";
 
 import { setStatusJobFilterIndex } from "@/store/jobState";
 import {
+  adminNavLink,
   hrNavLinks,
   interviewerNavLink,
+  interviewManagerNavLink,
   navLinks,
   Role,
 } from "@/utils/constants";
@@ -41,11 +43,11 @@ const getNavLink = (role: string) => {
     case Role.interviewer:
       return interviewerNavLink;
     case Role.interviewManager:
-      return interviewerNavLink;
+      return interviewManagerNavLink;
     case Role.recruiter:
       return hrNavLinks;
     case Role.admin:
-      return navLinks;
+      return adminNavLink;
     default:
       return navLinks;
   }

@@ -3,6 +3,8 @@
 import React from "react";
 import { UpdateJob } from "@/screens";
 import { MainLayout } from "@/components";
+import withAuth from "@/utils/auth";
+import { Role } from "@/utils/constants";
 
 interface PageProps {
   params: {
@@ -21,10 +23,10 @@ const UpdateJobPage: React.FC<PageProps> = ({ params }) => {
       }}
     >
       <MainLayout>
-        <UpdateJob id={"params.id"} />
+        <UpdateJob jobId={"params.id"} />
       </MainLayout>
     </div>
   );
 };
 
-export default UpdateJobPage;
+export default withAuth(UpdateJobPage, [Role.recruiter]);

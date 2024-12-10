@@ -3,8 +3,10 @@
 import React from "react";
 import { MainLayout } from "@/components";
 import { InterviewManagerListJobAdmin } from "@/screens";
+import withAuth from "@/utils/auth";
+import { Role } from "@/utils/constants";
 
-export default function ContactUsPage() {
+function ContactUsPage() {
   return (
     <div
       className="flex flex-col"
@@ -22,3 +24,5 @@ export default function ContactUsPage() {
     </div>
   );
 }
+
+export default withAuth(ContactUsPage, [Role.admin]);

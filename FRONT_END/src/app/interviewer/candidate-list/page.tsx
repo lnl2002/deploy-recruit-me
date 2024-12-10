@@ -3,8 +3,10 @@
 import React from "react";
 import { CandidateListInteviewer as Candidates } from "@/screens";
 import { MainLayout } from "@/components";
+import withAuth from "@/utils/auth";
+import { Role } from "@/utils/constants";
 
-export default function CandidateList() {
+function CandidateList() {
   return (
     <div
       style={{
@@ -21,3 +23,5 @@ export default function CandidateList() {
     </div>
   );
 }
+
+export default withAuth(CandidateList, [Role.interviewer, Role.interviewManager]);
