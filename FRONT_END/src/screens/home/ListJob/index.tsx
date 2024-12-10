@@ -63,7 +63,7 @@ const ListJob = (): React.JSX.Element => {
         />
         <ListJobView
           jobs={jobList}
-          totalPage={jobTotal / limit}
+          totalPage={Math.ceil(jobTotal / limit)}
           handleChangePage={handleChangePage}
         />
       </div>
