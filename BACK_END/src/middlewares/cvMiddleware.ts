@@ -55,5 +55,6 @@ export const validateCVInput = [
     next(); // Proceed to the next middleware/controller
   },
 ];
+export const uploadTemp = multer({ dest: '/tmp/uploads/' });  // MUST use memoryStorage
 
 export const upload = multer({ storage: multer.memoryStorage() });  // MUST use memoryStorage

@@ -2,7 +2,7 @@ import express, { Router } from "express";
 import ApplyController from "../controllers/ApplyController";
 import { requireRole } from "../middlewares/auth";
 import applyController from "../controllers/apply";
-import { upload } from "../middlewares/cvMiddleware";
+import { uploadTemp } from "../middlewares/cvMiddleware";
 
 const applyRouter: Router = express.Router();
 
@@ -15,7 +15,7 @@ applyRouter.get("/statuses/all", ApplyController.getAllStatus)
 applyRouter.get("/reports/:id", requireRole(['INTERVIEW_MANAGER']), ApplyController.getReports)
 
 applyRouter.post("/apply-job", requireRole(['CANDIDATE']), ApplyController.applyToJob);
-applyRouter.post("/ocr/cv", requireRole(['CANDIDATE']), upload.single("cv"), ApplyController.analyzeCV)
+applyRouter.post("/ocr/cv", requireRole(['CANDIDATE']), uploadTemp.single("cv"), ApplyController.analyzeCV)
 
 applyRouter.put("/status/:id", ApplyController.changeStatus);
 
