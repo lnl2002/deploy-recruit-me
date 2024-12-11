@@ -23,8 +23,10 @@ import { logout } from "@/store/userState";
 
 import { setStatusJobFilterIndex } from "@/store/jobState";
 import {
+  adminNavLink,
   hrNavLinks,
   interviewerNavLink,
+  interviewManagerNavLink,
   navLinks,
   Role,
 } from "@/utils/constants";
@@ -32,18 +34,26 @@ import { useDispatch } from "react-redux";
 import systemApi, { INoti } from "@/api/systemApi";
 import { format } from "date-fns";
 
-const getNavLink = (role: Role) => {
+const getNavLink = (role: string) => {
   switch (role) {
-    case Role.Common:
+    case Role.common:
       return navLinks;
-    case Role.Recruiter:
-      return hrNavLinks;
-    case Role.Interviewer:
+    case Role.candidate:
+      return navLinks;
+    case Role.interviewer:
       return interviewerNavLink;
+    case Role.interviewManager:
+      return interviewManagerNavLink;
+    case Role.recruiter:
+      return hrNavLinks;
+    case Role.admin:
+      return adminNavLink;
+    default:
+      return navLinks;
   }
 };
 
-export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
+export const Header = ({ role }: { role?: string }): React.JSX.Element => {
   const dispatch = useAppDispatch();
   const pathname = usePathname();
   const router = useRouter();
@@ -60,8 +70,9 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
 
   //fetch noti each 30s
   useEffect(() => {
+    fetchNoti();
     const intervalId = setInterval(() => {
-      fetchNoti()
+      fetchNoti();
     }, 30000);
     return () => clearInterval(intervalId);
   }, []);
@@ -69,13 +80,13 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
   const fetchNoti = async () => {
     const data = (await systemApi.getUserNotifications()) as any;
     setNotis(data.data);
-    console.log(data.data);
   };
 
-  const handleNotiClick = async (id: string) => {
-    await systemApi.markAsSeen(id);
-    fetchNoti()
-  }
+  const handleNotiClick = async (noti: INoti) => {
+    await systemApi.markAsSeen(noti._id);
+    router.push(noti.url)
+    fetchNoti();
+  };
 
   return (
     <div className="relative z-10 justify-center grid grid-cols-2 h-16 bg-[transparent] items-center sm:flex sm:justify-between">
@@ -95,7 +106,7 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
           </div>
         </Link>
         <div className="hidden sm:flex items-center">
-          {getNavLink(role ?? Role.Common)?.map((item, index: number) =>
+          {getNavLink(role ?? Role.common)?.map((item, index: number) =>
             !item.expandable && item?.expand.length === 0 ? (
               <HeaderLink
                 key={index + item.id}
@@ -125,7 +136,11 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
               <Dropdown placement="bottom-end">
                 <DropdownTrigger className="border-none">
                   <button className="flex flex-row items-center gap-5 rounded-full border-none py-5 px-1">
-                    <Badge color="danger" content={notis ? notis.filter(n => !n.seen).length : 0} shape="circle">
+                    <Badge
+                      color="danger"
+                      content={notis ? notis.filter((n) => !n.seen).length : 0}
+                      shape="circle"
+                    >
                       <Bell
                         className="fill-current text-textPrimary"
                         size={20}
@@ -138,29 +153,46 @@ export const Header = ({ role }: { role?: Role }): React.JSX.Element => {
                   aria-label="Profile Actions"
                   variant="flat"
                 >
-                  {notis && notis.map((n, index) => (
-                    <DropdownItem key={index} onClick={() => handleNotiClick(n._id)} className={twMerge("gap-2 py-3 my-1", n.seen ? "bg-surfaceTertiary" : "bg-themeWhite")}>
-                      <div>
-                        <div className="flex gap-2 items-center">
-                          <img
-                            src="./logo.svg"
-                            alt="RecruitMe Logo"
-                            className="h-10"
-                          />
-                          <div className="flex flex-col">
-                            <p className={twMerge("text-md", n.seen? "font-medium" : "font-semibold")}>{n.content}</p>
-                            <p className="text-textSecondary italic">
-                              {format(
-                                new Date(n.createdAt),
-                                "dd MMMM yyyy HH:mm"
-                              )}
-                            </p>
+                  {notis &&
+                    notis.map((n, index) => (
+                      <DropdownItem
+                        key={index}
+                        onClick={() => handleNotiClick(n)}
+                        className={twMerge(
+                          "gap-2 py-3 my-1",
+                          n.seen ? "bg-surfaceTertiary" : "bg-themeWhite"
+                        )}
+                      >
+                        <div>
+                          <div className="flex gap-2 items-center">
+                            <Image
+                              src={Images.Logo}
+                              alt="RecruitMe Logo"
+                              className="h-10"
+                            />
+                            <div className="flex flex-col">
+                              <p
+                                className={twMerge(
+                                  "text-md",
+                                  n.seen ? "font-medium" : "font-semibold"
+                                )}
+                              >
+                                {n.content}
+                              </p>
+                              <p className="text-textSecondary italic">
+                                {format(
+                                  new Date(n.createdAt),
+                                  "dd MMMM yyyy HH:mm"
+                                )}
+                              </p>
+                            </div>
+                            {!n.seen && (
+                              <Dot className="text-textIconBrand" size={20} />
+                            )}
                           </div>
-                          {!n.seen && <Dot className="text-textIconBrand" size={20}/>}
                         </div>
-                      </div>
-                    </DropdownItem>
-                  ))}
+                      </DropdownItem>
+                    ))}
                 </DropdownMenu>
               </Dropdown>
               <Dropdown placement="bottom-end">

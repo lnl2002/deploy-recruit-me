@@ -2,9 +2,11 @@
 
 import React from "react";
 import { CandidateListInteviewer as Candidates } from "@/screens";
-import { InterviewerLayout } from "@/components";
+import { MainLayout } from "@/components";
+import withAuth from "@/utils/auth";
+import { Role } from "@/utils/constants";
 
-export default function CandidateList() {
+function CandidateList() {
   return (
     <div
       style={{
@@ -13,11 +15,13 @@ export default function CandidateList() {
         backgroundPosition: "center",
       }}
     >
-      <InterviewerLayout>
+      <MainLayout>
         <div className="flex-1">
           <Candidates />
         </div>
-      </InterviewerLayout>
+      </MainLayout>
     </div>
   );
 }
+
+export default withAuth(CandidateList, [Role.interviewer, Role.interviewManager]);

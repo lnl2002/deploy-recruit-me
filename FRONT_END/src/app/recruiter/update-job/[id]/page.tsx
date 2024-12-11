@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { HrLayout } from "@/components";
+import { MainLayout } from "@/components";
 import { UpdateJob } from "@/screens";
 
 interface PageProps {
@@ -20,9 +20,9 @@ const UpdateJobPage: React.FC<PageProps> = ({ params }) => {
         backgroundPosition: "center",
       }}
     >
-      <HrLayout>
+      <MainLayout>
         <UpdateJob jobId={params.id} />
-      </HrLayout>
+      </MainLayout>
     </div>
   );
 };

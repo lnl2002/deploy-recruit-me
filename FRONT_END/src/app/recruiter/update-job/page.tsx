@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
-import { HrLayout } from "@/components";
 import { UpdateJob } from "@/screens";
+import { MainLayout } from "@/components";
+import withAuth from "@/utils/auth";
+import { Role } from "@/utils/constants";
 
 interface PageProps {
   params: {
@@ -20,11 +22,11 @@ const UpdateJobPage: React.FC<PageProps> = ({ params }) => {
         backgroundPosition: "center",
       }}
     >
-      <HrLayout>
-        <UpdateJob id={"params.id"} />
-      </HrLayout>
+      <MainLayout>
+        <UpdateJob jobId={"params.id"} />
+      </MainLayout>
     </div>
   );
 };
 
-export default UpdateJobPage;
+export default withAuth(UpdateJobPage, [Role.recruiter]);

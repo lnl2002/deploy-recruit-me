@@ -1,9 +1,11 @@
 "use client";
 import React from "react";
-import { HrLayout } from "@/components";
+import { MainLayout } from "@/components";
 import { AddJob } from "@/screens";
+import withAuth from "@/utils/auth";
+import { Role } from "@/utils/constants";
 
-export default function AddJobPage() {
+function AddJobPage() {
   return (
     <div
       className="flex flex-col"
@@ -13,9 +15,11 @@ export default function AddJobPage() {
         backgroundPosition: "center",
       }}
     >
-      <HrLayout>
+      <MainLayout>
         <AddJob />
-      </HrLayout>
+      </MainLayout>
     </div>
   );
 }
+
+export default withAuth(AddJobPage, [Role.recruiter]);

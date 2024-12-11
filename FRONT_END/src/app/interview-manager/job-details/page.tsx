@@ -3,16 +3,20 @@
 import React, { Suspense } from "react";
 import { Spinner } from "@nextui-org/react";
 import { InterviewManagerJobDetails } from "@/screens";
-import { HrLayout, InterviewerLayout } from "@/components";
+import { MainLayout } from "@/components";
+import { Role } from "@/utils/constants";
+import withAuth from "@/utils/auth";
 
-export default function JobDetailsPage() {
+function JobDetailsPage() {
   return (
     <main>
-       <InterviewerLayout>
+       <MainLayout>
         <Suspense fallback={<Spinner label="Loading..." color="primary" />}>
           <InterviewManagerJobDetails />
         </Suspense>
-        </InterviewerLayout>
+        </MainLayout>
     </main>
   );
 }
+
+export default withAuth(JobDetailsPage, [Role.interviewManager]);
