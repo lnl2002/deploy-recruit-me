@@ -302,18 +302,33 @@ export const UpdateJob: React.FC<PageProps> = ({
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value, name } = event.target;
 
-    let parsedValue: string | number = "";
-    if (value) {
-      parsedValue = isNaN(Number(value)) ? value : Number(value);
-    }
+    const fieldsTypeNumber = ["maxSalary", "minSalary", "numberPerson"];
 
     let errorMessage = "";
-    const minSalary = formValue?.minSalary;
-    if (name === "maxSalary" && minSalary) {
-      if ((parsedValue as number) < minSalary) {
-        errorMessage =
-          "Maximum salary must be greater than or equal to minimum salary";
+    let parseValue: string | number = value;
+    if (fieldsTypeNumber.includes(name)) {
+      const parseNumber = Number(value.replace(/[.,]/g, ""));
+
+      console.log(parseNumber);
+
+      if (isNaN(parseNumber)) {
+        errorMessage = "Please enter a valid number";
+      } else if (parseNumber < 0) {
+        errorMessage = "Must be a positive number";
+      } else if (name === "numberPerson" && parseNumber <= 0) {
+        errorMessage = "Number of people must be greater than 0";
+      } else {
+        const minSalary = Number(
+          String(formValue?.minSalary ?? "").replace(/[.,]/g, "")
+        );
+        if (name === "maxSalary" && minSalary) {
+          if (parseNumber < minSalary) {
+            errorMessage =
+              "Maximum salary must be greater than or equal to minimum salary";
+          }
+        }
       }
+      if (!isNaN(parseNumber)) parseValue = Number(parseNumber);
     }
 
     setFormValueError(
@@ -322,58 +337,81 @@ export const UpdateJob: React.FC<PageProps> = ({
     setFormValue(
       (pre): Partial<TJob> => ({
         ...pre,
-        [name as keyof TJob]: parsedValue,
+        [name as keyof TJob]: parseValue,
       })
     );
   };
 
+  /**
+   * Handles the submission of the form to create a new job
+   * If there is an error, it will return and show the error message
+   * If there is no error, it will create the job and redirect to the list job page
+   */
   const handleSubmit = async () => {
-    if (!criteriasSelected.length) {
+    // Validate if criteria is selected
+    if (criteriasSelected.length === 0) {
       toast.warning("Please select at least one criteria");
       return;
     }
 
-    for (const field of requiredFields) {
-      if (isEmpty(formValue[field as keyof TJob])) {
-        setFormValueError((pre) => ({
-          ...pre,
-          [field]: "Please enter a field value!",
-        }));
-      } else {
-        setFormValueError((pre) => ({
-          ...pre,
-          [field]: "",
-        }));
+    // Validate required fields
+    let hasErrors = false;
+    const updatedFormErrors: any = { ...formValueError };
+
+    requiredFields.forEach((field) => {
+      if (!isEmpty(formValueError[field as keyof TJob])) {
+        hasErrors = true;
       }
+
+      if (isEmpty(formValue[field as keyof TJob])) {
+        updatedFormErrors[field] = "Please enter a field value!";
+        hasErrors = true;
+      } else {
+        updatedFormErrors[field] = "";
+      }
+    });
+
+    // Validate number of people
+    if (formValue["numberPerson"] == 0) {
+      updatedFormErrors["numberPerson" as keyof TJob] =
+        "Please enter a value greater than 0!";
+      hasErrors = true;
     }
 
-    if (formValue["numberPerson"] === 0) {
-      setFormValueError((pre) => ({
-        ...pre,
-        ["numberPerson" as keyof TJob]: "Please enter a value greater than 0!",
-      }));
+    if (
+      typeof formValue?.minSalary === "number" &&
+      typeof formValue?.maxSalary === "number" &&
+      formValue?.minSalary > formValue?.maxSalary
+    ) {
+      updatedFormErrors["minSalary"] =
+        "Minimum salary must be less than maximum salary!";
+      hasErrors = true;
     }
 
-    const missingFields = requiredFields.filter(
-      (field) => !isEmpty(formValueError[field as keyof TJob])
-    );
+    // Update form errors if any and stop submission
+    setFormValueError(updatedFormErrors);
 
-    if (missingFields.length > 0) {
-      toast.warning("Please add all missing fields");
+    if (hasErrors) {
+      toast.warning("Please correct the errors in the form.");
       return;
     }
 
-    const criteriaIds = criteriasSelected?.map((criteria) => criteria._id);
+    // Prepare criteria IDs
+    const criteriaIds = criteriasSelected.map((criteria) => criteria._id);
 
-    const { job: newJob } = await jobApi.updateJob(jobId, {
+    // Create the job with the form values and criteria ids
+    const { job: newJob } = await jobApi.addJob({
       ...formValue,
       criterias: criteriaIds,
     });
 
+    // Handle successful job creation
     if (newJob?._id) {
-      toast.success("Update job successfully");
+      toast.success("Add job successfully");
       router.push("/recruiter/list-job");
-    } else toast.error("Error updating job!");
+    } else {
+      toast.error("Error creating job!");
+    }
   };
 
   const handleSelectedCriterias =
@@ -583,14 +621,19 @@ export const UpdateJob: React.FC<PageProps> = ({
                       </div>
                       <div className="flex w-full flex-wrap md:flex-nowrap gap-4 mt-[32px]">
                         <InputComponent
-                          type="number"
+                          type="text"
                           isRequired
-                          min={1}
                           label="Quantity"
                           name="numberPerson"
                           labelPlacement="outside"
                           placeholder="Add Quantity"
-                          value={formValue.numberPerson?.toString() ?? ""}
+                          value={
+                            Number(formValue?.numberPerson ?? 0)
+                              ? Number(
+                                  formValue?.numberPerson ?? 0
+                                )?.toLocaleString("vi-VN")
+                              : formValue?.numberPerson
+                          }
                           onChange={onChange}
                           isInvalid={!!formValueError.numberPerson}
                           errorMessage={
@@ -644,15 +687,20 @@ export const UpdateJob: React.FC<PageProps> = ({
                       <div className="flex w-full flex-wrap md:flex-nowrap gap-4 mt-[32px]">
                         <div className="relative flex-1">
                           <InputComponent
-                            type="number"
+                            type="text"
                             isRequired
                             name="minSalary"
                             label="Min Budget"
                             labelPlacement="outside"
                             placeholder="Enter min budget"
-                            min={0}
                             className="w-full"
-                            value={formValue.minSalary?.toString() ?? ""}
+                            value={
+                              Number(formValue?.minSalary ?? 0)
+                                ? Number(
+                                    formValue?.minSalary ?? 0
+                                  )?.toLocaleString("vi-VN")
+                                : formValue?.minSalary
+                            }
                             onChange={onChange}
                             endContent={
                               <DollarSign
@@ -671,7 +719,7 @@ export const UpdateJob: React.FC<PageProps> = ({
                         </div>
                         <div className="relative flex-1 mb-[38px]">
                           <InputComponent
-                            type="number"
+                            type="text"
                             isRequired
                             name="maxSalary"
                             label="Max Budget"
@@ -679,7 +727,13 @@ export const UpdateJob: React.FC<PageProps> = ({
                             placeholder="Enter max budget"
                             min={0}
                             className="w-full"
-                            value={formValue.maxSalary?.toString() ?? ""}
+                            value={
+                              Number(formValue?.maxSalary ?? 0)
+                                ? Number(
+                                    formValue?.maxSalary ?? 0
+                                  )?.toLocaleString("vi-VN")
+                                : formValue?.maxSalary
+                            }
                             onChange={onChange}
                             disabled={
                               !formValue.minSalary && formValue.minSalary !== 0
