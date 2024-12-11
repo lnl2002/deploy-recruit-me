@@ -156,14 +156,14 @@ export const MyApplications = (): React.JSX.Element => {
                     <TableCell className="py-4 font-bold">
                       <Button
                         onClick={() =>
-                          route.push("/job-details?id=" + apply.job._id)
+                          route.push("/job-details?id=" + apply?.job?._id || '')
                         }
                       >
-                        {apply.job.title}
+                        {apply?.job?.title || ''}
                       </Button>
                     </TableCell>
                     <TableCell className="py-4 font-bold">
-                      {apply.job.address}
+                      {apply?.job?.address || ''}
                     </TableCell>
                     <TableCell className="py-4 font-bold">
                       {formatDateTime(apply.createdAt)}
@@ -175,7 +175,7 @@ export const MyApplications = (): React.JSX.Element => {
                       <button
                         className="text-themeOrange rounded-lg transition duration-300 ease-in-out transform hover:scale-105 flex gap-1 items-center"
                         onClick={() => {
-                          route.push("/job-details?id=" + apply.job._id)
+                          route.push("/job-details?id=" + apply?.job?._id || '')
                         }}
                       >
                         View <ArrowRight size="16px" />

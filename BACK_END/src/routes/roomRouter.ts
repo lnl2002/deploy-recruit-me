@@ -1,9 +1,9 @@
 // routes/roomRoutes.js
-import express from 'express'
+import express, { Router } from 'express'
 import roomContronller from '../controllers/roomContronller'
 import { requireRole } from '../middlewares/auth'
 
-const twilioRouter = express.Router()
+const twilioRouter: Router = express.Router()
 
 twilioRouter.get('/list-room', roomContronller.listRoom)
 
