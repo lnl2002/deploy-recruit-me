@@ -13,7 +13,7 @@ export const MainLayout = ({ children }: MainLayoutProp): React.JSX.Element => {
   const { userInfo, isLoggedIn } = useAppSelector((state) => state.user);
 
   return (
-    <div className="w-full fixed-container bg-themeWhite h-full">
+    <div className="w-full fixed-container h-full">
       <Header role={userInfo?.role}></Header>
       <div className="min-h-screen">
         {children}

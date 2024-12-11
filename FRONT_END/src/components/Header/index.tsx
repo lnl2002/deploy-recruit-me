@@ -8,7 +8,6 @@ import { twMerge } from "tailwind-merge";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { Bell, ChevronDown, Dot, LogOut, Menu, MenuIcon } from "lucide-react";
-import { SearchBox } from "../SearchBox";
 import { Images } from "@/images";
 import {
   Avatar,
@@ -30,7 +29,6 @@ import {
   navLinks,
   Role,
 } from "@/utils/constants";
-import { useDispatch } from "react-redux";
 import systemApi, { INoti } from "@/api/systemApi";
 import { format } from "date-fns";
 
