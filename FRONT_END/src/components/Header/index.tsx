@@ -84,7 +84,7 @@ export const Header = ({ role }: { role?: string }): React.JSX.Element => {
 
   const handleNotiClick = async (noti: INoti) => {
     await systemApi.markAsSeen(noti._id);
-    router.push(noti.url)
+    router.push(noti.url);
     fetchNoti();
   };
 
