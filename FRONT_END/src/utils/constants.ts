@@ -221,7 +221,7 @@ export const adminNavLink = [
   {
     id: 1,
     name: "Jobs manager",
-    path: "/admin/ListJob",
+    path: "/admin/list-job",
     expandable: false,
     loginRequired: false,
     expand: [],
