@@ -1,10 +1,12 @@
 "use client";
 
 import React from "react";
-import { HrLayout } from "@/components";
 import { ListJob } from "@/screens";
+import { MainLayout } from "@/components";
+import withAuth from "@/utils/auth";
+import { Role } from "@/utils/constants";
 
-export default function ContactUsPage() {
+function ContactUsPage() {
   return (
     <div
       className="flex flex-col"
@@ -14,11 +16,13 @@ export default function ContactUsPage() {
         backgroundPosition: "center",
       }}
     >
-      <HrLayout>
+      <MainLayout>
         <div className="flex-1">
           <ListJob />
         </div>
-      </HrLayout>
+      </MainLayout>
     </div>
   );
 }
+
+export default withAuth(ContactUsPage, [Role.recruiter]);

@@ -10,7 +10,6 @@ export * from "./recruiter/updateJob";
 export * from "./interview-manager/ListJob";
 export * from "./interview-manager/jobDetails";
 export * from "./myApplications";
-export * from "./interview-manager/candidate-list";
 
 export * from "./interviewer/candidate-list";
 export * from "./interviewer/inteviewSchedule";

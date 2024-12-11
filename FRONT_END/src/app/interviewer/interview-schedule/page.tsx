@@ -2,10 +2,12 @@
 
 import React, { Suspense } from "react";
 import { Spinner } from "@nextui-org/react";
-import { InterviewerLayout } from "@/components";
 import { InterviewScheduleInterviewer } from "@/screens";
+import { MainLayout } from "@/components";
+import withAuth from "@/utils/auth";
+import { Role } from "@/utils/constants";
 
-export default function Page() {
+function Page() {
   return (
     <div
       style={{
@@ -14,11 +16,14 @@ export default function Page() {
         backgroundPosition: "center",
       }}
     >
-      <InterviewerLayout>
+      <MainLayout>
         <Suspense fallback={<Spinner label="Loading..." color="primary" />}>
           <InterviewScheduleInterviewer />
         </Suspense>
-      </InterviewerLayout>
+      </MainLayout>
     </div>
   );
 }
+
+export default withAuth(Page, [Role.interviewer, Role.interviewManager]);
+

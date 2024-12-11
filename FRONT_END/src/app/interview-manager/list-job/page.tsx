@@ -1,10 +1,12 @@
 "use client";
 
 import React from "react";
-import { HrLayout, InterviewerLayout } from "@/components";
+import { MainLayout } from "@/components";
 import { InterviewManagerListJob } from "@/screens";
+import { Role } from "@/utils/constants";
+import withAuth from "@/utils/auth";
 
-export default function ContactUsPage() {
+function ContactUsPage() {
   return (
     <div
       className="flex flex-col"
@@ -14,11 +16,13 @@ export default function ContactUsPage() {
         backgroundPosition: "center",
       }}
     >
-      <InterviewerLayout>
+      <MainLayout>
         <div className="flex-1">
           <InterviewManagerListJob />
         </div>
-      </InterviewerLayout>
+      </MainLayout>
     </div>
   );
 }
+
+export default withAuth(ContactUsPage, [Role.interviewManager]);
