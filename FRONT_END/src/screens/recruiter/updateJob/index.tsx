@@ -400,17 +400,17 @@ export const UpdateJob: React.FC<PageProps> = ({
     const criteriaIds = criteriasSelected.map((criteria) => criteria._id);
 
     // Create the job with the form values and criteria ids
-    const { job: newJob } = await jobApi.addJob({
+    const { job: newJob } = await jobApi.updateJob(jobId, {
       ...formValue,
       criterias: criteriaIds,
     });
 
     // Handle successful job creation
     if (newJob?._id) {
-      toast.success("Add job successfully");
+      toast.success("Update job successfully");
       router.push("/recruiter/list-job");
     } else {
-      toast.error("Error creating job!");
+      toast.error("Error updating job!");
     }
   };
 
