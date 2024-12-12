@@ -1,8 +1,6 @@
-import mongoose from 'mongoose'
 import { NextFunction, Request, Response } from 'express'
 import roomService from '../services/roomService'
 import meetingService from '../services/meetingRoom'
-import accountService from '../services/accountService'
 
 const roomContronller = {
     createRoom: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -51,6 +49,11 @@ const roomContronller = {
                 return res.status(400).json({ message: 'The meeting has not started yet' })
             }
 
+            const room = await roomService.getByRoomName(roomName)
+            if (!room?.length) {
+                console.log('Room not found, creating new room...')
+                await roomService.createRoom(roomName)
+            }
             const token = roomService.generateAccessToken(identity, roomName)
             res.json(token)
         } catch (error) {

@@ -41,6 +41,15 @@ const twilioService = {
             return error.message
         }
     },
+
+    getByRoomName: async (roomName: string) => {
+        try {
+            const room = await client.video.v1.rooms.list({ uniqueName: roomName })
+            return room
+        } catch (error: any) {
+            return error.message
+        }
+    },
     listRoom: async () => {
         try {
             const room = await client.video.v1.rooms.list()
