@@ -2,9 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import { mailService } from '../services/mailServices/mailService'
 import { genAnswer } from '../configs/gemini-chat-config'
 import Notification from '../models/notificationModel'
-import Career from '../models/careerModel'
-import Job from '../models/jobModel'
-import Location from '../models/locationModel'
+import jobService from '../services/jobService'
 
 export const systemController = {
     mutipleMail: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -26,7 +24,7 @@ export const systemController = {
         try {
             const { input, history } = req.body
             const respond = await genAnswer(input, history)
-            console.log(respond)
+            // console.log(respond)
 
             const cleanedResult = respond.response.text().replace('```json', '').replace('```', '')
 
@@ -38,32 +36,15 @@ export const systemController = {
     },
 
     getAIJobQuery: async (req: Request, res: Response) => {
-        const { city, career, minSalary } = req.query
         try {
-            // Find the career ID based on the career name using a case-insensitive and diacritic-insensitive collation
-            const careerDoc = await Career.findOne({ name: { $regex: new RegExp(career as string, 'i') } }).collation({
-                locale: 'vi',
-                strength: 1,
-            })
-            if (!careerDoc) {
-                return res.status(404).json({ message: 'Career not found' })
-            }
-
-            // Find the location IDs based on the city using a case-insensitive and diacritic-insensitive collation
-            const locationDocs = await Location.find({ city: { $regex: new RegExp(city as string, 'i') } }).collation({
-                locale: 'vi',
-                strength: 1,
-            })
-            const locationIds = locationDocs.map((location) => location._id)
-
-            // Count the number of jobs matching the criteria
-            const jobs = await Job.find({
-                career: careerDoc._id,
-                location: { $in: locationIds },
-                minSalary: { $gte: Number(minSalary) },
-            }).limit(3)
-
-            res.status(200).json(jobs)
+            const { history } = req.body
+            const listJob = await jobService.getActiveJobs()
+            const respond = await genAnswer(`find suit job. listJob: ${JSON.stringify(listJob)}`, history)
+            console.log("matched : " +respond.data.matchedJob);
+            const jobs = await jobService.getJobsByIds(respond.data.matchedJob)
+            console.log(jobs);
+            
+            return res.status(200).json(jobs)
         } catch (error) {
             console.error('Error fetching job count:', error)
             res.status(500).json({ message: 'Internal server error' })

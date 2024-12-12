@@ -1,4 +1,4 @@
-import { PipelineStage, Types } from 'mongoose'
+import mongoose, { PipelineStage, Types } from 'mongoose'
 import Job, { IJob } from '../models/jobModel'
 
 const jobService = {
@@ -180,6 +180,18 @@ const jobService = {
         }
 
         return false
+    },
+    getActiveJobs: async (): Promise<IJob[]> => {
+        const currentDate = new Date()
+        // return await Job.find({
+        //     expiredDate: { $gt: currentDate },
+        //     startDate: { $lte: currentDate },
+        //     isActive: true,
+        // }).exec()
+        return await Job.find().exec()
+    },
+    getJobsByIds: async (ids: string[]): Promise<IJob[]> => {
+        return await Job.find({ _id: { $in: ids.map((id) => new mongoose.Types.ObjectId(id)) } }).exec()
     },
 }
 

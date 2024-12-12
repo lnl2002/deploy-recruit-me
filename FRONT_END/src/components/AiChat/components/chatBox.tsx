@@ -44,10 +44,7 @@ import { MessageCircle, Send, X } from "lucide-react";
 import systemApi from "@/api/systemApi";
 import Markdown from "react-markdown";
 import { TJob } from "@/api/jobApi";
-import Job from "@/screens/home/ListJob/components/Job";
-import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
-import Image from "next/image";
-import { Images } from "@/images";
+import { Card, CardHeader } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 
 export default function ChatBox({
@@ -115,20 +112,21 @@ export default function ChatBox({
       console.log(response.data.readyToFind);
       setMessages((prev) => [...prev, aiMessage]);
       if (response.data.readyToFind) {
-        const res = await systemApi.getAIJobsResponse(response.data);
+        const res = await systemApi.getAIJobsResponse(transformedHistory);
 
         console.log("ready", res);
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            sender: "jobs",
-            content: "There are jobs that may suit you:",
-            id: Date.now().toString(),
-            timestamp: new Date(),
-            job: res,
-          },
-        ]);
+        if (res.length > 0) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              sender: "jobs",
+              content: "There are jobs that may suit you:",
+              id: Date.now().toString(),
+              timestamp: new Date(),
+              job: res,
+            },
+          ]);
+        }
       }
     } catch (error) {
       const errorMessage: Message = {
@@ -195,31 +193,38 @@ export default function ChatBox({
                     }`}
                   >
                     <Markdown>{msg.content}</Markdown>
-                    {msg.sender === "jobs" && (
-                      <div className="rounded-xl grid bg-blue-100 w-full items-center gap-5 justify-center flex-shrink-0 py-5">
-                        {msg.job?.map((j, i) => (
-                          <button
-                            onClick={() =>
-                              router.push("/job-details?id=" + j._id)
-                            }
-                          >
-                            <Card className="py-4 grid-cols-1">
-                              <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-                                <p className="text-tiny uppercase font-bold">
-                                  {j.type}
-                                </p>
-                                <small className="text-default-500">
-                                  {"12 days left"}
-                                </small>
-                                <h4 className="font-bold text-large">
-                                  {j.title}
-                                </h4>
-                              </CardHeader>
-                            </Card>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    {msg.sender === "jobs" &&
+                      (msg.job && msg.job?.length > 0 ? (
+                        <div className="rounded-xl grid bg-blue-100 w-full items-center gap-5 justify-center flex-shrink-0 py-5">
+                          {msg.job?.map((j, i) => (
+                            <button
+                              onClick={() =>
+                                router.push("/job-details?id=" + j._id)
+                              }
+                            >
+                              <Card className="py-4 grid-cols-1">
+                                <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
+                                  <p className="text-tiny uppercase font-bold">
+                                    {j.type}
+                                  </p>
+                                  <small className="text-default-500">
+                                    {"12 days left"}
+                                  </small>
+                                  <h4 className="font-bold text-large">
+                                    {j.title}
+                                  </h4>
+                                </CardHeader>
+                              </Card>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <Markdown>
+                          {
+                            "We can't not find any job that fit you right now, try take a tour on our website !"
+                          }
+                        </Markdown>
+                      ))}
                   </div>
                 </div>
               </div>

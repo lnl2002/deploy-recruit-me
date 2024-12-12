@@ -20,9 +20,6 @@ interface Content {
 }
 
 interface DataQuery {
-  location?: string;
-  career?: string;
-  salaryMin?: number;
   readyToFind?: boolean;
 }
 
@@ -54,17 +51,14 @@ const systemApi = {
     }
   },
 
-  getAIJobsResponse: async (data: DataQuery): Promise<TJob[]> => {
+  getAIJobsResponse: async (history: Content[]): Promise<TJob[]> => {
     try {
-      const url = `${BACKEND_URL}/api/v1/system/ai-chat/jobs?city=${
-        data.location ?? ""
-      }&career=${data.career ?? ""}&minSalary=${data.salaryMin ?? 0}`;
-      console.log(url);
+      const url = `${BACKEND_URL}/api/v1/system/ai-chat/jobs`;
 
-      const res = await axios.get(url);
-
+      const res = await axios.post(url, { history: history });
+      console.log(res.data)
       if (res.status === 200) {
-        return res.data.data;
+        return res.data;
       } else {
         return [];
       }
