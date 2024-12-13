@@ -24,17 +24,15 @@ export const inputSlots = {
 
 //nav header
 export const Role = {
-  common : "GUEST", //client side only
-  recruiter : "RECRUITER",
+  common: "GUEST", //client side only
+  recruiter: "RECRUITER",
   interviewer: "INTERVIEWER",
   candidate: "CANDIDATE",
   interviewManager: "INTERVIEW_MANAGER",
-  admin: "ADMIN"
-}
+  admin: "ADMIN",
+};
 
-export const Screens = {
-
-}
+export const Screens = {};
 
 export const navLinks = [
   {
@@ -145,21 +143,21 @@ export const interviewerNavLink = [
   {
     id: 2,
     name: "Candidate Listing",
-    path: "/interview-manager/candidate-list",
+    path: "/interviewer/candidate-list",
     expandable: true,
     loginRequired: true,
     expand: [
       {
         id: 1,
         name: "Waiting Interview",
-        path: "/interview-manager/candidate-list",
+        path: "/interviewer/candidate-list",
         expandable: false,
         loginRequired: true,
       },
       {
         id: 2,
         name: "Interviewed Candidates",
-        path: "/interview-manager/candidate-list",
+        path: "/interviewer/candidate-list",
         expandable: false,
         loginRequired: true,
       },
@@ -168,7 +166,7 @@ export const interviewerNavLink = [
   {
     id: 3,
     name: "Interview Schedule",
-    path: "/interview-manager/interview-schedule",
+    path: "/interviewer/interview-schedule",
     expandable: false,
     loginRequired: false,
     expand: [],
@@ -233,5 +231,5 @@ export const adminNavLink = [
     expandable: false,
     loginRequired: false,
     expand: [],
-  }
+  },
 ];
