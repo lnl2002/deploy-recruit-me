@@ -119,6 +119,57 @@ const meetingController = {
             next(error)
         }
     },
+    updateMeetingRoom: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        const { participantIds, timeStart, timeEnd, applyId } = req.body
+
+        if (!participantIds || !timeStart) {
+            return res.status(400).json({ message: 'Missing required fields' })
+        }
+
+        if (participantIds.length < 2) {
+            return res.status(400).json({ message: 'participantIds need more than or equal 2' })
+        }
+
+        if (!isValidObjectId(applyId)) {
+            return res.status(400).json({ message: 'Invalid applyId' })
+        }
+
+        if (isNaN(Date.parse(timeStart)) || isNaN(Date.parse(timeEnd))) {
+            return res.status(400).json({ message: 'Invalid time format, must be a valid date-time' })
+        }
+
+        try {
+            const participants = (participantIds as Array<string>).map((participantId) => {
+                return {
+                    participant: new mongoose.Types.ObjectId(participantId),
+                    status: IMeetingApproveStatus.PENDING,
+                }
+            }) as IParticipantStatus[]
+
+            const schedules = await meetingService.updateSchedule({
+                timeStart,
+                timeEnd,
+                participants,
+                applyId
+            })
+
+            if (
+                (
+                    schedules as {
+                        isError: boolean
+                        message: string
+                    }
+                )?.isError
+            ) {
+                res.status(400).json(schedules)
+                return
+            }
+
+            return res.status(200).json(schedules)
+        } catch (error) {
+            next(error)
+        }
+    },
     getListCandidates: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
             const { sortOrder, statusFilter, page, limit, jobId, sortField } = req.query
