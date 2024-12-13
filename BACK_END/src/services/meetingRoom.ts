@@ -10,7 +10,8 @@ import { sendMessageToQueue } from '../configs/aws-queue'
 import { S3_QUEUE_URL } from '../utils/env'
 import { mailService } from './mailServices/mailService'
 import { ICV } from '../models/cvModel'
-import { IJob } from '../models/jobModel'
+import Job, { IJob } from '../models/jobModel'
+import accountService from './accountService'
 
 interface UpdateMeetingStatusInput {
     meetingRoomId: mongoose.Types.ObjectId
@@ -100,6 +101,48 @@ const meetingService = {
                 console.log(`Candidate ${participantId} CV has been rejected due to multiple rejections.`)
             }
         }
+
+        const { accounts: interviewManager } = await accountService.getAccountList(
+            {},
+            { _id: { $in: meetingRoom.participants.map((p) => p.participant) }, role: '6718eb41b203b7efd13871ca' },
+        )
+
+        const apply = await Apply.findById(meetingRoom.apply)
+        const job = await Job.findById(apply?.job)
+
+        mailService.sendMailBase({
+            sendTo: [interviewManager[0].email],
+            subject: 'Application Status Update',
+            body: `
+            <div style="padding: 20px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9; font-family: Arial, sans-serif; color: #333;">
+                <h2 style="color: #2b579a; margin-bottom: 20px;">Application Status Update</h2>
+                <p>Dear ${interviewManager[0].name},</p>
+                <p>Thank you for your interest in the <strong>${job?.title}</strong> position at <strong>RecruitMe</strong>.</p>
+
+                <p>The status of the applicant for this position has been updated:</p>
+
+                <ul style="list-style-type: none; padding: 0; margin-bottom: 20px;">
+                    <li style="margin-bottom: 10px;">
+                        <strong>Candidate Name:</strong> ${user.name}
+                    </li>
+                    <li style="margin-bottom: 10px;">
+                        <strong>Candidate Email:</strong> ${user.email}
+                    </li>
+                    <li style="margin-bottom: 10px;">
+                        <strong>Status:</strong> <span style="font-weight: bold; color: ${status === 'approved' ? 'green' : 'red'};">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                    </li>
+                    ${status === 'rejected' ? `<li style="margin-bottom: 10px;"><strong>Reason:</strong> ${declineReason}</li>` : ''}
+                </ul>
+
+                <p style="margin-bottom: 20px;">Please review the application status and take necessary actions. If you need further details, feel free to contact us.</p>
+
+                <p style="color: #555;">
+                    Best regards,<br />
+                    <strong style="color: #2b579a;">RecruitMe Team</strong>
+                </p>
+            </div>
+            `,
+        })
 
         await meetingRoom.save()
     },
@@ -273,7 +316,7 @@ const meetingService = {
 
         // Kiểm tra xem có bất kỳ participant nào trong các phòng họp trùng
         for (const meeting of overlappingMeetings) {
-            if(meeting.apply.toString() === applyId) continue;
+            if (meeting.apply.toString() === applyId) continue
             const meetingParticipantIds = meeting.participants.map((p) => p.participant.toString())
 
             // Nếu có participant trùng lặp, ném lỗi
@@ -288,7 +331,7 @@ const meetingService = {
         // Cập nhật meeting room
         const updatedMeetingRoom = await MeetingRoom.findOneAndUpdate(
             {
-                apply: applyId
+                apply: applyId,
             },
             {
                 participants,
