@@ -11,7 +11,7 @@ const cvStatusSchema: Schema = new Schema({
         unique: true,
         enum: [
             'New',
-            'Shortlist',
+            'Shortlisted',
             'Pending Interview Confirmation',
             'Interview Scheduled',
             'Interview Rescheduled',

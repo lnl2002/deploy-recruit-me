@@ -31,6 +31,7 @@ interface ScheduleInterviewModalProps {
   cv: any
   changeStatus?: ({ status }: { status: string; }) => void
   applyId: string
+  isUpdate?: boolean
 }
 
 type DisclosureProp = {
@@ -49,7 +50,8 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
   disclosure,
   cv,
   changeStatus,
-  applyId
+  applyId,
+  isUpdate = false
 }) => {
   const zonedDateTime = now(getLocalTimeZone());
   const date = new CalendarDate(
@@ -103,7 +105,37 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
     getSchedules()
     onClose()
   };
-  console.log("applyId", applyId);
+  const handleUpdate = async () => {
+    const timeStart = new Date(interviewDate.year, interviewDate.month - 1, interviewDate.day, startTime.hour, startTime.minute, 0 );
+    const timeEnd = new Date(interviewDate.year, interviewDate.month - 1, interviewDate.day, endTime.hour, endTime.minute, 0 );
+
+    setIsLoading(true);
+    const data = await meetingApi.updateSchedule({
+      participantIds: participants,
+      timeEnd: timeEnd.toISOString(),
+      timeStart: timeStart.toISOString(),
+      title,
+      applyId
+    })
+    setIsLoading(false);
+
+    applyApi.updateApplyStatus({
+      applyId: applyId,
+      newStatus: 'Pending Interview Confirmation'
+    })
+    
+    if(!data){
+      toast.error('Something went wrong. Please try again');
+      return
+    } else if(data?.isError){
+      toast.error(data?.message || 'Something went wrong. Please try again');
+      return
+    }
+    changeStatus?.({status: 'Pending Interview Confirmation'})
+    toast.success('Created successfully')
+    getSchedules()
+    onClose()
+  };
   
 
   const handleChangeDate = (date: ZonedDateTime | CalendarDate | CalendarDateTime) => {
@@ -275,8 +307,8 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
             >
               Cancel
             </Button>
-            <Button className="bg-themeOrange text-[#fff]" radius="full" onClick={handleSend} isLoading={isLoading}>
-              Create Schedule
+            <Button className="bg-themeOrange text-[#fff]" radius="full" onClick={isUpdate ? handleUpdate : handleSend} isLoading={isLoading}>
+              {isUpdate ? 'Reschedule' : 'Create Schedule'}
             </Button>
           </div>
         </ModalFooter>

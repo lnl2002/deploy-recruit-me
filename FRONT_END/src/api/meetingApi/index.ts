@@ -68,6 +68,39 @@ export const meetingApi = {
       return null;
     }
   },
+  updateSchedule: async ({
+    participantIds,
+    timeStart,
+    timeEnd,
+    title,
+    applyId,
+  }: ICreateMeeting) => {
+    try {
+      const res = await axios.post(
+        `${BACKEND_URL}/api/v1/meeting-room/update`,
+        {
+          participantIds,
+          timeStart,
+          timeEnd,
+          title,
+          applyId,
+        }
+      );
+
+      if (res.status === 200) {
+        return res.data.data;
+      } else {
+        return null;
+      }
+    } catch (error: any) {
+      console.error("Error fetching career list:", error);
+      if (error.status === 400) {
+        return error.response.data.data;
+      }
+
+      return null;
+    }
+  },
   getScheduleById: async ({
     interviewerId,
     startTime,

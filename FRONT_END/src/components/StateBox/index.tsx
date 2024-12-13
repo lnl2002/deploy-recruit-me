@@ -69,13 +69,13 @@ export const StateBox: React.FC<Props> = (props) => {
       declineReason: message,
     });
 
-    if (applyInfo) {
+    if (applyInfo && meeting.rejectCount < 2) {
       const data = await applyApi.updateApplyStatus({
         applyId: applyInfo._id,
         newStatus: "Interview Rescheduled",
       });
-      window.location.reload();
     }
+    window.location.reload();
 
     if (applyInfo?._id) {
       fetchMeeting(applyInfo?._id);
@@ -83,11 +83,7 @@ export const StateBox: React.FC<Props> = (props) => {
   };
 
   const goMeeting = () => {
-    if (
-      meeting &&
-      (applyInfo?.status.name == "Interview Scheduled" ||
-        applyInfo?.status.name == "Interview Rescheduled")
-    )
+    if (meeting && applyInfo?.status.name == "Interview Scheduled")
       return (
         <Link href={meeting.url}>
           <ButtonApp
@@ -96,18 +92,33 @@ export const StateBox: React.FC<Props> = (props) => {
           />
         </Link>
       );
+    if (meeting && applyInfo?.status.name == "Interview Rescheduled") {
+      return (
+        <>
+          {meeting.participants
+            .filter((e) => e.participant == userInfo?._id)
+            .at(0)?.status == "rejected" && (
+            <div className="flex flex-col gap-4 mt-10">
+              <div className="flex items-center gap-5">
+                <XCircle size={35} color="#f31260" />
+                <p className="text-danger-500 font-medium text-base">
+                  You have declined the schedule
+                </p>
+              </div>
+            </div>
+          )}
+        </>
+      );
+    }
   };
 
   const conFirmMeeting = () => {
-    console.log("userInfo", userInfo);
-    console.log("meeting", meeting);
-
     if (meeting && applyInfo?.status.name === "Pending Interview Confirmation")
       return (
         <>
           {meeting.participants
             .filter((e) => e.participant == userInfo?._id)
-            .at(0)?.status == "pending" && (
+            .at(0)?.status && (
             <div className="grid grid-cols-2 gap-4 mt-10">
               <ButtonApp
                 onClick={() => {
@@ -122,47 +133,6 @@ export const StateBox: React.FC<Props> = (props) => {
                 }}
                 type="submit"
                 className="w-full col-span-1 text-themeWhite"
-                title="Accept"
-              />
-            </div>
-          )}
-
-          {meeting.participants
-            .filter((e) => e.participant == userInfo?._id)
-            .at(0)?.status == "approved" && (
-            <div className="flex flex-col gap-4 mt-10">
-              <div className="flex items-center gap-5">
-                <CheckCircle2 size={35} color="#17c964" />
-                <p className="text-success-500 font-medium text-base">
-                  You have accepted the schedule
-                </p>
-              </div>
-              <ButtonApp
-                onClick={() => {
-                  declineDisclosure.onOpen();
-                }}
-                className="bg-white text-textPrimary border w-full col-span-1"
-                title="Decline"
-              />
-            </div>
-          )}
-
-          {meeting.participants
-            .filter((e) => e.participant == userInfo?._id)
-            .at(0)?.status == "rejected" && (
-            <div className="flex flex-col gap-4 mt-10">
-              <div className="flex items-center gap-5">
-                <XCircle size={35} color="#f31260" />
-                <p className="text-danger-500 font-medium text-base">
-                  You have declined the schedule
-                </p>
-              </div>
-              <ButtonApp
-                onClick={() => {
-                  agreeDisclosure.onOpen();
-                }}
-                type="submit"
-                className="w-full col-span-1 text-white"
                 title="Accept"
               />
             </div>

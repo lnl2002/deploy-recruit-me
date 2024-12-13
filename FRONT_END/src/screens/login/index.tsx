@@ -9,13 +9,24 @@ import {
   FRONTEND_URL_RECRUITER_HOME,
   FRONTEND_URL_INTERVIEWER_HOME,
 } from "@/utils/env";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch } from "@/store/store";
 import { login } from "@/store/userState";
+import { toast } from "react-toastify";
+
+export enum IAccoutStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  SUSPENDED = "SUSPENDED"
+}
 
 const Login: React.FC = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
+  
+  // Lấy giá trị của query parameter "path"
+  const path = searchParams.get('path');
 
   const handleGoogleLogin = () => {
     const popup = window.open(
@@ -30,21 +41,26 @@ const Login: React.FC = () => {
         return;
       }
 
-      const { accessToken, refreshToken, user } = event.data;
-
+      const { accessToken, refreshToken, user} = event.data;
+      const userInfo = JSON.parse(user);
+      
+      if(userInfo?.status === IAccoutStatus.SUSPENDED){
+        toast.error('Your account has been suspended');
+        return;
+      }
       localStorage.setItem("access_token", accessToken);
       localStorage.setItem("refresh_token", refreshToken);
       // localStorage.setItem('user', user);
       dispatch(login(JSON.parse(user)));
 
-      const userInfo = JSON.parse(user);
+      
 
       popup?.close();
 
       switch (userInfo.role) {
         case "CANDIDATE":
           console.log("CANDIDATE");
-          router.push(FRONTEND_URL_CANDIDATE_HOME);
+          router.push(`${FRONTEND_URL_CANDIDATE_HOME}${path || ''}`);
           break;
         case "RECRUITER":
           console.log("RECRUITER");

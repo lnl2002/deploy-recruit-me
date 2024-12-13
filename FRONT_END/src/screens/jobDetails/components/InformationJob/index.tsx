@@ -14,6 +14,7 @@ import { StateBox } from "@/components/StateBox";
 import { TUnit } from "@/api/unitApi";
 import { TCareer } from "@/api/careerApi";
 import { useAppSelector } from "@/store/store";
+import { useRouter } from "next/navigation";
 
 type InformationJobProps = {
   job: Partial<TJob>;
@@ -26,12 +27,22 @@ const InformationJob: React.FC<InformationJobProps> = ({
   onApply,
   applied = false,
 }): React.JSX.Element => {
+  const route = useRouter();
   const { applyInfo } = useAppSelector((state) => state.applyInfo);
+  const { isLoggedIn } = useAppSelector((state) => state.user);
   const disclosure = useDisclosure();
 
   const handleApply = () => {
     onApply();
   };
+  
+  const pushToLogin = () => {
+    const url = window.location.href;
+    const parsedUrl = new URL(url);
+
+    const fullPath = parsedUrl.pathname + parsedUrl.search;
+    route.push(`/login?path=${fullPath}`)
+  }
 
   if (!job?._id) return <div></div>;
 
@@ -71,7 +82,6 @@ const InformationJob: React.FC<InformationJobProps> = ({
         </div>
       </div>
       <div className="col-span-1 px-8 ">
-        
         {applyInfo?.status && (
           <div className="p-6 bg-white rounded-2xl shadow-md mb-8 border">
             <StateBox />
@@ -84,7 +94,11 @@ const InformationJob: React.FC<InformationJobProps> = ({
             className="w-full cursor-pointer hover:bg-backgroundDecor200 transition-colors rounded-lg"
           />
         </div>
-        <Modal className="min-w-[90vw]" isOpen={disclosure.isOpen} onClose={disclosure.onClose}>
+        <Modal
+          className="min-w-[90vw]"
+          isOpen={disclosure.isOpen}
+          onClose={disclosure.onClose}
+        >
           <ModalContent>
             <div className="flex justify-center">
               <img
@@ -105,16 +119,43 @@ const InformationJob: React.FC<InformationJobProps> = ({
             career={(job.career as Partial<TCareer>)?.name ?? ""}
             type={job.type ?? ""}
           />
-          {!applied && (
-            <div className="mt-10">
-              <Button
-                onPress={handleApply}
-                className="w-full py-2 bg-themeOrange text-themeWhite rounded-full hover:bg-themeOrange"
-              >
-                Apply Now
-              </Button>
-            </div>
-          )}
+          {!isLoggedIn && !applied &&
+            job.expiredDate &&
+            new Date(job.expiredDate).setHours(0, 0, 0, 0) >=
+              new Date().setHours(0, 0, 0, 0) && (
+              <div className="mt-10">
+                <Button
+                  onPress={pushToLogin}
+                  className="w-full py-2 bg-themeOrange text-themeWhite rounded-full hover:bg-themeOrange"
+                >
+                  Login to apply now
+                </Button>
+              </div>
+            )}
+
+          {isLoggedIn && !applied &&
+            job.expiredDate &&
+            new Date(job.expiredDate).setHours(0, 0, 0, 0) >=
+              new Date().setHours(0, 0, 0, 0) && (
+              <div className="mt-10">
+                <Button
+                  onPress={handleApply}
+                  className="w-full py-2 bg-themeOrange text-themeWhite rounded-full hover:bg-themeOrange"
+                >
+                  Apply Now
+                </Button>
+              </div>
+            )}
+          {!applied &&
+            job.expiredDate &&
+            new Date(job.expiredDate).setHours(0, 0, 0, 0) <
+              new Date().setHours(0, 0, 0, 0) && (
+              <div className="mt-10">
+                <Button className="w-full py-2 bg-[#D3D3D3] text-[#FFFFFF] rounded-full cursor-not-allowed">
+                  Expired
+                </Button>
+              </div>
+            )}
         </div>
       </div>
     </div>

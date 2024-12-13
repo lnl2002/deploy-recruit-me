@@ -660,6 +660,7 @@ const RescheduleStatus = ({
         cv={cv}
         changeStatus={changeStatus}
         applyId={applyId || ""}
+        isUpdate={true}
       />
       <ModalConfirm
         title={`Are you sure you want to change to status </br><strong>${btnChoosed}</strong>?`}
