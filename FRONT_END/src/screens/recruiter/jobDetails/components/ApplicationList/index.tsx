@@ -115,18 +115,18 @@ const ApplicationList: React.FC<{ jobId: string }> = ({
               Stage 6: Applicant Interviewed
             </SelectItem>
             <SelectItem
-              key={"Accepted"}
-              value={"Accepted"}
+              key={"Rejected"}
+              value={"Inteviewed"}
               className="text-themeDark"
             >
-              Stage 7: Applicant Accepted
+              Stage 7: Applicant Rejected
             </SelectItem>
             <SelectItem
-              key={"Rejected"}
-              value={"Rejected"}
+              key={"Accepted"}
+              value={"Inteviewed"}
               className="text-themeDark"
             >
-              Stage 8: Applicant Rejected
+              Stage 8: Applicant Accepted
             </SelectItem>
           </Select>
           <Select

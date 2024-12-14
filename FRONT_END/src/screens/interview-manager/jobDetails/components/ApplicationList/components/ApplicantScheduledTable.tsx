@@ -4,6 +4,8 @@ import {
   Button,
   Chip,
   Pagination,
+  Select,
+  SelectItem,
   SortDescriptor,
   Spinner,
   Table,
@@ -14,7 +16,7 @@ import {
   TableRow,
   useDisclosure,
 } from "@nextui-org/react";
-import { ArrowRight, X } from "lucide-react";
+import { ArrowRight, Plus, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Status from "./status";
 import ApplicantCard from "./ApplicantCard";
@@ -24,11 +26,12 @@ import { CvViewer } from "@/components/CvViewer";
 import Empty from "./empty";
 import { formatDateTime } from "@/utils/formatDateTime";
 import meetingApi from "@/api/meetingApi";
-import { IAccount } from "@/api/accountApi/accountApi";
+import accountApi, { IAccount } from "@/api/accountApi/accountApi";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import AIScoreModal, { Criterion } from "./DetailScore";
 import { toast } from "react-toastify";
 import { RootState, useAppSelector } from "@/store/store";
+import SelectUser from "./SelectUser";
 
 type ApplicantScheduledTableProps = {
   _id: string;
@@ -45,6 +48,7 @@ export const ApplicantScheduledTable = ({
   const cvViewDisclosure = useDisclosure();
   const scoreDetailDisclosure = useDisclosure();
   const confirmRemove = useDisclosure();
+  const addParticipant = useDisclosure();
   const [url, setUrl] = useState("");
 
   const [page, setPage] = useState(1);
@@ -64,6 +68,11 @@ export const ApplicantScheduledTable = ({
     column: "",
     direction: "descending",
   });
+  const [interviewers, setInterviewers] = useState<any[]>([]);
+  const [listAddParticipant, setListAddParticipant] = useState<any[]>([]);
+  const [uniqueItems, setUniqueItems] = useState<any[]>([]);
+  const [addMeetingRoomId, setAddMeetingRoomId] = useState<string>("");
+  const { job } = useAppSelector((state: RootState) => state.job);
 
   useEffect(() => {
     setFiltersCandidate(filter);
@@ -95,6 +104,13 @@ export const ApplicantScheduledTable = ({
     setUsers(data.data);
     setTotalPages(data.totalPages);
     setIsLoading(false);
+  };
+  const getInterviewers = async () => {
+    if (!job?.unit?._id) return;
+    const data = await accountApi.getInterviewerByUnit(
+      job?.unit?._id?.toString()
+    );
+    setInterviewers(data);
   };
 
   const handleOpenModal = async (
@@ -196,8 +212,30 @@ export const ApplicantScheduledTable = ({
     getApplicants();
   };
 
+  const clickAddParticipant = (participants: any[], meetingId: string) => {
+
+    const uniqueSet = interviewers.filter(
+      (interviewer) =>
+        !participants.some((user) => user._id === interviewer._id)
+    );
+  
+    setUniqueItems(uniqueSet);
+    setAddMeetingRoomId(meetingId)
+    addParticipant.onOpen();
+  };
+
+  const handleAddParticipant = () => {
+    listAddParticipant.forEach( async (participantId) => {
+      await meetingApi.addParticipantToMeetingRoom(addMeetingRoomId, participantId)
+    })
+    toast.success('Added successfully!')
+    addParticipant.onClose()
+    getApplicants();
+  }
+
   useEffect(() => {
     setFiltersCandidate(filter);
+    getInterviewers();
   }, []);
 
   return (
@@ -283,6 +321,21 @@ export const ApplicantScheduledTable = ({
                             )}
                         </Chip>
                       ))}
+                    {[
+                      "Pending Interview Confirmation",
+                      "Interview Scheduled",
+                      "Interview Rescheduled",
+                    ].includes(user?.applyStatus?.name) && (
+                      <Button
+                        className="flex gap-1 items-center cursor-pointer bg-[#007bff] text-[#fff]"
+                        radius="full"
+                        onPress={() =>
+                          clickAddParticipant(user?.participants || [], user?._id || '')
+                        }
+                      >
+                        <Plus /> <span>Add participant</span>
+                      </Button>
+                    )}
                   </TableCell>
                   <TableCell className="py-4 font-bold">
                     <Status
@@ -405,6 +458,89 @@ export const ApplicantScheduledTable = ({
         onViewCv={() => onViewCv(user?.cv._id)}
         name={`${user?.cv?.firstName || ""} ${user?.cv?.lastName || ""}`}
       />
+      <ModalCommon size={"xl"} disclosure={addParticipant}>
+        <div className="flex w-full  flex-col gap-2 mt-4">
+          <Select
+            items={uniqueItems}
+            label="Participants"
+            variant="bordered"
+            isMultiline={true}
+            selectionMode="multiple"
+            placeholder="Select a user"
+            labelPlacement="outside"
+            classNames={{
+              base: "w-full text-themeDark",
+              trigger: "min-h-12 py-2",
+              listbox: "text-themeDark",
+              label: "min-w-[100px] flex items-center justify-center mt-1",
+            }}
+            renderValue={(items: any) => {
+              return (
+                <div className="flex flex-wrap gap-2 ">
+                  {items.map((item: any) => (
+                    <Chip
+                      key={item?.key || ""}
+                      classNames={{
+                        content: "flex gap-1 items-center",
+                        base: "py-5",
+                      }}
+                    >
+                      <Avatar
+                        alt={item.data.name}
+                        size="sm"
+                        src={item.data.image}
+                      />
+                      <div>
+                        {userInfo?._id === item.data._id
+                          ? "You"
+                          : item.data.name}
+                      </div>
+                    </Chip>
+                  ))}
+                </div>
+              );
+            }}
+            onChange={(e) => setListAddParticipant(e.target.value.split(","))}
+          >
+            {(user) => (
+              <SelectItem key={user?._id || ""} textValue={user.name}>
+                <div className="flex gap-2 items-center">
+                  <Avatar
+                    alt={user.name}
+                    className="flex-shrink-0"
+                    size="sm"
+                    src={user.image}
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-small">
+                      {userInfo?._id === user._id ? "You" : user.name}
+                    </span>
+                    <span className="text-tiny text-default-400">
+                      {user.email}
+                    </span>
+                  </div>
+                </div>
+              </SelectItem>
+            )}
+          </Select>
+          <div className="grid grid-cols-2 gap-4 mt-2 mb-[-10px]">
+            <Button
+              className="border-1 border-themeOrange bg-opacity-0 text-themeOrange"
+              radius="full"
+              onPress={() => addParticipant.onClose()}
+            >
+              Cancel
+            </Button>
+            <Button 
+              className="bg-themeOrange text-[#fff]" 
+              radius="full"
+              onPress={() => handleAddParticipant()}
+              >
+              Add
+            </Button>
+          </div>
+        </div>
+      </ModalCommon>
     </div>
   );
 };
