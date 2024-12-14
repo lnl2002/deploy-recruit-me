@@ -14,6 +14,7 @@ import { TUnit } from "@/api/unitApi";
 import { TLocation } from "@/api/locationApi";
 import JobStatus from "./components/JobStatus";
 import { getStatusJob } from "@/utils/getStatus";
+import JobCriteria from "./components/JobCriteria";
 
 //example: /job-details?id=67055dd3e22b9a4790729550
 export const InterviewManagerJobDetails = (): React.JSX.Element => {
@@ -82,6 +83,7 @@ export const InterviewManagerJobDetails = (): React.JSX.Element => {
           {tabSelected === "applicants-list" && (
             <ApplicationList jobId={jobId ?? ""} />
           )}
+          {tabSelected === "job-criteria" && <JobCriteria job={job} />}
         </div>
       </div>
     </>

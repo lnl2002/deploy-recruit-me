@@ -71,6 +71,24 @@ const TabComponent: React.FC<TabComponentProps> = ({
               Schedule Interview
             </p>
           </div>
+          <div
+            className={`cursor-pointer px-3 py-1 ${
+              tabSelected === "job-criteria"
+                ? "border-b-2 border-themeDark"
+                : ""
+            }`}
+            onClick={() => handleTabChange("job-criteria")}
+          >
+            <p
+              className={`${
+                tabSelected === "job-criteria"
+                  ? "text-themeDark"
+                  : "text-backgroundDecor500"
+              }`}
+            >
+              Job Criteria
+            </p>
+          </div>
         </div>
       </div>
       <div>
