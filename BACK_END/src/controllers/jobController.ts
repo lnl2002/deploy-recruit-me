@@ -10,6 +10,9 @@ import { IRole } from '../models/roleModel'
 import { IJob } from '../models/jobModel'
 import locationService from '../services/locationService'
 import criteriaService from '../services/criteriaService'
+import { mailService } from '../services/mailServices/mailService'
+import { IAccount } from '../models/accountModel'
+import { FRONTEND_URL } from '../utils/env'
 
 const jobController = {
     getJobDetail: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -709,6 +712,45 @@ const jobController = {
                 jobId: jobId.toString() as string,
                 status: status as string,
                 rejectReason: rejectReason?.toString() as string,
+            })
+
+            const subject = 'Welcome to Recruit Me!'
+            const body = (role: 'interview-manager' | 'recruiter') => `
+            <div style="padding: 20px 40px;">
+                <div>
+                    <h1>Job Status Updated</h1>
+                </div>
+                <div>
+                    <p>
+                        Hello!
+                    </p>
+                    <p>
+                        The status of your job <strong>"${job?.title}"</strong> has been updated.
+                    </p>
+                    <div>
+                        <p>Job Details:</p>
+                        <ul>
+                            <li><strong>New Status:</strong> ${status[0].toUpperCase() + status.slice(1)}</li>
+                            ${rejectReason && `<li><strong>Rejection Reason:</strong> ${rejectReason}</li>`}
+                        </ul>
+                    </div>
+                    <p>
+                        Please click the button below to view job details and take necessary actions.
+                    </p>
+                    <a href="${FRONTEND_URL}/${role}/job-details?id=${jobId}">
+                        View Job Details
+                    </a>
+                </div>
+            </div>`
+            await mailService.sendMailBase({
+                sendTo: [(job.account as IAccount)?.email],
+                subject,
+                body: body('recruiter'),
+            })
+            await mailService.sendMailBase({
+                sendTo: [(job.interviewManager as IAccount)?.email],
+                subject,
+                body: body('interview-manager'),
             })
 
             res.status(200).json(jobs)

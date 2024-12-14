@@ -4,6 +4,8 @@ import meetingService from '../services/meetingRoom'
 import mongoose, { isValidObjectId } from 'mongoose'
 import { FRONTEND_URL_CANDIDATE_HOME } from '../utils/env'
 import { v4 as uuid } from 'uuid'
+import accountService from '../services/accountService'
+import { mailService } from '../services/mailServices/mailService'
 
 const meetingController = {
     updateMeetingStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -114,6 +116,44 @@ const meetingController = {
                 return
             }
 
+            const { accounts: listAccount } = await accountService.getAccountList('', { _id: { $in: participantIds } })
+            const listEmail = listAccount?.map((account) => account.email)
+
+            const body = `
+                <div style="padding: 20px; font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
+                    <h2 style="color: #2b579a; margin-bottom: 20px;">Your Meeting Room is Ready</h2>
+                    <p style="margin-bottom: 20px;">Dear Participants,</p>
+                    <p style="margin-bottom: 20px;">
+                        A meeting room has been successfully created for your scheduled session. Below are the details:
+                    </p>
+                    <ul style="list-style-type: none; padding: 0; margin-bottom: 20px;">
+                        <li style="margin-bottom: 10px;">
+                            <strong>Meeting Link:</strong>
+                            <a href="${url}" style="color: #1d70b8; text-decoration: none;">Join Meeting</a>
+                        </li>
+                        <li style="margin-bottom: 10px;">
+                            <strong>Start Time:</strong> ${new Date(timeStart).toLocaleString()}
+                        </li>
+                        <li style="margin-bottom: 10px;">
+                            <strong>End Time:</strong> ${new Date(timeEnd).toLocaleString()}
+                        </li>
+                    </ul>
+                    <p style="margin-bottom: 20px;">
+                        Please ensure you join the meeting on time using the link above. If you have any questions or concerns, feel free to reach out to us.
+                    </p>
+                    <p style="margin-top: 20px; color: #555;">
+                        Best regards,<br />
+                        <strong style="color: #2b579a;">Recruit Me Team</strong>
+                    </p>
+                </div>
+            `
+
+            await mailService.sendMailBase({
+                sendTo: listEmail,
+                subject: 'Meeting Room is Created!',
+                body: body,
+            })
+
             return res.status(200).json(schedules)
         } catch (error) {
             next(error)
@@ -150,7 +190,7 @@ const meetingController = {
                 timeStart,
                 timeEnd,
                 participants,
-                applyId
+                applyId,
             })
 
             if (
@@ -181,7 +221,7 @@ const meetingController = {
             }
 
             let sort = 'createdAt'
-            if(['timeStart', 'createdAt', 'apply.cvScore.averageScore'].includes(sortField?.toString())){
+            if (['timeStart', 'createdAt', 'apply.cvScore.averageScore'].includes(sortField?.toString())) {
                 sort = sortField.toString()
             }
 
@@ -293,7 +333,7 @@ const meetingController = {
             const updatedMeetingRoom = await meetingService.removeParticipant(meetingRoomId, participantId.toString())
             res.status(200).json({ message: 'Participant removed successfully', data: updatedMeetingRoom })
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             res.status(400).json({ message: error.message })
         }
