@@ -188,7 +188,10 @@ const jobService = {
         //     startDate: { $lte: currentDate },
         //     isActive: true,
         // }).exec()
-        return await Job.find().exec()
+        return await Job.find()
+            .select('_id title location')
+            .populate('location', 'country city district ward detailLocation')
+            .exec()
     },
     getJobsByIds: async (ids: string[]): Promise<IJob[]> => {
         return await Job.find({ _id: { $in: ids.map((id) => new mongoose.Types.ObjectId(id)) } }).exec()

@@ -4,8 +4,10 @@ import React, { useState, useEffect, Fragment } from "react";
 import Lottie from "react-lottie";
 import ModalCommon from "../Modals/ModalCommon";
 import { useDisclosure } from "@nextui-org/react";
-import ChatBox from "./components/chatBox";
+import ChatBox, { Message } from "./components/chatBox";
+import { TJob } from "@/api/jobApi";
 const padding = 20; // Padding from the edges
+
 export const AIChat = () => {
   const chatBox = useDisclosure();
   const [position, setPosition] = useState({
@@ -14,6 +16,21 @@ export const AIChat = () => {
   });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "start",
+      content: "Start chat",
+      sender: "user",
+      inVisible: true,
+      timestamp: new Date(),
+    },
+    {
+      id: "welcome",
+      content: "Hello! I'm your AI assistant. How can I help you today?",
+      sender: "model",
+      timestamp: new Date(),
+    },
+  ]);
 
   // Calculate initial position at bottom right
   const calculatePosition = () => {
@@ -89,7 +106,10 @@ export const AIChat = () => {
         }}
         onMouseDown={handleMouseDown}
       >
-        <button onClick={() => chatBox.onOpen()} className="flex flex-col items-center">
+        <button
+          onClick={() => chatBox.onOpen()}
+          className="flex flex-col items-center"
+        >
           <Lottie
             style={{ width: 150 }}
             options={{
@@ -110,7 +130,7 @@ export const AIChat = () => {
         </button>
       </div>
       <ModalCommon size={"2xl"} disclosure={chatBox}>
-        <ChatBox onClose={() => {}} onSendMessage={(words) => {}}/>
+        <ChatBox messages={messages} setMessages={setMessages} onClose={() => {}} onSendMessage={(words) => {}} />
       </ModalCommon>
     </Fragment>
   );

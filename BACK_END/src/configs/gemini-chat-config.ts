@@ -20,16 +20,13 @@ const jsonSchema: ResponseSchema = {
         data: {
             type: SchemaType.OBJECT, // "data" is also an object
             properties: {
-                matchedJob: {
+                matchedJobIds: {
                     type: SchemaType.ARRAY,
                     items: {
-                        type: SchemaType.OBJECT,
-                        properties: {
-                            id: {type: SchemaType.STRING},
-                        },
+                        type: SchemaType.STRING,
                     },
                 },
-                readyToFind: { type: SchemaType.BOOLEAN },
+                readyToFind: { type: SchemaType.BOOLEAN , description: "default is false, detemine if should show jobs for user or not Only switch 'readyToFind' to [true] with 'Please wait, I'm finding some jobs for you!' (This consider end of conversation)"},
             },
         },
     },
@@ -47,7 +44,7 @@ const generationConfig = {
 
 export async function genAnswer(inputMessage: string, history: Content[] = []): Promise<any> {
     //added return type Promise<any>
-    console.log(JSON.stringify(inputMessage))
+    // console.log(JSON.stringify(inputMessage))
 
     const chatSession = model.startChat({
         generationConfig,
@@ -56,7 +53,7 @@ export async function genAnswer(inputMessage: string, history: Content[] = []): 
 
     try {
         const result = await chatSession.sendMessage(inputMessage)
-        console.log(result.response.text())
+        // console.log(result.response.text())
         return result
     } catch (error) {
         console.error('Error during Gemini API call:', error)

@@ -54,11 +54,9 @@ const systemApi = {
   getAIJobsResponse: async (history: Content[]): Promise<TJob[]> => {
     try {
       const url = `${BACKEND_URL}/api/v1/system/ai-chat/jobs`;
-
       const res = await axios.post(url, { history: history });
-      console.log(res.data)
       if (res.status === 200) {
-        return res.data;
+        return res.data.data;                    
       } else {
         return [];
       }

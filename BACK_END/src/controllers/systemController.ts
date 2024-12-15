@@ -23,8 +23,9 @@ export const systemController = {
     getAIAnswer: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
             const { input, history } = req.body
+            console.log("input: "  +input)
             const respond = await genAnswer(input, history)
-            // console.log(respond)
+            console.log("respond: " + respond)
 
             const cleanedResult = respond.response.text().replace('```json', '').replace('```', '')
 
@@ -39,11 +40,11 @@ export const systemController = {
         try {
             const { history } = req.body
             const listJob = await jobService.getActiveJobs()
+            // console.log(JSON.stringify(listJob));
+            console.log(history);
             const respond = await genAnswer(`find suit job. listJob: ${JSON.stringify(listJob)}`, history)
-            console.log("matched : " +respond.data.matchedJob);
-            const jobs = await jobService.getJobsByIds(respond.data.matchedJob)
-            console.log(jobs);
-            
+            const cleanedResult = JSON.parse(respond.response.text());
+            const jobs = await jobService.getJobsByIds(cleanedResult.data.matchedJobIds)
             return res.status(200).json(jobs)
         } catch (error) {
             console.error('Error fetching job count:', error)
