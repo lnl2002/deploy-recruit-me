@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import applyApi, { ICVScore } from "@/api/applyApi";
 import ScoreApplicant from "./ScoreApplicant";
+import { isEmpty } from "@/utils/isEmpty";
 
 type CriteriaEvaluationProps = {
   cvScore: ICVScore;
@@ -71,6 +72,7 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
 
   useEffect(() => {
     (async () => {
+      console.log(applyId);
       const { applicantReport } = await applyApi.getApplicationByApply(applyId);
 
       const otherCriteria = {
@@ -78,7 +80,7 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
         comment: "",
       };
 
-      if ((applicantReport as IApplicantReport)?.details?.length > 0) {
+      if (!isEmpty(applicantReport)) {
         const { details, score } = applicantReport as IApplicantReport;
         setScoreSelected((prev) => score || prev);
 
