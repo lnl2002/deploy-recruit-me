@@ -17,21 +17,30 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import SelectUser from "./SelectUser";
-import { now, getLocalTimeZone, CalendarDate, ZonedDateTime, CalendarDateTime, Time } from "@internationalized/date";
+import {
+  now,
+  getLocalTimeZone,
+  CalendarDate,
+  ZonedDateTime,
+  CalendarDateTime,
+  Time,
+} from "@internationalized/date";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import meetingApi, { IMeeting } from "@/api/meetingApi";
 import { toast } from "react-toastify";
 import applyApi from "@/api/applyApi";
+import systemApi from "@/api/systemApi";
+import { formatDateTime, formatDatetimeNoti } from "@/utils/formatDateTime";
 
 interface ScheduleInterviewModalProps {
   onClose: () => void;
   onSend: (data: any) => void;
   disclosure: DisclosureProp;
-  cv: any
-  changeStatus?: ({ status }: { status: string; }) => void
-  applyId: string
-  isUpdate?: boolean
+  cv: any;
+  changeStatus?: ({ status }: { status: string }) => void;
+  applyId: string;
+  isUpdate?: boolean;
 }
 
 type DisclosureProp = {
@@ -51,31 +60,48 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
   cv,
   changeStatus,
   applyId,
-  isUpdate = false
+  isUpdate = false,
 }) => {
   const zonedDateTime = now(getLocalTimeZone());
   const date = new CalendarDate(
     zonedDateTime.year,
     zonedDateTime.month,
     zonedDateTime.day
-  )
-  const currentTime = new Time(zonedDateTime.hour, zonedDateTime.minute, zonedDateTime.second);
+  );
+  const currentTime = new Time(
+    zonedDateTime.hour,
+    zonedDateTime.minute,
+    zonedDateTime.second
+  );
 
   const [isLoading, setIsLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [participants, setParticipants] = useState<string[]>([]);
-  const [interviewDate, setInterviewDate] = useState<ZonedDateTime | CalendarDate | CalendarDateTime>(date);
+  const [interviewDate, setInterviewDate] = useState<
+    ZonedDateTime | CalendarDate | CalendarDateTime
+  >(date);
   const [startTime, setStartTime] = useState<any>(currentTime);
-  const [endTime, setEndTime] = useState<any>(currentTime.add({hours: 0.5}));
+  const [endTime, setEndTime] = useState<any>(currentTime.add({ hours: 0.5 }));
   const [participantSchedules, setParticipantSchedules] = useState<any[]>([]);
   const calendarRef = useRef<FullCalendar | null>(null);
 
   const jobInfo = useSelector((state: RootState) => state.job.job);
 
-  const jsDate = new Date(interviewDate.year, interviewDate.month - 1, interviewDate.day)
+  const jsDate = new Date(
+    interviewDate.year,
+    interviewDate.month - 1,
+    interviewDate.day
+  );
 
   const handleSend = async () => {
-    const timeStart = new Date(interviewDate.year, interviewDate.month - 1, interviewDate.day, startTime.hour, startTime.minute, 0 );
+    const timeStart = new Date(
+      interviewDate.year,
+      interviewDate.month - 1,
+      interviewDate.day,
+      startTime.hour,
+      startTime.minute,
+      0
+    );
     const timeEnd = new Date(interviewDate.year, interviewDate.month - 1, interviewDate.day, endTime.hour, endTime.minute, 0 );
 
     setIsLoading(true);
@@ -86,13 +112,21 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
       title,
       applyId
     })
+    participants.forEach((p) => {
+      console.log("receiver:" + p);
+      systemApi.createNotification({
+        content: `You have new meeting schedule at ${formatDatetimeNoti(timeStart)}. Don't miss it!`,
+        receiver: p ?? "",
+        url: "/job-details?id=" + jobInfo?._id,
+      });
+    });
     setIsLoading(false);
 
     applyApi.updateApplyStatus({
       applyId: applyId,
       newStatus: 'Pending Interview Confirmation'
     })
-    
+
     if(!data){
       toast.error('Something went wrong. Please try again');
       return
@@ -117,13 +151,22 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
       title,
       applyId
     })
+
+    participants.forEach((p) => {
+      console.log("receiver:" + p);
+      systemApi.createNotification({
+        content: `You have new meeting schedule at ${formatDatetimeNoti(timeStart)}. Don't miss it!`,
+        receiver: p ?? "",
+        url: "/job-details?id=" + jobInfo?._id,
+      });
+    });
     setIsLoading(false);
 
     applyApi.updateApplyStatus({
       applyId: applyId,
       newStatus: 'Pending Interview Confirmation'
     })
-    
+
     if(!data){
       toast.error('Something went wrong. Please try again');
       return
@@ -136,55 +179,63 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
     getSchedules()
     onClose()
   };
-  
 
-  const handleChangeDate = (date: ZonedDateTime | CalendarDate | CalendarDateTime) => {
-    setInterviewDate(date)
-  }
-  const handleChangeTime = (time: any,type: string) => {
-    if(type === 'start'){
-      setStartTime(time)
-    } else if(type === 'end'){
-      setEndTime(time)
+  const handleChangeDate = (
+    date: ZonedDateTime | CalendarDate | CalendarDateTime
+  ) => {
+    setInterviewDate(date);
+  };
+  const handleChangeTime = (time: any, type: string) => {
+    if (type === "start") {
+      setStartTime(time);
+    } else if (type === "end") {
+      setEndTime(time);
     }
-  }
+  };
 
   const getSchedules = async () => {
     const result: IMeeting[] = [];
-    for(const participantId of participants){
-      const date = (new Date(interviewDate.year, interviewDate.month - 1, interviewDate.day)).toISOString();
+    for (const participantId of participants) {
+      const date = new Date(
+        interviewDate.year,
+        interviewDate.month - 1,
+        interviewDate.day
+      ).toISOString();
 
       const data = await meetingApi.getScheduleById({
         interviewerId: participantId,
         endTime: date,
-        startTime: date
-      })
+        startTime: date,
+      });
 
       if (data) {
-          result.push(...data.map(d => {
+        result.push(
+          ...data.map((d) => {
             return {
               ...d,
-              participantId: participantId
-            }
-          }));
+              participantId: participantId,
+            };
+          })
+        );
       }
     }
     setParticipantSchedules(result);
-  }
+  };
 
   useEffect(() => {
-    if(interviewDate && calendarRef.current){
+    if (interviewDate && calendarRef.current) {
       const calendarApi = calendarRef?.current?.getApi();
-      calendarApi?.gotoDate(new Date(interviewDate.year, interviewDate.month - 1, interviewDate.day))
+      calendarApi?.gotoDate(
+        new Date(interviewDate.year, interviewDate.month - 1, interviewDate.day)
+      );
     }
-  }, [interviewDate])
-  
+  }, [interviewDate]);
+
   useEffect(() => {
-    if(interviewDate && participants.length > 0){
-      getSchedules()
+    if (interviewDate && participants.length > 0) {
+      getSchedules();
     }
-  }, [participants, interviewDate])
-  
+  }, [participants, interviewDate]);
 
   return (
     <Modal
@@ -223,13 +274,16 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
               value={participants}
               onChange={(e) => setInterviewers(e.target.value)}
             /> */}
-            <SelectUser 
-              users={[{
-                ...cv,
-                _id: cv.candidateId
-              }, jobInfo?.interviewManager]}
+            <SelectUser
+              users={[
+                {
+                  ...cv,
+                  _id: cv.candidateId,
+                },
+                jobInfo?.interviewManager,
+              ]}
               setParticipants={setParticipants}
-              />
+            />
             <Spacer y={8} />
             <DatePicker
               fullWidth
@@ -245,14 +299,14 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
               <TimeInput
                 label="Start Time"
                 minValue={startTime}
-                value={(startTime as any)}
-                onChange={(time) => handleChangeTime(time, 'start')}
+                value={startTime as any}
+                onChange={(time) => handleChangeTime(time, "start")}
               />
               <TimeInput
                 label="End Time"
                 minValue={startTime}
-                value={(endTime as any)}
-                onChange={(time) => handleChangeTime(time, 'end')}
+                value={endTime as any}
+                onChange={(time) => handleChangeTime(time, "end")}
               />
             </div>
           </div>
@@ -284,9 +338,9 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
                     end: `${schedule.timeEnd}`,
                     color: "#ea5e63",
                     textColor: "#000",
-                    className: "text-[12px]"
-                  }
-                })
+                    className: "text-[12px]",
+                  };
+                }),
               ]}
               selectAllow={(selectInfo) => {
                 const now = new Date();
@@ -307,8 +361,13 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
             >
               Cancel
             </Button>
-            <Button className="bg-themeOrange text-[#fff]" radius="full" onClick={isUpdate ? handleUpdate : handleSend} isLoading={isLoading}>
-              {isUpdate ? 'Reschedule' : 'Create Schedule'}
+            <Button
+              className="bg-themeOrange text-[#fff]"
+              radius="full"
+              onClick={isUpdate ? handleUpdate : handleSend}
+              isLoading={isLoading}
+            >
+              {isUpdate ? "Reschedule" : "Create Schedule"}
             </Button>
           </div>
         </ModalFooter>

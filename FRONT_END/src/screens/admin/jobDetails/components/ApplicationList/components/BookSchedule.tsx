@@ -87,7 +87,7 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
     })
     participants.forEach(p=> {
       systemApi.createNotification({
-        content: "You have new meeting schedule. Don't miss it!",
+        content: `You have new meeting schedule at ${timeStart.toLocaleDateString()}. Don't miss it!`,
         receiver: p ?? "",
         url: "/job-details?id=" + jobInfo?._id,
       });

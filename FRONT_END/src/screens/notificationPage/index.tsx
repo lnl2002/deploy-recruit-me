@@ -95,7 +95,7 @@ export const NotificationPage = (): React.JSX.Element => {
               onClick={() => handleNotiClick(n)}
               className={twMerge(
                 "gap-2 p-3 my-1 rounded-lg border-1 w-full",
-                n.seen ? "bg-blurEffectGold" : "bg-tableBorder500"
+                !n.seen ? "bg-blurEffectGold" : "bg-tableBorder500"
               )}
             >
               <div>

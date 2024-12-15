@@ -55,6 +55,13 @@ export const StateBox: React.FC<Props> = (props) => {
         applyId: applyInfo._id,
         newStatus: "Interview Scheduled",
       });
+      console.log("receiver:" + applyInfo?.job?.interviewManager);
+      
+      systemApi.createNotification({
+        content: "A candidate have confirm the meeting schedule",
+        receiver: applyInfo?.job?.interviewManager ?? "",
+        url: "/interviewer/candidate-list",
+      });
       window.location.reload();
     }
 
@@ -77,8 +84,8 @@ export const StateBox: React.FC<Props> = (props) => {
       });
       systemApi.createNotification({
         content: "A candidate have canceled the meeting schedule",
-        receiver: apply?.job?.account ?? "",
-        url: "/job-details?id=" + apply?.job?._id,
+        receiver: applyInfo?.job?.interviewManager ?? "",
+        url: "/interview-manager/job-details?id=" + applyInfo?.job?._id,
       });
     }
     window.location.reload();
