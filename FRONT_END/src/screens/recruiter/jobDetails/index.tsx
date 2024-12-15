@@ -17,6 +17,7 @@ import { ConfirmCloseJobModal } from "./components/ConfirmCloseJobModal";
 import { toast } from "react-toastify";
 import { isEmpty } from "@/utils/isEmpty";
 import { IAccount } from "@/api/accountApi/accountApi";
+import JobCriteria from "./components/JobCriteria";
 
 //example: /job-details?id=67055dd3e22b9a4790729550
 export const JobDetails = (): React.JSX.Element => {
@@ -123,6 +124,7 @@ export const JobDetails = (): React.JSX.Element => {
           {tabSelected === "schedule-interview" && (
             <ScheduleInterview jobId={jobId ?? ""} />
           )}
+          {tabSelected === "job-criteria" && <JobCriteria job={job} />}
         </div>
       </div>
       <ConfirmCloseJobModal
