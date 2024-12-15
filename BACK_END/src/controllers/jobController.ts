@@ -688,7 +688,7 @@ const jobController = {
                     return res
                         .status(400)
                         .json({ message: 'You can not complete job without job approval or job expired' })
-                } else if (userId !== job.account._id) {
+                } else if (userId.toString() !== job.account._id.toString()) {
                     return res
                         .status(401)
                         .json({ message: 'You do not have permission to move to completed status for this job' })
@@ -699,14 +699,14 @@ const jobController = {
                 return res.status(400).json({ message: 'Reject reason is required' })
             }
 
-            if (
-                !jobService.checkAuthorizeUpdateJobStatus({
-                    jobId: jobId.toString() as string,
-                    userId,
-                })
-            ) {
-                return res.status(403).json({ message: 'You cannot update this job' })
-            }
+            // if (
+            //     !jobService.checkAuthorizeUpdateJobStatus({
+            //         jobId: jobId.toString() as string,
+            //         userId,
+            //     })
+            // ) {
+            //     return res.status(403).json({ message: 'You cannot update this job' })
+            // }
 
             const jobs = await jobService.updateJobStatus({
                 jobId: jobId.toString() as string,
