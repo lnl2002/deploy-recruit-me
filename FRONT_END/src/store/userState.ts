@@ -31,6 +31,7 @@ const userSlice = createSlice({
       state.isLoggedIn = false;
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
+      localStorage.clear();
     },
     updateUserInfo: (state, action: PayloadAction<Partial<User>>) => {
       state.userInfo = { ...state.userInfo, ...action.payload };
