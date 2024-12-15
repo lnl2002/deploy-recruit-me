@@ -37,7 +37,7 @@ const jobController = {
     getJobList: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
             // owner = 1|-1
-            const { skip, limit, title, sort_by, order, expiredDate, owner } = req.query
+            const { skip, limit, title, sort_by, order, owner } = req.query
             const account = req.user
 
             const pageLimit = parseInt(limit as string, 10) || 10
@@ -81,8 +81,7 @@ const jobController = {
                     location: 'objectId',
                     interviewManager: 'objectId',
                     address: 'string',
-                    timestamp: 'date',
-                    expiredDate: 'date',
+                    expiredDate: 'string',
                     startDate: 'string',
                     isDelete: 'boolean',
                     isActive: 'boolean',
@@ -119,10 +118,10 @@ const jobController = {
                     return obj
                 }, {} as any)
 
-            if (expiredDate) {
+            if (filteredQuery.expiredDate) {
                 const currentDate = new Date()
-                if (expiredDate == '1') filteredQuery.expiredDate = { $gte: currentDate }
-                if (expiredDate == '-1') filteredQuery.expiredDate = { $lt: currentDate }
+                if (filteredQuery.expiredDate == '1') filteredQuery.expiredDate = { $gte: currentDate }
+                if (filteredQuery.expiredDate == '-1') filteredQuery.expiredDate = { $lt: currentDate }
             }
 
             if (filteredQuery.startDate) {
@@ -534,14 +533,16 @@ const jobController = {
 
             const expirationDate = resetToStartOfDay(expiredDate)
             const startionDate = resetToStartOfDay(startDate)
-            const today = resetToStartOfDay(new Date().toString())
+            const today = resetToStartOfDay(new Date().toISOString())
 
             if (isNaN(expirationDate.getTime()) || expirationDate <= today) {
                 return res.status(400).json({ message: 'Expired date must be a valid future date' })
             }
 
-            if (isNaN(startionDate.getTime()) || startionDate.getTime() < today.getTime()) {
-                return res.status(400).json({ message: 'Started date must be a valid future date' })
+            if (isNaN(startionDate.getTime()) || startionDate < today) {
+                return res
+                    .status(400)
+                    .json({ message: `Started date must be a greater than or equal to today ${startionDate} ${today}` })
             }
 
             if (expirationDate.getTime() < startionDate.getTime()) {
@@ -762,12 +763,12 @@ const jobController = {
 
 function resetToStartOfDay(date: string) {
     const newDate = new Date(date)
-    newDate.setHours(0, 0, 0, 0)
+    newDate.setHours(1, 0, 0, 0)
     return newDate
 }
 
 function isCurrentDateInRange(startDate: string, expiredDate: string) {
-    const currentDate = resetToStartOfDay(new Date().toString())
+    const currentDate = resetToStartOfDay(new Date().toISOString())
     const start = resetToStartOfDay(startDate)
     const end = resetToStartOfDay(expiredDate)
 

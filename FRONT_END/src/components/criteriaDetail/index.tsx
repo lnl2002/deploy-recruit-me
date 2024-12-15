@@ -8,7 +8,7 @@ import {
   Table,
 } from "@nextui-org/react";
 
-const LEVELs = ["BASIC", "BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"];
+const LEVELs = ["BASIC", "BEGINER", "INTERMEDIATE", "ADVANCED", "EXPERT"];
 
 type CriteriaDetailProps = {
   criteria: Partial<ICriteria>;
