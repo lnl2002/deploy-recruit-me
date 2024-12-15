@@ -19,6 +19,12 @@ interface Content {
   // Add other properties as needed
 }
 
+interface notiData {
+  notifications: INoti[];
+  totalPages: number;
+  currentPage: number;
+}
+
 interface DataQuery {
   readyToFind?: boolean;
 }
@@ -54,9 +60,11 @@ const systemApi = {
   getAIJobsResponse: async (history: Content[]): Promise<TJob[]> => {
     try {
       const url = `${BACKEND_URL}/api/v1/system/ai-chat/jobs`;
+
       const res = await axios.post(url, { history: history });
+      console.log(res.data);
       if (res.status === 200) {
-        return res.data.data;                    
+        return res.data;
       } else {
         return [];
       }
@@ -99,18 +107,29 @@ const systemApi = {
     }
   },
 
-  getUserNotifications: async (): Promise<INoti[]> => {
+  getUserNotifications: async (
+    seen: string,
+    page = 1,
+    limit = 10
+  ): Promise<notiData> => {
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/v1/system/notifications`);
+      const queryParams = new URLSearchParams({
+        seen: seen ? seen.toString() : "all",
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+      const res = await axios.get(
+        `${BACKEND_URL}/api/v1/system/notifications?${queryParams}`
+      );
 
       if (res.status === 200) {
-        console.log("Notification get");
+        console.log("Notification get: " + JSON.stringify(res.data.data));
       }
 
-      return res.data;
+      return res.data.data;
     } catch (error) {
       console.error("Error fetching units list:", error);
-      return [];
+      return { currentPage: 1, totalPages: 1, notifications: [] };
     }
   },
 

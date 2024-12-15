@@ -20,6 +20,7 @@ import {
 } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import applyApi from "@/api/applyApi";
+import systemApi from "@/api/systemApi";
 
 type Props = {};
 
@@ -73,6 +74,11 @@ export const StateBox: React.FC<Props> = (props) => {
       const data = await applyApi.updateApplyStatus({
         applyId: applyInfo._id,
         newStatus: "Interview Rescheduled",
+      });
+      systemApi.createNotification({
+        content: "A candidate have canceled the meeting schedule",
+        receiver: apply?.job?.account ?? "",
+        url: "/job-details?id=" + apply?.job?._id,
       });
     }
     window.location.reload();

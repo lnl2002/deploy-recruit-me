@@ -65,15 +65,36 @@ export const systemController = {
 
     getUserNotifications: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const userId = req.user._id
-            const notifications = await Notification.find({ receiver: userId })
+            const userId = req.user._id;
+            const { seen, page = 1, limit = 10 } = req.query;
+    
+            // Build the query object
+            const query: any = { receiver: userId };
+            if (seen !== "all") {
+                query.seen = seen === 'true';
+            }
+    
+            // Calculate pagination values
+            const skip = (Number(page) - 1) * Number(limit);
+    
+            // Fetch notifications with pagination and sorting
+            const notifications = await Notification.find(query)
                 .sort({ seen: 1, createdAt: -1 })
-                .limit(10)
-            return res.status(200).json(notifications)
+                .skip(skip)
+                .limit(Number(limit));
+    
+            // Get the total count of notifications for pagination
+            const totalNotifications = await Notification.countDocuments(query);
+    
+            return res.status(200).json({
+                notifications,
+                totalPages: Math.ceil(totalNotifications / Number(limit)),
+                currentPage: Number(page),
+            });
         } catch (error) {
-            res.status(500).json({ error: 'Error when get noti: ' + error })
+            res.status(500).json({ error: 'Error when getting notifications: ' + error });
         }
-    },
+    },    
 
     markAsSeen: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {

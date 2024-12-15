@@ -23,6 +23,7 @@ import { RootState } from "@/store/store";
 import meetingApi, { IMeeting } from "@/api/meetingApi";
 import { toast } from "react-toastify";
 import applyApi from "@/api/applyApi";
+import systemApi from "@/api/systemApi";
 
 interface ScheduleInterviewModalProps {
   onClose: () => void;
@@ -83,6 +84,13 @@ const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
       timeStart: timeStart.toISOString(),
       title,
       applyId
+    })
+    participants.forEach(p=> {
+      systemApi.createNotification({
+        content: "You have new meeting schedule. Don't miss it!",
+        receiver: p ?? "",
+        url: "/job-details?id=" + jobInfo?._id,
+      });
     })
     setIsLoading(false);
 

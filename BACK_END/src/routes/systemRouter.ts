@@ -20,7 +20,7 @@ systemRouter.post('/mail/send', systemController.mutipleMail)
 
 /*notification*/
 systemRouter.post('/notifications', systemController.createNotification) // Route to create a new notification
-systemRouter.get('/notifications', requireRole(['CANDIDATE']), systemController.getUserNotifications) // Route to get notifications for a user
+systemRouter.get('/notifications', requireRole(['CANDIDATE', 'RECRUITER', 'INTERVIEW_MANAGER', 'INTERVIEWER', 'ADMIN']), systemController.getUserNotifications) // Route to get notifications for a user
 systemRouter.patch('/notifications/:notificationId/seen', systemController.markAsSeen) // Route to mark a notification as seen
 
 export default systemRouter
