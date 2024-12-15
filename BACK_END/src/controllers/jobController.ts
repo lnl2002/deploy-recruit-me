@@ -10,6 +10,9 @@ import { IRole } from '../models/roleModel'
 import { IJob } from '../models/jobModel'
 import locationService from '../services/locationService'
 import criteriaService from '../services/criteriaService'
+import { mailService } from '../services/mailServices/mailService'
+import { IAccount } from '../models/accountModel'
+import { FRONTEND_URL } from '../utils/env'
 
 const jobController = {
     getJobDetail: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -34,7 +37,7 @@ const jobController = {
     getJobList: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
             // owner = 1|-1
-            const { skip, limit, title, sort_by, order, expiredDate, owner } = req.query
+            const { skip, limit, title, sort_by, order, owner } = req.query
             const account = req.user
 
             const pageLimit = parseInt(limit as string, 10) || 10
@@ -78,8 +81,7 @@ const jobController = {
                     location: 'objectId',
                     interviewManager: 'objectId',
                     address: 'string',
-                    timestamp: 'date',
-                    expiredDate: 'date',
+                    expiredDate: 'string',
                     startDate: 'string',
                     isDelete: 'boolean',
                     isActive: 'boolean',
@@ -116,10 +118,10 @@ const jobController = {
                     return obj
                 }, {} as any)
 
-            if (expiredDate) {
+            if (filteredQuery.expiredDate) {
                 const currentDate = new Date()
-                if (expiredDate == '1') filteredQuery.expiredDate = { $gte: currentDate }
-                if (expiredDate == '-1') filteredQuery.expiredDate = { $lt: currentDate }
+                if (filteredQuery.expiredDate == '1') filteredQuery.expiredDate = { $gte: currentDate }
+                if (filteredQuery.expiredDate == '-1') filteredQuery.expiredDate = { $lt: currentDate }
             }
 
             if (filteredQuery.startDate) {
@@ -531,14 +533,16 @@ const jobController = {
 
             const expirationDate = resetToStartOfDay(expiredDate)
             const startionDate = resetToStartOfDay(startDate)
-            const today = resetToStartOfDay(new Date().toString())
+            const today = resetToStartOfDay(new Date().toISOString())
 
             if (isNaN(expirationDate.getTime()) || expirationDate <= today) {
                 return res.status(400).json({ message: 'Expired date must be a valid future date' })
             }
 
-            if (isNaN(startionDate.getTime()) || startionDate.getTime() < today.getTime()) {
-                return res.status(400).json({ message: 'Started date must be a valid future date' })
+            if (isNaN(startionDate.getTime()) || startionDate < today) {
+                return res
+                    .status(400)
+                    .json({ message: `Started date must be a greater than or equal to today ${startionDate} ${today}` })
             }
 
             if (expirationDate.getTime() < startionDate.getTime()) {
@@ -685,7 +689,7 @@ const jobController = {
                     return res
                         .status(400)
                         .json({ message: 'You can not complete job without job approval or job expired' })
-                } else if (userId !== job.account._id) {
+                } else if (userId.toString() !== job.account._id.toString()) {
                     return res
                         .status(401)
                         .json({ message: 'You do not have permission to move to completed status for this job' })
@@ -696,19 +700,58 @@ const jobController = {
                 return res.status(400).json({ message: 'Reject reason is required' })
             }
 
-            if (
-                !jobService.checkAuthorizeUpdateJobStatus({
-                    jobId: jobId.toString() as string,
-                    userId,
-                })
-            ) {
-                return res.status(403).json({ message: 'You cannot update this job' })
-            }
+            // if (
+            //     !jobService.checkAuthorizeUpdateJobStatus({
+            //         jobId: jobId.toString() as string,
+            //         userId,
+            //     })
+            // ) {
+            //     return res.status(403).json({ message: 'You cannot update this job' })
+            // }
 
             const jobs = await jobService.updateJobStatus({
                 jobId: jobId.toString() as string,
                 status: status as string,
                 rejectReason: rejectReason?.toString() as string,
+            })
+
+            const subject = 'Welcome to Recruit Me!'
+            const body = (role: 'interview-manager' | 'recruiter') => `
+            <div style="padding: 20px 40px;">
+                <div>
+                    <h1>Job Status Updated</h1>
+                </div>
+                <div>
+                    <p>
+                        Hello!
+                    </p>
+                    <p>
+                        The status of your job <strong>"${job?.title}"</strong> has been updated.
+                    </p>
+                    <div>
+                        <p>Job Details:</p>
+                        <ul>
+                            <li><strong>New Status:</strong> ${status[0].toUpperCase() + status.slice(1)}</li>
+                            ${rejectReason && `<li><strong>Rejection Reason:</strong> ${rejectReason}</li>`}
+                        </ul>
+                    </div>
+                    <p>
+                        Please click the button below to view job details and take necessary actions.
+                    </p>
+                    <a href="${FRONTEND_URL}/${role}/job-details?id=${jobId}">
+                        View Job Details
+                    </a>
+                </div>
+            </div>`
+            await mailService.sendMailBase({
+                sendTo: [(job.account as IAccount)?.email],
+                subject,
+                body: body('recruiter'),
+            })
+            await mailService.sendMailBase({
+                sendTo: [(job.interviewManager as IAccount)?.email],
+                subject,
+                body: body('interview-manager'),
             })
 
             res.status(200).json(jobs)
@@ -720,12 +763,12 @@ const jobController = {
 
 function resetToStartOfDay(date: string) {
     const newDate = new Date(date)
-    newDate.setHours(0, 0, 0, 0)
+    newDate.setHours(1, 0, 0, 0)
     return newDate
 }
 
 function isCurrentDateInRange(startDate: string, expiredDate: string) {
-    const currentDate = resetToStartOfDay(new Date().toString())
+    const currentDate = resetToStartOfDay(new Date().toISOString())
     const start = resetToStartOfDay(startDate)
     const end = resetToStartOfDay(expiredDate)
 

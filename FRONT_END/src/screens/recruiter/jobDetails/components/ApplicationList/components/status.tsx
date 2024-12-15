@@ -53,8 +53,8 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     }
   },
   "Interview Rescheduled": {
-    message: "We have rescheduled your interview. Kindly review the updated details.",
-    label: "Interview Rescheduled",
+    message: "We are in the process of rescheduling your interview, please wait for some time. Please note that if you reject three or more times, your application will be rejected.",
+    label: "Interview Rescheduling",
     styles: {
       base: "bg-[#FCEAE1] border-none p-2",
       content: "text-[#F36523] font-bold",

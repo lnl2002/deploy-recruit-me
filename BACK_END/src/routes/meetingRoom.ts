@@ -18,6 +18,7 @@ router.get(
 
 // POST
 router.post('/create', meetingController.createMeetingRoom)
+router.post('/update', meetingController.updateMeetingRoom)
 router.post('/add-participant', requireRole(['INTERVIEW_MANAGER']), meetingController.addParticipant)
 
 // PUT

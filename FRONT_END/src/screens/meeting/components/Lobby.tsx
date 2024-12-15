@@ -120,7 +120,7 @@ const Lobby: React.FC<LobbyProps> = ({
           >
             {connecting ? "Connecting..." : "Join"}
           </Button>
-          <Button
+          {/* <Button
             className="font-bold"
             type="button"
             onClick={createNewRoom}
@@ -129,7 +129,7 @@ const Lobby: React.FC<LobbyProps> = ({
             fullWidth={true}
           >
             Create New Room
-          </Button>
+          </Button> */}
         </div>
       </div>
       <div className="col-span-4 flex justify-center">

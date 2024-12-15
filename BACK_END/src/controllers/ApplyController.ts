@@ -6,6 +6,7 @@ import { AppError } from '../constants/AppError'
 import mongoose, { isValidObjectId } from 'mongoose'
 import CV from '../models/cvModel'
 import Job from '../models/jobModel'
+import { mailService } from '../services/mailServices/mailService'
 
 const ApplyController = {
     // Create a new application
@@ -31,6 +32,22 @@ const ApplyController = {
 
             //OCR and calculate apply score
             applyService.extractTextFromPdf(cvContent, jobId, savedApply._id.toString())
+
+            mailService.sendMailBase({
+                sendTo: [cv.email],
+                subject: 'Application Submitted Successfully',
+                body: `
+                <div style="padding: 20px;font-family: Arial, sans-serif; color: #333;">
+                    <h2 style="color: #2b579a;">Application Submitted Successfully</h2>
+                    <p>Dear ${cv.firstName} ${cv.lastName},</p>
+                    <p>Thank you for applying to the <strong>${job.title}</strong> position at our company.</p>
+                    <p>Your application has been successfully submitted, and our team will review it shortly. You will be notified about the next steps in the hiring process.</p>
+                    <p>If you have any questions, feel free to reach out to us.</p>
+                    <p>Best regards,</p>
+                    <p><strong>The RecruitMe Team</strong></p>
+                </div>
+            `,
+            })
 
             // 7. Send a success response
             res.status(201).json({
@@ -226,18 +243,18 @@ const ApplyController = {
 
     getReports: async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { id } = req.params;
-            if(!isValidObjectId(id)){
+            const { id } = req.params
+            if (!isValidObjectId(id)) {
                 return res.status(400).json({
-                    message: "BAD REQUEST"
+                    message: 'BAD REQUEST',
                 })
             }
 
-            const result = await applyService.getReports(id.toString());
+            const result = await applyService.getReports(id.toString())
             res.status(200).json(result)
         } catch (error) {
-            console.log("analyzeCV error:", error);
-            next(error);
+            console.log('analyzeCV error:', error)
+            next(error)
         }
     },
 }

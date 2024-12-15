@@ -4,10 +4,14 @@ import MeetingRoom, { IMeetingApproveStatus, IMeetingRoom, IParticipantStatus } 
 import Account, { IAccount } from '../models/accountModel'
 import Role, { IRole } from '../models/roleModel'
 import CVStatus from '../models/cvStatusModel'
-import { IApply } from '../models/applyModel'
+import Apply, { IApply } from '../models/applyModel'
 import { formatDateTime, truncateToMinutes } from '../utils/common'
 import { sendMessageToQueue } from '../configs/aws-queue'
 import { S3_QUEUE_URL } from '../utils/env'
+import { mailService } from './mailServices/mailService'
+import { ICV } from '../models/cvModel'
+import Job, { IJob } from '../models/jobModel'
+import accountService from './accountService'
 
 interface UpdateMeetingStatusInput {
     meetingRoomId: mongoose.Types.ObjectId
@@ -58,9 +62,87 @@ const meetingService = {
             meetingRoom.rejectCount += 1
 
             if (meetingRoom.rejectCount >= 3) {
+                const cvStatus = await CVStatus.findOne({
+                    name: 'Rejected',
+                })
+
+                const apply = await Apply.findByIdAndUpdate(
+                    meetingRoom.apply,
+                    {
+                        status: cvStatus._id,
+                    },
+                    { new: true },
+                ).populate('cv job')
+
+                const firstName = (apply?.cv as ICV)?.firstName || ''
+                const lastName = (apply?.cv as ICV)?.lastName || ''
+                const jobTitle = (apply?.job as IJob)?.title || ''
+
+                mailService.sendMailBase({
+                    sendTo: [user.email],
+                    subject: 'Application Status Update',
+                    body: `
+                     <div style="padding: 20px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
+                        <h2>Application Status Update</h2>
+                        <p>Dear ${firstName} ${lastName},</p>
+                        <p>Thank you for your interest in the <strong>${jobTitle}</strong> position at <strong>RecruitMe</strong>.</p>
+                        <p>We regret to inform you that your application has been rejected. This decision was made because you declined the interview schedule more than three times. We understand that there may be valid reasons for not attending the interview, but our policy requires a commitment to the interview schedule during the recruitment process.</p>
+                        <p>We appreciate your interest in <strong>RecruitMe</strong> and hope to have the opportunity to work with you in the future.</p>
+                        <p>Wishing you all the best in your future endeavors.</p>
+                        <p>Sincerely,<br>
+                        RecruitMe<br>
+                        recruitme@gmail.com</p>
+                    </div>
+                    <div style="margin-top: 20px; font-size: 0.9em; color: #666;">
+                        <p>This is an automated message. Please do not reply.</p>
+                    </div>
+                    `,
+                })
                 console.log(`Candidate ${participantId} CV has been rejected due to multiple rejections.`)
             }
         }
+
+        const { accounts: interviewManager } = await accountService.getAccountList(
+            {},
+            { _id: { $in: meetingRoom.participants.map((p) => p.participant) }, role: '6718eb41b203b7efd13871ca' },
+        )
+
+        const apply = await Apply.findById(meetingRoom.apply)
+        const job = await Job.findById(apply?.job)
+
+        mailService.sendMailBase({
+            sendTo: [interviewManager[0].email],
+            subject: 'Application Status Update',
+            body: `
+            <div style="padding: 20px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9; font-family: Arial, sans-serif; color: #333;">
+                <h2 style="color: #2b579a; margin-bottom: 20px;">Application Status Update</h2>
+                <p>Dear ${interviewManager[0].name},</p>
+                <p>Thank you for your interest in the <strong>${job?.title}</strong> position at <strong>RecruitMe</strong>.</p>
+
+                <p>The status of the applicant for this position has been updated:</p>
+
+                <ul style="list-style-type: none; padding: 0; margin-bottom: 20px;">
+                    <li style="margin-bottom: 10px;">
+                        <strong>Candidate Name:</strong> ${user.name}
+                    </li>
+                    <li style="margin-bottom: 10px;">
+                        <strong>Candidate Email:</strong> ${user.email}
+                    </li>
+                    <li style="margin-bottom: 10px;">
+                        <strong>Status:</strong> <span style="font-weight: bold; color: ${status === 'approved' ? 'green' : 'red'};">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                    </li>
+                    ${status === 'rejected' ? `<li style="margin-bottom: 10px;"><strong>Reason:</strong> ${declineReason}</li>` : ''}
+                </ul>
+
+                <p style="margin-bottom: 20px;">Please review the application status and take necessary actions. If you need further details, feel free to contact us.</p>
+
+                <p style="color: #555;">
+                    Best regards,<br />
+                    <strong style="color: #2b579a;">RecruitMe Team</strong>
+                </p>
+            </div>
+            `,
+        })
 
         await meetingRoom.save()
     },
@@ -69,12 +151,12 @@ const meetingService = {
         startTime,
         endTime,
     }: InterviewScheduleParams): Promise<IMeetingRoom[]> => {
-        if(!interviewerId || !startTime || !endTime) {
-            return [];
+        if (!interviewerId || !startTime || !endTime) {
+            return []
         }
 
         if (startTime > endTime) {
-            return [];
+            return []
         }
 
         const schedules = await MeetingRoom.find({
@@ -108,14 +190,14 @@ const meetingService = {
               message: string
           }
     > => {
-        if(participants.length <= 0) {
+        if (participants.length <= 0) {
             return {
                 isError: true,
                 message: 'Participants are required.',
             }
         }
 
-        if(timeStart > timeEnd) {
+        if (timeStart > timeEnd) {
             return {
                 isError: true,
                 message: 'Invalid time range.',
@@ -123,15 +205,15 @@ const meetingService = {
         }
 
         for (let index = 0; index < participants.length; index++) {
-            const participant = participants[index];
-            if(!["pending", "approved", "rejected"].includes(participant.status)){
+            const participant = participants[index]
+            if (!['pending', 'approved', 'rejected'].includes(participant.status)) {
                 return {
                     isError: true,
                     message: 'Invalid participant status found.',
                 }
             }
 
-            if(participant.status !== "rejected" && !!participant.declineReason){
+            if (participant.status !== 'rejected' && !!participant.declineReason) {
                 return {
                     isError: true,
                     message: 'Decline reason should only be provided for declined status.',
@@ -175,6 +257,98 @@ const meetingService = {
             apply: applyId,
         })
         return await newMeetingRoom.save()
+    },
+    updateSchedule: async ({
+        applyId,
+        participants,
+        timeStart,
+        timeEnd,
+    }: {
+        applyId: string
+        participants: IParticipantStatus[]
+        timeStart: Date
+        timeEnd: Date
+    }): Promise<IMeetingRoom | { isError: boolean; message: string }> => {
+        // Kiểm tra input giống như trong hàm createMeetingRoom
+        if (participants.length <= 0) {
+            return {
+                isError: true,
+                message: 'Participants are required.',
+            }
+        }
+
+        if (timeStart > timeEnd) {
+            return {
+                isError: true,
+                message: 'Invalid time range.',
+            }
+        }
+
+        for (let index = 0; index < participants.length; index++) {
+            const participant = participants[index]
+            if (!['pending', 'approved', 'rejected'].includes(participant.status)) {
+                return {
+                    isError: true,
+                    message: 'Invalid participant status found.',
+                }
+            }
+
+            if (participant.status !== 'rejected' && !!participant.declineReason) {
+                return {
+                    isError: true,
+                    message: 'Decline reason should only be provided for declined status.',
+                }
+            }
+        }
+
+        // Lấy danh sách participant IDs
+        const participantIds = participants.map((p) => p.participant.toString())
+
+        // Tìm tất cả các phòng họp trùng thời gian có thể xảy ra xung đột
+        const overlappingMeetings = await MeetingRoom.find({
+            $or: [
+                {
+                    timeStart: { $lte: timeEnd },
+                    timeEnd: { $gte: timeStart },
+                },
+            ],
+        })
+
+        // Kiểm tra xem có bất kỳ participant nào trong các phòng họp trùng
+        for (const meeting of overlappingMeetings) {
+            if (meeting.apply.toString() === applyId) continue
+            const meetingParticipantIds = meeting.participants.map((p) => p.participant.toString())
+
+            // Nếu có participant trùng lặp, ném lỗi
+            if (participantIds.some((id) => meetingParticipantIds.includes(id))) {
+                return {
+                    isError: true,
+                    message: 'One or more participants have a conflicting meeting schedule.',
+                }
+            }
+        }
+
+        // Cập nhật meeting room
+        const updatedMeetingRoom = await MeetingRoom.findOneAndUpdate(
+            {
+                apply: applyId,
+            },
+            {
+                participants,
+                timeStart,
+                timeEnd,
+            },
+            { new: true }, // Trả về document đã được cập nhật
+        )
+
+        if (!updatedMeetingRoom) {
+            return {
+                isError: true,
+                message: 'Meeting room not found.',
+            }
+        }
+
+        return updatedMeetingRoom
     },
     getCandidateList: async ({
         sortOrder = 'asc',
@@ -546,7 +720,6 @@ const meetingService = {
                     select: '_id email name',
                 })
 
-
             const result = rooms.flatMap((meeting) =>
                 meeting.participants
                     .filter((participant) => participant.participant && (participant.participant as IAccount).email) // Lọc các participant có email
@@ -566,7 +739,7 @@ const meetingService = {
                     <br/>
                     This is a friendly reminder for your upcoming meeting, scheduled as follows:<br/>
 
-                    - Date and Time:  ${user.timeStart.toISOString()}<br/>
+                    - Date and Time:  ${formatDateTime(user.timeStart.toISOString())}<br/>
                     - Location: ${user.url}<br/>
 
                     Please make sure to join on time and prepare any necessary materials (if required). If you're unable to attend, kindly notify the organizer at your earliest convenience.<br/><br/>
@@ -650,6 +823,74 @@ const meetingService = {
             return rooms
         } catch (error) {
             console.error('Error fetching meeting rooms 5 minutes range:', error)
+        }
+    },
+
+    //check nếu đến ngày họp mà không xác nhận lịch meeting sẽ chuyển về trạng thái reject
+    getMeetingOverdue: async () => {
+        try {
+            const today = new Date().toISOString().split('T')[0] // Format YYYY-MM-DD
+
+            const roleCandidate = await Role.findOne({ roleName: 'CANDIDATE' })
+
+            if (!roleCandidate) {
+                console.error('Role CANDIDATE not found')
+                return []
+            }
+
+            const overdueMeetings = await MeetingRoom.aggregate([
+                // Match meetings with today's date
+                {
+                    $match: {
+                        $expr: {
+                            $eq: [{ $dateToString: { format: '%Y-%m-%d', date: '$timeStart' } }, today],
+                        },
+                    },
+                },
+                // Unwind participants array
+                { $unwind: '$participants' },
+                // Lookup participant details from Account
+                {
+                    $lookup: {
+                        from: 'accounts', // MongoDB collection name for Account
+                        localField: 'participants.participant',
+                        foreignField: '_id',
+                        as: 'participantDetails',
+                    },
+                },
+                // Flatten the participantDetails array
+                { $unwind: '$participantDetails' },
+                // Match participants with role CANDIDATE and status pending
+                {
+                    $match: {
+                        'participantDetails.role': roleCandidate._id,
+                        'participants.status': 'pending',
+                    },
+                },
+                // Re-group by meeting room while keeping detailed participant info
+                {
+                    $group: {
+                        _id: '$_id',
+                        url: { $first: '$url' },
+                        timeStart: { $first: '$timeStart' },
+                        timeEnd: { $first: '$timeEnd' },
+                        participants: {
+                            $push: {
+                                participantDetails: '$participantDetails',
+                                status: '$participants.status',
+                            },
+                        },
+                        rejectCount: { $first: '$rejectCount' },
+                        isActive: { $first: '$isActive' },
+                        apply: { $first: '$apply' },
+                    },
+                },
+            ])
+
+            return overdueMeetings
+        } catch (error) {
+            console.error('Error in getMeetingOverdue:', error)
+            return []
         }
     },
 }

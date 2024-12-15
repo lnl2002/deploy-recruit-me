@@ -32,9 +32,8 @@ import { toast } from "react-toastify";
 import { useAppSelector } from "@/store/store";
 import groupCriteriaApi, { IGroupCriteria } from "@/api/groupCriteriaApi";
 import { ICriteria, ICriteriaDetails } from "@/api/criteriaApi";
-import { title } from "process";
-import CriteriaDetail from "./criteriaDetail";
 import { isEmpty } from "@/utils/isEmpty";
+import CriteriaDetail from "@/components/criteriaDetail";
 
 const CustomEditor = dynamic(() => import("./custom"), {
   ssr: false,

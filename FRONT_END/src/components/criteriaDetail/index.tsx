@@ -11,14 +11,14 @@ import {
 const LEVELs = ["BASIC", "BEGINER", "INTERMEDIATE", "ADVANCED", "EXPERT"];
 
 type CriteriaDetailProps = {
-  criteria: ICriteria;
+  criteria: Partial<ICriteria>;
 };
 
 const CriteriaDetail: React.FC<CriteriaDetailProps> = ({ criteria }) => {
   return (
     <Table
       hideHeader={true}
-      className="table-fixed"
+      className="table-fixed text-themeDark"
       aria-label="Vertical Header table"
     >
       <TableHeader>

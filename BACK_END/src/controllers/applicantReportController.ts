@@ -145,16 +145,24 @@ const applicantReportController = {
                 return res.status(400).json({ message: 'Invalid ApplyId ID format' })
             }
 
-            const applicantReport = await applicantReportService.getApplicantReport({
-                apply: applyId,
+            const apply = await Apply.findById(applyId)
+
+            if (!apply._id) {
+                return res.status(404).json({ message: 'Apply not found' })
+            }
+
+            const { applicantReports } = apply
+
+            const existApplicantReport = await applicantReportService.getApplicantReport({
+                _id: { $in: applicantReports },
                 createdBy: account._id,
             })
 
-            if (!applicantReport) {
+            if (!existApplicantReport) {
                 return res.status(404).json({ message: 'Applicant report not found' })
             }
 
-            return res.status(200).json(applicantReport)
+            return res.status(200).json(existApplicantReport)
         } catch (error) {
             next(error)
         }
