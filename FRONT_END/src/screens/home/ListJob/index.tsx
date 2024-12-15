@@ -19,7 +19,7 @@ const ListJob = (): React.JSX.Element => {
     (async () => {
       if (!params) return;
       const { jobs, total } = (await jobApi.getJobList(
-        "&expiredDate=1" + params
+        "&expiredDate=1&startDate=-1" + params
       )) as {
         jobs: TJob[];
         total: number;
