@@ -540,7 +540,9 @@ const jobController = {
             }
 
             if (isNaN(startionDate.getTime()) || startionDate < today) {
-                return res.status(400).json({ message: 'Started date must be a greater than or equal to today' })
+                return res
+                    .status(400)
+                    .json({ message: `Started date must be a greater than or equal to today ${startionDate} ${today}` })
             }
 
             if (expirationDate.getTime() < startionDate.getTime()) {
