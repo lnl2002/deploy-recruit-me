@@ -32,30 +32,37 @@ class Gemini {
     async processCV({ cvContent, criteriaContent }: { cvContent: string; criteriaContent: string }): Promise<string> {
         try {
             const prompt2 = `CV json: ${cvContent}
-      List criteria: ${criteriaContent}
+                            List criteria: ${criteriaContent}
 
-      Based on the given JSON CV and the list of evaluation criteria, calculate the score for each criterion. Follow these rules for scoring:
+                            Based on the given JSON CV and the list of evaluation criteria, calculate the score for each criterion. Follow these rules for scoring:
 
-      1. Each criterion has multiple levels: beginner, basic, intermediate, advanced, expert. Match the skills, experiences, and technologies mentioned in the CV with the details of each level to determine the most appropriate level.
-      2. Assign a score based on the weight (weight) of the selected level. For example:
-      If the level is basic with a weight range of 4-6, assign a midpoint score (e.g., 5/10).
-      3. Use the highest weight of the expert level as the maximum score for each criterion. For example:
-          If the expert level has a weight range of 10-12, the maximum score for the criterion is 12.
-      4. For each criterion, provide the following output:
-      Criterion: [Name of the criterion]
-      Score: [Achieved score] / [Maximum score]
-      Explanation: [Reasoning for the assigned level, referencing details from the CV].
+                            1. Each criterion has multiple levels: beginner, basic, intermediate, advanced, expert. Match the skills, experiences, and technologies mentioned in the CV with the details of each level to determine the most appropriate level.
+                            2. Assign a score based on the weight (weight) of the selected level. For example:
+                            - If the level is basic with a weight range of 4-6, assign a midpoint score (e.g., 5/10).
+                            3. Use the highest weight of the expert level as the maximum score for each criterion. For example:
+                            - If the expert level has a weight range of 10-12, the maximum score for the criterion is 12.
+                            4. If no relevant information is found in the CV for a criterion, assign a score of 0 for that criterion.
+                            5. Provide detailed reasoning for each assigned level, referencing specific details from the CV to justify the score.
+                            - If no relevant details are present in the CV, state explicitly: "No relevant information found in the CV."
 
-      Example Output Format like json:
-      [
-          {
-              "criterionId": "673cc4045351b1bdd0e39a1a",
-              "criterion": "Knowledge of Node.js and its ecosystem",
-              "score": "6/12",
-              "explanation": "The CV mentions experience with Node.js and developing RESTful APIs using Express.js. This aligns with the 'intermediate' level, which includes building full RESTful APIs and handling asynchronous operations."
-          }
-      ]
-      `
+                            Output the result in the following JSON format:
+                            [
+                                {
+                                    "criterionId": "673cc4045351b1bdd0e39a1a",
+                                    "criterion": "Knowledge of Node.js and its ecosystem",
+                                    "score": "0/12",
+                                    "explanation": "No relevant information found in the CV."
+                                },
+                                {
+                                    "criterionId": "2a7cd99248b6d5c7e123def4",
+                                    "criterion": "Knowledge of React and its ecosystem",
+                                    "score": "8/12",
+                                    "explanation": "The CV mentions experience in developing React components and managing state using Redux. This aligns with the 'advanced' level, which includes handling complex state management and implementing performance optimizations."
+                                }
+                            ]
+
+                            Ensure that no scores or explanations are fabricated. If no information is available for a criterion, the score must be 0, and the explanation should clearly state the lack of information.`;
+
             console.log('calculate done')
             const result = await this.generateContent(prompt2)
 
