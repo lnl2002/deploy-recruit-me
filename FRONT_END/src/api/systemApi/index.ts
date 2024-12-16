@@ -122,10 +122,6 @@ const systemApi = {
         `${BACKEND_URL}/api/v1/system/notifications?${queryParams}`
       );
 
-      if (res.status === 200) {
-        console.log("Notification get: " + JSON.stringify(res.data.data));
-      }
-
       return res.data.data;
     } catch (error) {
       console.error("Error fetching units list:", error);

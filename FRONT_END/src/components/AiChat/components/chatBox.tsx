@@ -107,7 +107,7 @@ export default function ChatBox({
       if (response.data.readyToFind) {
         const res = await systemApi.getAIJobsResponse(transformedHistory);
         console.log("ready", res);
-        if (res.length > 0) {
+        if (res.data.length > 0) {
           setMessages((prev) => [
             ...prev,
             {
@@ -115,7 +115,7 @@ export default function ChatBox({
               content: "There are jobs that may suit you:",
               id: Date.now().toString(),
               timestamp: new Date(),
-              job: res,
+              job: res.data,
             },
           ]);
         }

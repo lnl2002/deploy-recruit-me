@@ -183,18 +183,29 @@ const jobService = {
     },
     getActiveJobs: async (): Promise<IJob[]> => {
         const currentDate = new Date()
-        // return await Job.find({
-        //     expiredDate: { $gt: currentDate },
-        //     startDate: { $lte: currentDate },
-        //     isActive: true,
-        // }).exec()
-        return await Job.find()
+        return await Job.find({
+            expiredDate: { $gt: currentDate },
+            startDate: { $lte: currentDate },
+            status: "approved"
+        })
             .select('_id title location')
             .populate('location', 'country city district ward detailLocation')
             .exec()
     },
     getJobsByIds: async (ids: string[]): Promise<IJob[]> => {
-        return await Job.find({ _id: { $in: ids.map((id) => new mongoose.Types.ObjectId(id)) } }).exec()
+        try {
+            const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id))
+            if (validIds.length !== ids.length) {
+                console.error(
+                    'Some IDs are invalid:',
+                    ids.filter((id) => !mongoose.Types.ObjectId.isValid(id)),
+                )
+            }
+            return await Job.find({ _id: { $in: validIds.map((id) => new mongoose.Types.ObjectId(id)) } }).exec()
+        } catch (error) {
+            console.error('Error fetching job count:', error)
+            throw error
+        }
     },
 }
 
