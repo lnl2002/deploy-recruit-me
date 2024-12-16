@@ -26,7 +26,7 @@ const jsonSchema: ResponseSchema = {
                         type: SchemaType.STRING,
                     },
                 },
-                readyToFind: { type: SchemaType.BOOLEAN , description: "default is false, detemine if should show jobs for user or not Only switch 'readyToFind' to [true] with 'Please wait, I'm finding some jobs for you!' (This consider end of conversation)"},
+                readyToFind: { type: SchemaType.BOOLEAN , description: "defalt: false, only switch to [true] if you done asking user questions detemine if should show jobs for user or not Only switch 'readyToFind' to [true] after you return 'Please wait, I'm finding some jobs for you!' (This consider end of conversation)"},
             },
         },
     },
@@ -34,8 +34,8 @@ const jsonSchema: ResponseSchema = {
 }
 
 const generationConfig = {
-    temperature: 0.6, // Slightly lower for more focused responses
-    topP: 0.9, // Slightly narrower nucleus sampling
+    temperature: 0.3, // Slightly lower for more focused responses
+    topP: 0.1, // Slightly narrower nucleus sampling
     topK: 40, // Allow a broader range of vocabulary
     maxOutputTokens: 512, // Limit response length for efficiency
     responseMimeType: 'application/json',

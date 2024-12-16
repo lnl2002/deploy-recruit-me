@@ -29,7 +29,7 @@ async function sendMail({
     try {
         await transporter.verify();
         const info = await transporter.sendMail({
-            from: "Recruit Me",
+            from: '"Recruit Me" <no-reply@recruitme.com>',
             to: sendTo,
             subject: subject,
             date: Date(),
