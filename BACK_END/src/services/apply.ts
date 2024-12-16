@@ -1,9 +1,12 @@
 import mongoose, { Types } from 'mongoose'
 import Apply, { IApply } from '..//models/applyModel'
-import Job from '../models/jobModel'
+import Job, { IJob } from '../models/jobModel'
 import { textract } from '../configs/aws-config'
 import Gemini from '../configs/gemini-config'
 import { deleteS3File, pollTextractJob, uploadPdfToS3 } from '../utils/uploadPdfToS3'
+import { ICV } from '../models/cvModel'
+import { mailService } from './mailServices/mailService'
+import { ICVStatus } from '../models/cvStatusModel'
 
 const applyService = {
     updateStatus: async ({
@@ -23,6 +26,51 @@ const applyService = {
             }
 
             const updatedApply = await Apply.findByIdAndUpdate(applyId, { status: newStatusId }, { new: true })
+
+            const newApply = await Apply.findById(updatedApply._id).populate('job cv status')
+
+            const firstName = (newApply?.cv as ICV)?.firstName || ''
+            const email = (newApply?.cv as ICV)?.email || ''
+            const lastName = (newApply?.cv as ICV)?.lastName || ''
+            const jobTitle = (newApply?.job as IJob)?.title || ''
+            const status = (newApply?.status as ICVStatus)?.name || ''
+
+            // ${status === 'rejected' ? `<li style="margin-bottom: 10px;"><strong>Reason:</strong> ${declineReason}</li>` : ''}
+
+            console.log(email)
+
+            mailService.sendMailBase({
+                sendTo: [email],
+                subject: 'RecruitMe Notification',
+                body: `
+                    <div style="padding: 20px; font-family: Arial, sans-serif; color: #333;">
+                        <h2 style="color: #2b579a; margin-bottom: 20px;">Application Status Update</h2>
+                        <p>Dear ${firstName} ${lastName},</p>
+                        <p>Thank you for your interest in the <strong>${jobTitle}</strong> position at <strong>RecruitMe</strong>.</p>
+
+                        <p>The status of the applicant for this position has been updated:</p>
+
+                        <ul style="list-style-type: none; padding: 0; margin-bottom: 20px;">
+                            <li style="margin-bottom: 10px;">
+                                <strong>Candidate Name:</strong> ${firstName} ${lastName}
+                            </li>
+                            <li style="margin-bottom: 10px;">
+                                <strong>Candidate Email:</strong> ${email}
+                            </li>
+                            <li style="margin-bottom: 10px;">
+                                <strong>Status:</strong> <span style="font-weight: bold; color: ${status === 'Accepted' ? 'green' : 'red'};">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                            </li>
+                        </ul>
+
+                        <p style="margin-bottom: 20px;">Please review the application status and take necessary actions. If you need further details, feel free to contact us.</p>
+
+                        <p style="color: #555;">
+                            Best regards,<br />
+                            <strong style="color: #2b579a;">RecruitMe Team</strong>
+                        </p>
+                    </div>
+                `,
+            })
 
             return updatedApply
         } catch (error) {

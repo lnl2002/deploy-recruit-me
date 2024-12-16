@@ -6,6 +6,7 @@ import { FRONTEND_URL_CANDIDATE_HOME } from '../utils/env'
 import { v4 as uuid } from 'uuid'
 import accountService from '../services/accountService'
 import { mailService } from '../services/mailServices/mailService'
+import Apply from '../models/applyModel'
 
 const meetingController = {
     updateMeetingStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -116,6 +117,8 @@ const meetingController = {
                 return
             }
 
+            const apply = await Apply.findById(applyId)
+
             const { accounts: listAccount } = await accountService.getAccountList('', { _id: { $in: participantIds } })
             const listEmail = listAccount?.map((account) => account.email)
 
@@ -141,14 +144,15 @@ const meetingController = {
                     <p style="margin-bottom: 20px;">
                         Please ensure you join the meeting on time using the link above. If you have any questions or concerns, feel free to reach out to us.
                     </p>
+                    <p style="font-weight: 700; margin-bottom: 20px; font-size: 16px;">Please accept the interview invitation to start the meeting <a style="color: #1d70b8; text-decoration: none;" href="${FRONTEND_URL_CANDIDATE_HOME}/job-details?id=${apply?.job ?? ''}">job detail</a>. If you do not accept within 1 day, your CV will be eliminated.</p>
                     <p style="margin-top: 20px; color: #555;">
                         Best regards,<br />
-                        <strong style="color: #2b579a;">Recruit Me Team</strong>
+                        <strong style="color: #2b579a;">RecruitMe Team</strong>
                     </p>
                 </div>
             `
 
-            await mailService.sendMailBase({
+            mailService.sendMailBase({
                 sendTo: listEmail,
                 subject: 'Meeting Room is Created!',
                 body: body,
