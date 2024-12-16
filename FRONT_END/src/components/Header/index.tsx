@@ -2,7 +2,7 @@
 import { Icons } from "@/icons";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import { useRouter } from "next/navigation";
@@ -76,14 +76,51 @@ export const Header = ({ role }: { role?: string }): React.JSX.Element => {
   }, []);
 
   const fetchNoti = async () => {
-    const data = (await systemApi.getUserNotifications()) as any;
-    setNotis(data.data);
+    const data = (await systemApi.getUserNotifications("all", 1, 5)) as any;
+    setNotis(data.notifications);
   };
 
   const handleNotiClick = async (noti: INoti) => {
     await systemApi.markAsSeen(noti._id);
     router.push(noti.url);
     fetchNoti();
+  };
+
+  const renderNotis = () => {
+    return (
+      notis &&
+      notis.length > 0 &&
+      notis.map((n, index) => (
+        <DropdownItem
+          key={index}
+          onClick={() => handleNotiClick(n)}
+          className={twMerge(
+            "gap-2 py-3 my-1",
+            n.seen ? "bg-surfaceTertiary" : "bg-themeWhite"
+          )}
+        >
+          <div>
+            <div className="flex gap-2 items-center">
+              <Image src={Images.Logo} alt="RecruitMe Logo" className="h-10" />
+              <div className="flex flex-col">
+                <p
+                  className={twMerge(
+                    "text-md",
+                    n.seen ? "font-medium" : "font-semibold"
+                  )}
+                >
+                  {n.content}
+                </p>
+                <p className="text-textSecondary italic">
+                  {format(new Date(n.createdAt), "dd MMMM yyyy HH:mm")}
+                </p>
+              </div>
+              {!n.seen && <Dot className="text-textIconBrand" size={20} />}
+            </div>
+          </div>
+        </DropdownItem>
+      ))
+    );
   };
 
   return (
@@ -136,7 +173,11 @@ export const Header = ({ role }: { role?: string }): React.JSX.Element => {
                   <button className="flex flex-row items-center gap-5 rounded-full border-none py-5 px-1">
                     <Badge
                       color="danger"
-                      content={notis ? notis.filter((n) => !n.seen).length : 0}
+                      content={
+                        notis && notis.length > 0
+                          ? notis.filter((n) => !n.seen).length
+                          : 0
+                      }
                       shape="circle"
                     >
                       <Bell
@@ -151,46 +192,10 @@ export const Header = ({ role }: { role?: string }): React.JSX.Element => {
                   aria-label="Profile Actions"
                   variant="flat"
                 >
-                  {notis &&
-                    notis.map((n, index) => (
-                      <DropdownItem
-                        key={index}
-                        onClick={() => handleNotiClick(n)}
-                        className={twMerge(
-                          "gap-2 py-3 my-1",
-                          n.seen ? "bg-surfaceTertiary" : "bg-themeWhite"
-                        )}
-                      >
-                        <div>
-                          <div className="flex gap-2 items-center">
-                            <Image
-                              src={Images.Logo}
-                              alt="RecruitMe Logo"
-                              className="h-10"
-                            />
-                            <div className="flex flex-col">
-                              <p
-                                className={twMerge(
-                                  "text-md",
-                                  n.seen ? "font-medium" : "font-semibold"
-                                )}
-                              >
-                                {n.content}
-                              </p>
-                              <p className="text-textSecondary italic">
-                                {format(
-                                  new Date(n.createdAt),
-                                  "dd MMMM yyyy HH:mm"
-                                )}
-                              </p>
-                            </div>
-                            {!n.seen && (
-                              <Dot className="text-textIconBrand" size={20} />
-                            )}
-                          </div>
-                        </div>
-                      </DropdownItem>
-                    ))}
+                  {renderNotis()}
+                  <DropdownItem onClick={() => router.push("/notifications")}>
+                    <p className="text-textIconBrand">{">> See all"}</p>
+                  </DropdownItem>
                 </DropdownMenu>
               </Dropdown>
               <Dropdown placement="bottom-end">

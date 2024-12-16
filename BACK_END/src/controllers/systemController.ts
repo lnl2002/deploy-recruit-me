@@ -2,9 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import { mailService } from '../services/mailServices/mailService'
 import { genAnswer } from '../configs/gemini-chat-config'
 import Notification from '../models/notificationModel'
-import Career from '../models/careerModel'
-import Job from '../models/jobModel'
-import Location from '../models/locationModel'
+import jobService from '../services/jobService'
 
 export const systemController = {
     mutipleMail: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -25,8 +23,9 @@ export const systemController = {
     getAIAnswer: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
             const { input, history } = req.body
+            console.log("input: "  +input)
             const respond = await genAnswer(input, history)
-            console.log(respond)
+            console.log("respond: " + respond)
 
             const cleanedResult = respond.response.text().replace('```json', '').replace('```', '')
 
@@ -38,32 +37,15 @@ export const systemController = {
     },
 
     getAIJobQuery: async (req: Request, res: Response) => {
-        const { city, career, minSalary } = req.query
         try {
-            // Find the career ID based on the career name using a case-insensitive and diacritic-insensitive collation
-            const careerDoc = await Career.findOne({ name: { $regex: new RegExp(career as string, 'i') } }).collation({
-                locale: 'vi',
-                strength: 1,
-            })
-            if (!careerDoc) {
-                return res.status(404).json({ message: 'Career not found' })
-            }
-
-            // Find the location IDs based on the city using a case-insensitive and diacritic-insensitive collation
-            const locationDocs = await Location.find({ city: { $regex: new RegExp(city as string, 'i') } }).collation({
-                locale: 'vi',
-                strength: 1,
-            })
-            const locationIds = locationDocs.map((location) => location._id)
-
-            // Count the number of jobs matching the criteria
-            const jobs = await Job.find({
-                career: careerDoc._id,
-                location: { $in: locationIds },
-                minSalary: { $gte: Number(minSalary) },
-            }).limit(3)
-
-            res.status(200).json(jobs)
+            const { history } = req.body
+            const listJob = await jobService.getActiveJobs()
+            // console.log(JSON.stringify(listJob));
+            console.log(history);
+            const respond = await genAnswer(`find suit job. listJob: ${JSON.stringify(listJob)}`, history)
+            const cleanedResult = JSON.parse(respond.response.text());
+            const jobs = await jobService.getJobsByIds(cleanedResult.data.matchedJobIds)
+            return res.status(200).json(jobs)
         } catch (error) {
             console.error('Error fetching job count:', error)
             res.status(500).json({ message: 'Internal server error' })
@@ -83,15 +65,36 @@ export const systemController = {
 
     getUserNotifications: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {
-            const userId = req.user._id
-            const notifications = await Notification.find({ receiver: userId })
+            const userId = req.user._id;
+            const { seen, page = 1, limit = 10 } = req.query;
+    
+            // Build the query object
+            const query: any = { receiver: userId };
+            if (seen !== "all") {
+                query.seen = seen === 'true';
+            }
+    
+            // Calculate pagination values
+            const skip = (Number(page) - 1) * Number(limit);
+    
+            // Fetch notifications with pagination and sorting
+            const notifications = await Notification.find(query)
                 .sort({ seen: 1, createdAt: -1 })
-                .limit(10)
-            return res.status(200).json(notifications)
+                .skip(skip)
+                .limit(Number(limit));
+    
+            // Get the total count of notifications for pagination
+            const totalNotifications = await Notification.countDocuments(query);
+    
+            return res.status(200).json({
+                notifications,
+                totalPages: Math.ceil(totalNotifications / Number(limit)),
+                currentPage: Number(page),
+            });
         } catch (error) {
-            res.status(500).json({ error: 'Error when get noti: ' + error })
+            res.status(500).json({ error: 'Error when getting notifications: ' + error });
         }
-    },
+    },    
 
     markAsSeen: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         try {

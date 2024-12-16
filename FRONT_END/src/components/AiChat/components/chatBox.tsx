@@ -1,6 +1,6 @@
 "use client";
 
-interface Message {
+export interface Message {
   id: string;
   content: string;
   sender: "user" | "model" | "jobs";
@@ -12,6 +12,8 @@ interface Message {
 interface ChatBoxProps {
   onClose: () => void;
   onSendMessage?: (message: string) => void;
+  messages: Message[];
+  setMessages: Dispatch<SetStateAction<Message[]>>;
 }
 
 interface ExampleQuestion {
@@ -39,38 +41,26 @@ import React, {
   ChangeEvent,
   useRef,
   useEffect,
+  Dispatch,
+  SetStateAction,
 } from "react";
-import { MessageCircle, Send, X } from "lucide-react";
+import { MessageCircle, PlusCircle, Send, Trash, X } from "lucide-react";
 import systemApi from "@/api/systemApi";
 import Markdown from "react-markdown";
 import { TJob } from "@/api/jobApi";
-import Job from "@/screens/home/ListJob/components/Job";
-import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
-import Image from "next/image";
-import { Images } from "@/images";
+import { Card, CardHeader } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
+import { timeUntilFutureDate } from "@/utils/common";
 
 export default function ChatBox({
   onClose,
   onSendMessage,
+  messages,
+  setMessages,
 }: ChatBoxProps): JSX.Element {
   const router = useRouter();
   const [message, setMessage] = useState<string>("");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "start",
-      content: "Start chat",
-      sender: "user",
-      inVisible: true,
-      timestamp: new Date(),
-    },
-    {
-      id: "welcome",
-      content: "Hello! I'm your AI assistant. How can I help you today?",
-      sender: "model",
-      timestamp: new Date(),
-    },
-  ]);
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -115,20 +105,20 @@ export default function ChatBox({
       console.log(response.data.readyToFind);
       setMessages((prev) => [...prev, aiMessage]);
       if (response.data.readyToFind) {
-        const res = await systemApi.getAIJobsResponse(response.data);
-
+        const res = await systemApi.getAIJobsResponse(transformedHistory);
         console.log("ready", res);
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            sender: "jobs",
-            content: "There are jobs that may suit you:",
-            id: Date.now().toString(),
-            timestamp: new Date(),
-            job: res,
-          },
-        ]);
+        if (res.length > 0) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              sender: "model",
+              content: "There are jobs that may suit you:",
+              id: Date.now().toString(),
+              timestamp: new Date(),
+              job: res,
+            },
+          ]);
+        }
       }
     } catch (error) {
       const errorMessage: Message = {
@@ -195,31 +185,41 @@ export default function ChatBox({
                     }`}
                   >
                     <Markdown>{msg.content}</Markdown>
-                    {msg.sender === "jobs" && (
-                      <div className="rounded-xl grid bg-blue-100 w-full items-center gap-5 justify-center flex-shrink-0 py-5">
-                        {msg.job?.map((j, i) => (
-                          <button
-                            onClick={() =>
-                              router.push("/job-details?id=" + j._id)
-                            }
-                          >
-                            <Card className="py-4 grid-cols-1">
-                              <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-                                <p className="text-tiny uppercase font-bold">
-                                  {j.type}
-                                </p>
-                                <small className="text-default-500">
-                                  {"12 days left"}
-                                </small>
-                                <h4 className="font-bold text-large">
-                                  {j.title}
-                                </h4>
-                              </CardHeader>
-                            </Card>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    {msg.job &&
+                      (msg.job && msg.job?.length > 0 ? (
+                        <div className="rounded-xl grid bg-blue-100 w-full items-center gap-5 justify-center flex-shrink-0 py-5">
+                          {msg.job?.map((j, i) => (
+                            <button
+                              onClick={() =>
+                                router.push("/job-details?id=" + j._id)
+                              }
+                            >
+                              <Card className="py-4 grid-cols-1">
+                                <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
+                                  <p className="text-tiny uppercase font-bold">
+                                    {j.type}
+                                  </p>
+                                  <small className="text-default-500">
+                                    {timeUntilFutureDate(j.expiredDate)}
+                                  </small>
+                                  <h4 className="font-bold text-large">
+                                    {j.title}
+                                  </h4>
+                                  <h4 className="font-normal italic text-sm">
+                                    {`₫${j.minSalary} - ₫${j.maxSalary}`}
+                                  </h4>
+                                </CardHeader>
+                              </Card>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <Markdown>
+                          {
+                            "We can't not find any job that fit you right now, try take a tour on our website !"
+                          }
+                        </Markdown>
+                      ))}
                   </div>
                 </div>
               </div>
@@ -297,8 +297,8 @@ export default function ChatBox({
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-white border-t border-gray-200">
-        <form onSubmit={handleSubmit} className="flex items-center space-x-2">
+      <div className="p-4 bg-white border-t border-gray-200 flex">
+        <form onSubmit={handleSubmit} className="flex items-center space-x-2 w-full">
           <input
             type="text"
             value={message}
@@ -317,6 +317,31 @@ export default function ChatBox({
             <Send size={20} color="#f16e21" />
           </button>
         </form>
+        <button
+          onClick={() =>
+            setMessages([
+              {
+                id: "start",
+                content: "Start chat",
+                sender: "user",
+                inVisible: true,
+                timestamp: new Date(),
+              },
+              {
+                id: "welcome",
+                content:
+                  "Hello! I'm your AI assistant. How can I help you today?",
+                sender: "model",
+                timestamp: new Date(),
+              },
+            ])
+          }
+        >
+          <div className="flex px-4 py-2 rounded-md items-center gap-3">
+            <Trash className="text-[#f8b690]"/>
+            {/* <p className="text-sm text-themeWhite">New chat</p> */}
+          </div>
+        </button>
       </div>
     </div>
   );

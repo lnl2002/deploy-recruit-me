@@ -16,6 +16,7 @@ import jobApi from "@/api/jobApi";
 import { toast } from "react-toastify";
 import ModalConfirm from "@/components/Modals/ModalConfirm";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import systemApi from "@/api/systemApi";
 
 type JobStateProps = {
   state: string;
@@ -78,6 +79,12 @@ const JobState = ({ state }: JobStateProps) => {
     if (!data) {
       toast.error("Something went wrong. Please try again");
       return;
+    } else{
+      systemApi.createNotification({
+        content: `Your JD's status is changed into: ` + status,
+        receiver: job?.account ?? "",
+        url: "/recruiter/job-details?id=" + job?._id,
+      });
     }
 
     disclosure.onClose();

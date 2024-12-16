@@ -52,3 +52,28 @@ export const formatDateTimeSeperate = (dateTime: string) => {
   const formattedDate = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   return { time, formattedDate };
 };
+
+
+export function formatDatetimeNoti(date: Date): string {
+  // Define the options for formatting the date and time
+  const options: Intl.DateTimeFormatOptions = {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+  };
+
+  // Format the date and time
+  let formattedString = date.toLocaleString('en-US', options);
+
+  // Adjust the AM/PM to lowercase
+  formattedString = formattedString.replace('AM', 'am').replace('PM', 'pm');
+
+  // Convert '20 Nov 2024' to '21 Nov 2024' by manually adjusting the day
+  const day = ('0' + (date.getUTCDate() + 1)).slice(-2);
+  formattedString = formattedString.replace(/\d{2}/, day);
+
+  return formattedString;
+}
