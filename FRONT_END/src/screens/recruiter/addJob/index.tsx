@@ -13,7 +13,7 @@ import {
 } from "@nextui-org/react";
 import { DatePicker } from "@nextui-org/date-picker";
 import { ArrowLeft, ArrowRight, DollarSign, MapPin, X } from "lucide-react";
-import { Fragment, Key, useEffect, useState } from "react";
+import { Key, useEffect, useState } from "react";
 import unitApi, { TUnit } from "@/api/unitApi";
 import accountApi, { IAccount } from "@/api/accountApi/accountApi";
 import jobApi, { TJob } from "@/api/jobApi";
@@ -28,7 +28,6 @@ import { useAppSelector } from "@/store/store";
 import groupCriteriaApi, { IGroupCriteria } from "@/api/groupCriteriaApi";
 import { ICriteria } from "@/api/criteriaApi";
 import { isEmpty } from "@/utils/isEmpty";
-import formatSalary from "@/utils/formatSalary";
 import CriteriaDetail from "@/components/criteriaDetail";
 
 const CustomEditor = dynamic(() => import("./custom"), {

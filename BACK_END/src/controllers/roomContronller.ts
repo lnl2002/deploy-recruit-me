@@ -40,8 +40,14 @@ const roomContronller = {
                 return res.status(401).json({ message: 'You can not join this room' })
             }
 
-            const startDate = new Date(meetingRoom.timeStart)
-            const currentDate = new Date()
+            const startTime = new Date(meetingRoom.timeStart).toLocaleString('en-US', {
+                timeZone: 'Asia/Ho_Chi_Minh',
+            })
+            const currentTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' })
+
+            const startDate = new Date(startTime)
+            const currentDate = new Date(currentTime)
+
             if (startDate > currentDate) {
                 return res.status(400).json({ message: 'The meeting has not started yet' })
             }
