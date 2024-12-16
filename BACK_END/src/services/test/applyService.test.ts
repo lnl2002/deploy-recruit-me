@@ -77,7 +77,7 @@ describe('applyService', () => {
             name: 'test',
         })) as any
         defaultStatus = (await CVStatus.create({
-            name: 'Shortlist',
+            name: 'Shortlisted',
         })) as any
         job = await Job.create({
             _id: new mongoose.Types.ObjectId(),

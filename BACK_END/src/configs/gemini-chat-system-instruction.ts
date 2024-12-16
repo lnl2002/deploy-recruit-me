@@ -141,6 +141,624 @@ export const systemInstruction = `{
           }
         }
       }
+      "usecase": [
+        {
+          "ID": 1,
+          "UseCase": "Sign In",
+          "Feature": "Authentication & Authorization",
+          "Actors": ["Candidate", "Recruiter", "Interviewer", "Interviewer Manager", "Admin"],
+          "CaseDescription": "Enables users to sign in to the platform using their Google accounts."
+        },
+        {
+          "ID": 2,
+          "UseCase": "Sign Out",
+          "Feature": "Authentication & Authorization",
+          "Actors": ["Candidate", "Recruiter", "Interviewer", "Interviewer Manager", "Admin"],
+          "CaseDescription": "Allows users to securely log out of their accounts on the platform."
+        },
+        {
+          "ID": 3,
+          "UseCase": "View Jobs List",
+          "Feature": "Job Search & Apply",
+          "Actors": ["Guest", "Candidate"],
+          "CaseDescription": "Allow guests and candidates to browse a list of job openings, including search and filtering functionality."
+        },
+        {
+          "ID": 4,
+          "UseCase": "View Job Detail",
+          "Feature": "Job Search & Apply",
+          "Actors": ["Guest", "Candidate"],
+          "CaseDescription": "Allows users to view detailed information about specific job postings."
+        },
+        {
+          "ID": 5,
+          "UseCase": "Filter Jobs",
+          "Feature": "Job Search & Apply",
+          "Actors": ["Guest", "Candidate"],
+          "CaseDescription": "Enables users to search and filter job listings based on various criteria like location, salary, and industry."
+        },
+        {
+          "ID": 6,
+          "UseCase": "Apply for Jobs",
+          "Feature": "Job Search & Apply",
+          "Actors": ["Candidate"],
+          "CaseDescription": "Allows candidates to submit applications for specific job postings."
+        },
+        {
+          "ID": 7,
+          "UseCase": "View Application Status",
+          "Feature": "Job Search & Apply",
+          "Actors": ["Candidate"],
+          "CaseDescription": "Allows candidates to track the progress and current status of their submitted applications."
+        },
+        {
+          "ID": 8,
+          "UseCase": "Upload CV",
+          "Feature": "Candidate Profile Management",
+          "Actors": ["Candidate"],
+          "CaseDescription": "Allows candidates to upload their CVs for job applications securely."
+        },
+        {
+          "ID": 9,
+          "UseCase": "View CV",
+          "Feature": "Candidate Profile Management",
+          "Actors": ["Candidate", "Recruiter", "Interviewer", "Interviewer Manager"],
+          "CaseDescription": "Allows users to view their uploaded CVs that apply for specifical jobs."
+        },
+        {
+          "ID": 10,
+          "UseCase": "Download CV",
+          "Feature": "Candidate Profile Management",
+          "Actors": ["Candidate", "Recruiter", "Interviewer", "Interviewer Manager"],
+          "CaseDescription": "Enables users to download CVs for offline access."
+        },
+        {
+          "ID": 11,
+          "UseCase": "Encrypt CVs",
+          "Feature": "AWS Service",
+          "Actors": ["AWS Service"],
+          "CaseDescription": "Encrypt CV files to ensure data security during storage and transmission."
+        },
+        {
+          "ID": 12,
+          "UseCase": "Decrypt CVs",
+          "Feature": "AWS Service",
+          "Actors": ["AWS Service"],
+          "CaseDescription": "Decrypt encrypted CV files when needed by authorized users."
+        },
+        {
+          "ID": 13,
+          "UseCase": "Receive Application Notifications",
+          "Feature": "Notification System",
+          "Actors": ["Candidate", "Recruiter"],
+          "CaseDescription": "Notify relevant actors when a job application is submitted or updated."
+        },
+        {
+          "ID": 14,
+          "UseCase": "Receive Interview Schedule Notifications",
+          "Feature": "Notification System",
+          "Actors": ["Candidate", "Interviewer", "Interviewer Manager"],
+          "CaseDescription": "Notify candidates, interviewers, and managers about scheduled interview details."
+        },
+        {
+          "ID": 15,
+          "UseCase": "Receive A Notification When The Meeting is About to Start",
+          "Feature": "Notification System",
+          "Actors": ["Candidate", "Interviewer", "Interviewer Manager"],
+          "CaseDescription": "Sends a reminder to users shortly before a scheduled meeting or interview."
+        },
+        {
+          "ID": 16,
+          "UseCase": "Send Notification to Users",
+          "Feature": "Notification System",
+          "Actors": ["Recruiter", "AWS Service"],
+          "CaseDescription": "Allows recruiters and the system to send notifications to users about various updates."
+        },
+        {
+          "ID": 17,
+          "UseCase": "Send Email for Candidates",
+          "Feature": "AWS Service",
+          "Actors": ["AWS Service"],
+          "CaseDescription": "Automates the process of sending emails to candidates for interview schedules, results, or updates."
+        },
+        {
+          "ID": 18,
+          "UseCase": "Set Notification Schedule",
+          "Feature": "AWS Service",
+          "Actors": ["AWS Service"],
+          "CaseDescription": "Enables scheduling notifications for candidates, recruiters, or other actors based on predefined events (e.g., interviews, application updates)."
+        },
+        {
+          "ID": 19,
+          "UseCase": "Create Schedule Interview",
+          "Feature": "Interview Management",
+          "Actors": ["Interviewer Manager"],
+          "CaseDescription": "Allows the Interviewer Manager to create and manage interview schedules for candidates."
+        },
+        {
+          "ID": 20,
+          "UseCase": "Recreate Schedule Interview",
+          "Feature": "Interview Management",
+          "Actors": ["Interviewer Manager"],
+          "CaseDescription": "Enables managers to modify or reschedule interviews."
+        },
+        {
+          "ID": 21,
+          "UseCase": "Approve Interview Schedule",
+          "Feature": "Interview Management",
+          "Actors": ["Candidate"],
+          "CaseDescription": "Allows managers to approve interview schedules created by the interviewer manager."
+        },
+        {
+          "ID": 22,
+          "UseCase": "Attend Meeting",
+          "Feature": "Video and Communication Tools",
+          "Actors": ["Candidate", "Interviewer", "Interviewer Manager"],
+          "CaseDescription": "Allows candidates, interviewers, and managers to join virtual interviews or meetings."
+        },
+        {
+          "ID": 23,
+          "UseCase": "View Meetings List",
+          "Feature": "Interview Management",
+          "Actors": ["Interviewer", "Interviewer Manager"],
+          "CaseDescription": "Allows users to view a list of all scheduled meetings or interviews."
+        },
+        {
+          "ID": 24,
+          "UseCase": "View Meeting Schedule",
+          "Feature": "Interview Management",
+          "Actors": ["Interviewer", "Interviewer Manager"],
+          "CaseDescription": "Displays detailed information about specific interview schedules."
+        },
+        {
+          "ID": 25,
+          "UseCase": "Enter Interview Feedback",
+          "Feature": "Interview Management",
+          "Actors": ["Interviewer", "Interviewer Manager"],
+          "CaseDescription": "Allows interviewers and managers to provide feedback and notes on candidate performance during interviews."
+        },
+        {
+          "ID": 26,
+          "UseCase": "Create Job Postings",
+          "Feature": "Job Posting Management",
+          "Actors": ["Recruiter"],
+          "CaseDescription": "Allows recruiters to create new job postings for listing on the platform."
+        },
+        {
+          "ID": 27,
+          "UseCase": "View Job Postings List",
+          "Feature": "Job Posting Management",
+          "Actors": ["Recruiter", "Admin"],
+          "CaseDescription": "Displays a list of job postings created by recruiters or approved by admins."
+        },
+        {
+          "ID": 28,
+          "UseCase": "Edit Job Posting",
+          "Feature": "Job Posting Management",
+          "Actors": ["Recruiter"],
+          "CaseDescription": "Enables recruiters to modify existing job postings."
+        },
+        {
+          "ID": 29,
+          "UseCase": "Delete Job Posting",
+          "Feature": "Job Posting Management",
+          "Actors": ["Recruiter"],
+          "CaseDescription": "Allows recruiters to remove job postings from the platform."
+        },
+        {
+          "ID": 30,
+          "UseCase": "Hide Job Posting",
+          "Feature": "Job Posting Management",
+          "Actors": ["Recruiter"],
+          "CaseDescription": "Temporarily removes a job posting from public view."
+        },
+        {
+          "ID": 31,
+          "UseCase": "Filter Job Posting",
+          "Feature": "Job Posting Management",
+          "Actors": ["Recruiter", "Admin"],
+          "CaseDescription": "Enables users to filter job postings based on criteria such as status, creation date, and more."
+        },
+        {
+          "ID": 32,
+          "UseCase": "View List of All  Job Posting",
+          "Feature": "Job Posting Management",
+          "Actors": ["Admin"],
+          "CaseDescription": "Displays a comprehensive list of all job postings on the platform."
+        },
+        {
+          "ID": 33,
+          "UseCase": "View Job Posting Detail",
+          "Feature": "Job Posting Management",
+          "Actors": ["Recruiter", "Admin"],
+          "CaseDescription": "Displays detailed information about a selected job posting."
+        },
+        {
+          "ID": 34,
+          "UseCase": "View List of Applicants",
+          "Feature": "Application Management",
+          "Actors": ["Recruiter", "Admin"],
+          "CaseDescription": "Displays a list of applicants who have applied for a specific job posting."
+        },
+        {
+          "ID": 35,
+          "UseCase": "View OCR CV File",
+          "Feature": "Candidate Profile Management",
+          "Actors": ["Candidate"],
+          "CaseDescription": "Allows candidates to view the extracted data from their CV files processed using OCR technology."
+        },
+        {
+          "ID": 36,
+          "UseCase": "View History of Applied Jobs",
+          "Feature": "Job Search & Apply",
+          "Actors": ["Candidate"],
+          "CaseDescription": "Displays a history of all job applications submitted by the candidate, along with their statuses."
+        },
+        {
+          "ID": 37,
+          "UseCase": "Filter Applications",
+          "Feature": "Application Management",
+          "Actors": ["Recruiter"],
+          "CaseDescription": "Allows recruiters to filter applications based on criteria such as qualifications, location, and experience."
+        },
+        {
+          "ID": 38,
+          "UseCase": "Review CV",
+          "Feature": "Application Management",
+          "Actors": ["Recruiter"],
+          "CaseDescription": "Enables recruiters to review the CVs submitted by candidates for specific job applications."
+        },
+        {
+          "ID": 39,
+          "UseCase": "View Detailed Score Results",
+          "Feature": "Application Management",
+          "Actors": ["Recruiter"],
+          "CaseDescription": "Displays detailed scoring metrics and feedback for candidates during the application review process."
+        },
+        {
+          "ID": 40,
+          "UseCase": "Change CV Status",
+          "Feature": "Application Management",
+          "Actors": ["Recruiter"],
+          "CaseDescription": "Allows recruiters to update the status of candidate CVs (e.g., shortlisted, rejected)."
+        },
+        {
+          "ID": 41,
+          "UseCase": "Receive Notification of Job Application Submission",
+          "Feature": "Notification System",
+          "Actors": ["Recruiter"],
+          "CaseDescription": "Notifies recruiters when a new job application is submitted by a candidate."
+        },
+        {
+          "ID": 42,
+          "UseCase": "Create Accounts",
+          "Feature": "User Account Management",
+          "Actors": ["Admin"],
+          "CaseDescription": "Allows admins to create new accounts for system users such as recruiters, interviewers, or managers."
+        },
+        {
+          "ID": 43,
+          "UseCase": "Assign Role/Permissions",
+          "Feature": "User Account Management",
+          "Actors": ["Admin"],
+          "CaseDescription": "Allows the admin to assign roles (e.g., Recruiter, Interviewer, Interviewer Manager) and define permissions for specific users within the platform."
+        },
+        {
+          "ID": 44,
+          "UseCase": "View Accounts List",
+          "Feature": "User Account Management",
+          "Actors": ["Admin"],
+          "CaseDescription": "Displays a list of all user accounts on the platform."
+        },
+        {
+          "ID": 45,
+          "UseCase": "Change Account Status",
+          "Feature": "User Account Management",
+          "Actors": ["Admin"],
+          "CaseDescription": "Enables admins to activate, deactivate, or suspend user accounts."
+        },
+        {
+          "ID": 46,
+          "UseCase": "View Candidates List",
+          "Feature": "Candidate Management",
+          "Actors": ["Interviewer", "Interviewer Manager"],
+          "CaseDescription": "Displays a list of candidates who have applied for jobs and are under evaluation."
+        },
+        {
+          "ID": 47,
+          "UseCase": "View Candidate Detail",
+          "Feature": "Candidate Management",
+          "Actors": ["Interviewer", "Interviewer Manager"],
+          "CaseDescription": "Displays detailed information about a specific candidate, including their CV, scores, and feedback."
+        },
+        {
+          "ID": 48,
+          "UseCase": "Filter Candidate",
+          "Feature": "Candidate Management",
+          "Actors": ["Interviewer", "Interviewer Manager"],
+          "CaseDescription": "Allows users to filter candidates based on criteria such as skills, location, and experience."
+        },
+        {
+          "ID": 49,
+          "UseCase": "View Pending Job Posting List",
+          "Feature": "Job Posting Review",
+          "Actors": ["Interviewer Manager"],
+          "CaseDescription": "Displays a list of job postings awaiting approval or review by the manager."
+        },
+        {
+          "ID": 50,
+          "UseCase": "View Pending Job Posting Detail",
+          "Feature": "Job Posting Review",
+          "Actors": ["Interviewer Manager"],
+          "CaseDescription": "Displays detailed information about a specific job posting pending review."
+        },
+        {
+          "ID": 51,
+          "UseCase": "Review Job Postings",
+          "Feature": "Job Posting Review",
+          "Actors": ["Interviewer Manager"],
+          "CaseDescription": "Allows managers to review and provide feedback on job postings before approval."
+        },
+        {
+          "ID": 52,
+          "UseCase": "Approve Job Posting",
+          "Feature": "Job Posting Review",
+          "Actors": ["Interviewer Manager"],
+          "CaseDescription": "Enables managers to approve job postings for publishing."
+        },
+        {
+          "ID": 53,
+          "UseCase": "Reject Job Posting with Feedback",
+          "Feature": "Job Posting Review",
+          "Actors": ["Interviewer Manager"],
+          "CaseDescription": "Allows managers to reject job postings and provide feedback for necessary changes."
+        },
+        {
+          "ID": 54,
+          "UseCase": "Filter Assigned Job Posting",
+          "Feature": "Job Posting Review",
+          "Actors": ["Interviewer Manager"],
+          "CaseDescription": "Allows managers to filter and manage job postings assigned to them."
+        },
+        {
+          "ID": 55,
+          "UseCase": "View Candidate Score Sheet and Feedbacks",
+          "Feature": "Feedback and Status Updates",
+          "Actors": ["Interviewer Manager"],
+          "CaseDescription": "Displays the score sheets and feedback provided by interviewers for a specific candidate."
+        },
+        {
+          "ID": 56,
+          "UseCase": "Change Candidate Status",
+          "Feature": "Feedback and Status Updates",
+          "Actors": ["Interviewer Manager"],
+          "CaseDescription": "Allows managers to update the status of a candidate after reviewing feedback."
+        },
+        {
+          "ID": 57,
+          "UseCase": "Interactive with AI Assistant",
+          "Feature": "AI and Automation",
+          "Actors": ["Candidate", "Google Gemini AI Service"],
+          "CaseDescription": "Enables candidates to interact with an AI assistant for guidance on job applications and CV improvements."
+        },
+        {
+          "ID": 58,
+          "UseCase": "Calculate CV's Score",
+          "Feature": "AI and Automation",
+          "Actors": ["Recruiter", "Google Gemini AI Service"],
+          "CaseDescription": "Uses AI to evaluate and calculate the compatibility score of CVs against job requirements."
+        },
+        {
+          "ID": 59,
+          "UseCase": "OCR CVs",
+          "Feature": "AWS Service",
+          "Actors": ["AWS Service"],
+          "CaseDescription": "Uses OCR technology to extract text and data from uploaded CVs for analysis and processing"
+        },
+        {
+          "ID": 60,
+          "UseCase": "Stream Video/Audio",
+          "Feature": "Video and Communication Tools",
+          "Actors": ["Twilio Video/Call Service"],
+          "CaseDescription": "Supports real-time video and audio streaming during interviews and meetings."
+        }
+      ],
+      "Database diagram": {
+        "tables": [
+          {
+            "name": "ParticipantStatus",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "status", "type": "string" },
+              { "name": "participant", "type": "object" },
+              { "name": "deadline", "type": "string" }
+            ]
+          },
+          {
+            "name": "MeetingRooms",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "participants", "type": "string" },
+              { "name": "timeStart", "type": "datetime" },
+              { "name": "timeEnd", "type": "datetime" },
+              { "name": "applyCount", "type": "number" },
+              { "name": "active", "type": "bool" },
+              { "name": "timestamp", "type": "date" }
+            ]
+          },
+          {
+            "name": "Notification",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "receiver", "type": "string" },
+              { "name": "content", "type": "string" },
+              { "name": "timestamp", "type": "date" }
+            ]
+          },
+          {
+            "name": "Accounts",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "googled", "type": "string" },
+              { "name": "email", "type": "string" },
+              { "name": "name", "type": "string" },
+              { "name": "role", "type": "object" },
+              { "name": "image", "type": "string" },
+              { "name": "status", "type": "string" }
+            ]
+          },
+          {
+            "name": "Roles",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "rolename", "type": "string" }
+            ]
+          },
+          {
+            "name": "Cvs",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "email", "type": "string" },
+              { "name": "lastname", "type": "string" },
+              { "name": "firstname", "type": "string" },
+              { "name": "gender", "type": "string" },
+              { "name": "dob", "type": "date" },
+              { "name": "phone_number", "type": "string" },
+              { "name": "address", "type": "string" },
+              { "name": "self_timestamp", "type": "date" }
+            ]
+          },
+          {
+            "name": "ocvScore",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "averageScore", "type": "string" },
+              { "name": "detailScore", "type": "object" }
+            ]
+          },
+          {
+            "name": "detailScore",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "criterion", "type": "object" },
+              { "name": "score", "type": "string" },
+              { "name": "explanation", "type": "string" }
+            ]
+          },
+          {
+            "name": "Criteria",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "name", "type": "string" },
+              { "name": "beginner", "type": "object" },
+              { "name": "basic", "type": "object" },
+              { "name": "intermediate", "type": "object" },
+              { "name": "advanced", "type": "object" },
+              { "name": "expert", "type": "object" }
+            ]
+          },
+          {
+            "name": "CriteriaDetail",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "detail", "type": "string" },
+              { "name": "weight", "type": "string" }
+            ]
+          },
+          {
+            "name": "Applications",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "job", "type": "object" },
+              { "name": "status", "type": "object" },
+              { "name": "statusUpdateNotify", "type": "object" },
+              { "name": "createdby", "type": "date" },
+              { "name": "timestamp", "type": "date" },
+              { "name": "applicantReports", "type": "datetime" },
+              { "name": "stage", "type": "object" },
+              { "name": "code", "type": "object" }
+            ]
+          },
+          {
+            "name": "Jobs",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "unit", "type": "object" },
+              { "name": "career", "type": "object" },
+              { "name": "location", "type": "object" },
+              { "name": "interviewManager", "type": "object" },
+              { "name": "account", "type": "string" },
+              { "name": "title", "type": "string" },
+              { "name": "description", "type": "string" },
+              { "name": "benefits", "type": "string" },
+              { "name": "requirments", "type": "string" },
+              { "name": "vocabulary", "type": "number" },
+              { "name": "addNumberPerson", "type": "number" },
+              { "name": "timestamp", "type": "date" },
+              { "name": "expireDate", "type": "date" },
+              { "name": "isDeleted", "type": "boolean" },
+              { "name": "type", "type": "boolean" },
+              { "name": "status", "type": "object" },
+              { "name": "projectDeasion", "type": "string" }
+            ]
+          },
+          {
+            "name": "ApplicationReport",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "details", "type": "object" },
+              { "name": "creatively", "type": "number" },
+              { "name": "score", "type": "number" },
+              { "name": "selfReportCriteria", "type": "bool" }
+            ]
+          },
+          {
+            "name": "SelfReportCriteria",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "codename", "type": "string" },
+              { "name": "content", "type": "string" }
+            ]
+          },
+          {
+            "name": "Careers",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "name", "type": "string" },
+              { "name": "image", "type": "string" },
+              { "name": "information", "type": "string" }
+            ]
+          },
+          {
+            "name": "Locations",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "country", "type": "string" },
+              { "name": "city", "type": "string" },
+              { "name": "ward", "type": "string" },
+              { "name": "detail_location", "type": "string" }
+            ]
+          },
+          {
+            "name": "Units",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "name", "type": "string" },
+              { "name": "stations", "type": "string" },
+              { "name": "introduction", "type": "string" },
+              { "name": "image", "type": "string" },
+              { "name": "banner", "type": "string" }
+            ]
+          },
+          {
+            "name": "CVStatuses",
+            "columns": [
+              { "name": "_id", "type": "object" },
+              { "name": "name", "type": "string" }
+            ]
+          }
+        ]
+      }
     }
   ],
   "note_for_answer": "Your response MUST be in JSON form so that I can handle your response as data: { response: [response], data: [data for job finding] }",
