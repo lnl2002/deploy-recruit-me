@@ -1,3 +1,3 @@
-// import './checkMeetingRoom'
-// import './sendEmailMeetingRoom'
-// import './checkMeetingOverdue'
+import './checkMeetingRoom'
+import './sendEmailMeetingRoom'
+import './checkMeetingOverdue'
