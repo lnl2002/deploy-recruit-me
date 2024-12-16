@@ -6,6 +6,7 @@ import { FRONTEND_URL_CANDIDATE_HOME } from '../utils/env'
 import { v4 as uuid } from 'uuid'
 import accountService from '../services/accountService'
 import { mailService } from '../services/mailServices/mailService'
+import Apply from '../models/applyModel'
 
 const meetingController = {
     updateMeetingStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -116,41 +117,66 @@ const meetingController = {
                 return
             }
 
+            const apply = await Apply.findById(applyId)
+
             const { accounts: listAccount } = await accountService.getAccountList('', { _id: { $in: participantIds } })
             const listEmail = listAccount?.map((account) => account.email)
-
             const body = `
-                <div style="padding: 20px; font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
-                    <h2 style="color: #2b579a; margin-bottom: 20px;">Your Meeting Room is Ready</h2>
-                    <p style="margin-bottom: 20px;">Dear Participants,</p>
-                    <p style="margin-bottom: 20px;">
-                        A meeting room has been successfully created for your scheduled session. Below are the details:
-                    </p>
-                    <ul style="list-style-type: none; padding: 0; margin-bottom: 20px;">
-                        <li style="margin-bottom: 10px;">
-                            <strong>Meeting Link:</strong>
-                            <a href="${url}" style="color: #1d70b8; text-decoration: none;">Join Meeting</a>
-                        </li>
-                        <li style="margin-bottom: 10px;">
-                            <strong>Start Time:</strong> ${new Date(timeStart).toLocaleString()}
-                        </li>
-                        <li style="margin-bottom: 10px;">
-                            <strong>End Time:</strong> ${new Date(timeEnd).toLocaleString()}
-                        </li>
-                    </ul>
-                    <p style="margin-bottom: 20px;">
-                        Please ensure you join the meeting on time using the link above. If you have any questions or concerns, feel free to reach out to us.
-                    </p>
-                    <p style="margin-top: 20px; color: #555;">
-                        Best regards,<br />
-                        <strong style="color: #2b579a;">Recruit Me Team</strong>
-                    </p>
-                </div>
-            `
+                    <div style="padding: 20px; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                        <h2 style="color: #2b579a; text-align: center; margin-bottom: 30px;">Your Meeting Room is Ready!</h2>
 
-            await mailService.sendMailBase({
+                        <p style="margin-bottom: 20px;">
+                            Dear Participant,
+                        </p>
+
+                        <p style="margin-bottom: 20px;">
+                            We are pleased to inform you that a meeting room has been successfully created for your upcoming session. Below are the meeting details:
+                        </p>
+
+                        <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+                            <ul style="list-style-type: none; padding: 0;">
+                                <li style="margin-bottom: 15px;">
+                                    <strong>Meeting Link:</strong>
+                                    <a href="${url}" style="color: #007BFF; text-decoration: none;">Join Meeting</a>
+                                </li>
+                                <li style="margin-bottom: 15px;">
+                                    <strong>Start Time:</strong> ${new Date(timeStart).toLocaleString()}
+                                </li>
+                                <li style="margin-bottom: 15px;">
+                                    <strong>End Time:</strong> ${new Date(timeEnd).toLocaleString()}
+                                </li>
+                            </ul>
+                        </div>
+
+                        <p style="margin-bottom: 20px;">
+                            To confirm your participation, please accept the interview invitation by clicking the button below:
+                        </p>
+
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <a href="${FRONTEND_URL_CANDIDATE_HOME}/job-details?id=${apply?.job ?? ''}"
+                            style="background-color: #2b579a; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                Accept Interview Invitation
+                            </a>
+                        </div>
+
+                        <p style="color: #ff0000; font-weight: bold; margin-bottom: 20px;">
+                            Note: If you do not accept the invitation within 1 day, your CV will be eliminated from the application process.
+                        </p>
+
+                        <p style="margin-top: 30px; color: #555;">
+                            If you have any questions or concerns, feel free to reach out to us. We look forward to seeing you at the meeting.
+                        </p>
+
+                        <p style="margin-top: 20px; color: #555;">
+                            Best regards,<br />
+                            <strong style="color: #2b579a;">RecruitMe Team</strong>
+                        </p>
+                    </div>
+                    `
+
+            mailService.sendMailBase({
                 sendTo: listEmail,
-                subject: 'Meeting Room is Created!',
+                subject: 'Your Meeting Room is Ready!',
                 body: body,
             })
 

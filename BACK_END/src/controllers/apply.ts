@@ -1,7 +1,11 @@
 import { NextFunction, Request, Response } from 'express'
 import mongoose, { Types } from 'mongoose'
-import CVStatus from '../models/cvStatusModel'
+import CVStatus, { ICVStatus } from '../models/cvStatusModel'
 import applyService from '../services/apply'
+import { ICV } from '../models/cvModel'
+import { mailService } from '../services/mailServices/mailService'
+import Apply from '../models/applyModel'
+import { IJob } from '../models/jobModel'
 
 const applyController = {
     updateApplyStatus: async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -33,6 +37,47 @@ const applyController = {
             if (!updatedApply) {
                 res.status(404).json({ message: 'Not found ApplyId' })
                 return
+            }
+
+            if (newStatus === 'Rejected' || newStatus === 'Accepted') {
+                const newApply = await Apply.findById(updatedApply._id).populate('job cv status')
+
+                const firstName = (newApply?.cv as ICV)?.firstName || ''
+                const email = (newApply?.cv as ICV)?.email || ''
+                const lastName = (newApply?.cv as ICV)?.lastName || ''
+                const jobTitle = (newApply?.job as IJob)?.title || ''
+                const status = (newApply?.status as ICVStatus)?.name || ''
+
+                mailService.sendMailBase({
+                    sendTo: [email],
+                    subject: 'RecruitMe Notification',
+                    body: `
+                   <div style="padding: 20px; font-family: Arial, sans-serif; color: #333;">
+                        <h2 style="color: #2b579a; margin-bottom: 20px;">RecruitMe - Application Status Update</h2>
+                        <p>Dear ${firstName} ${lastName},</p>
+                        <p>Thank you for applying for the <strong>${jobTitle}</strong> position at <strong>RecruitMe</strong>.</p>
+
+                        ${
+                            status === 'Accepted'
+                                ? `<p style="margin-bottom: 20px;">
+                                <strong style="color: black; font-size: 16px">Congratulations!</strong> We are excited to inform you that your application has been <strong style="color: green; font-size: 16px">Accepted</strong>.
+                                Welcome to our team at RecruitMe! Our HR team will reach out to you shortly with further details regarding the next steps.
+                            </p>`
+                                : `<p style="margin-bottom: 20px;">
+                                We regret to inform you that after careful consideration, your application has been <strong style="color: red; font-size: 16px">Rejected</strong>.
+                                While this position might not have been the right fit, we encourage you to explore future opportunities with us.
+                            </p>`
+                        }
+
+                        <p style="margin-bottom: 20px;">If you have any questions or need further clarification, please do not hesitate to contact us.</p>
+
+                        <p style="color: #555;">
+                            Best regards,<br />
+                            <strong style="color: #2b579a;">RecruitMe Team</strong>
+                        </p>
+                    </div>
+                `,
+                })
             }
 
             res.status(200).json({ message: 'Success', data: updatedApply })

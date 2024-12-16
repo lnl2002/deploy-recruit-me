@@ -65,7 +65,7 @@ const CriteriaEvaluation: React.FC<CriteriaEvaluationProps> = ({
           setUpdateApplicantReportSegment("update-successfully");
         }
       },
-      updateApplicantReportSegment === "update-failed" ? 60000 : 30000
+      updateApplicantReportSegment === "update-failed" ? 30000 : 1000
     );
     return () => clearInterval(intervalId);
   }, [detailsCriteria, updateApplicantReportSegment, scoreSelected, applyId]);

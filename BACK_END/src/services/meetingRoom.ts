@@ -82,7 +82,7 @@ const meetingService = {
                     sendTo: [user.email],
                     subject: 'Application Status Update',
                     body: `
-                     <div style="padding: 20px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
+                     <div style="padding: 20px;">
                         <h2>Application Status Update</h2>
                         <p>Dear ${firstName} ${lastName},</p>
                         <p>Thank you for your interest in the <strong>${jobTitle}</strong> position at <strong>RecruitMe</strong>.</p>
@@ -114,7 +114,7 @@ const meetingService = {
             sendTo: [interviewManager[0].email],
             subject: 'Application Status Update',
             body: `
-            <div style="padding: 20px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9; font-family: Arial, sans-serif; color: #333;">
+            <div style="padding: 20px; font-family: Arial, sans-serif; color: #333;">
                 <h2 style="color: #2b579a; margin-bottom: 20px;">Application Status Update</h2>
                 <p>Dear ${interviewManager[0].name},</p>
                 <p>Thank you for your interest in the <strong>${job?.title}</strong> position at <strong>RecruitMe</strong>.</p>
@@ -131,7 +131,7 @@ const meetingService = {
                     <li style="margin-bottom: 10px;">
                         <strong>Status:</strong> <span style="font-weight: bold; color: ${status === 'approved' ? 'green' : 'red'};">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
                     </li>
-                    ${status === 'rejected' ? `<li style="margin-bottom: 10px;"><strong>Reason:</strong> ${declineReason}</li>` : ''}
+                    ${status === IMeetingApproveStatus.REJECTED ? `<li style="margin-bottom: 10px;"><strong>Reason:</strong> ${declineReason}</li>` : ''}
                 </ul>
 
                 <p style="margin-bottom: 20px;">Please review the application status and take necessary actions. If you need further details, feel free to contact us.</p>
