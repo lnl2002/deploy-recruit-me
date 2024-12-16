@@ -531,9 +531,9 @@ const jobController = {
                 return res.status(400).json({ message: 'Group Criteria is required' })
             }
 
-            const expirationDate = resetToStartOfDay(expiredDate)
-            const startionDate = resetToStartOfDay(startDate)
-            const today = resetToStartOfDay(new Date().toISOString())
+            const expirationDate = resetToStartOfDay(timeConvertToVN(expiredDate))
+            const startionDate = resetToStartOfDay(timeConvertToVN(startDate))
+            const today = resetToStartOfDay(timeConvertToVN(new Date().toISOString()))
 
             if (isNaN(expirationDate.getTime()) || expirationDate <= today) {
                 return res.status(400).json({ message: 'Expired date must be a valid future date' })
@@ -771,6 +771,11 @@ function isCurrentDateInRange(startDate: string, expiredDate: string) {
     const end = resetToStartOfDay(expiredDate)
 
     return currentDate >= start && currentDate <= end
+}
+
+function timeConvertToVN(date: string) {
+    const localTime = new Date(date).toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' })
+    return localTime
 }
 
 export default jobController
