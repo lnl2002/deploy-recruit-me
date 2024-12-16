@@ -8,7 +8,7 @@ export const uploadPdfToS3 = async (filePath: string): Promise<string> => {
     const s3 = new AWS.S3({
         accessKeyId: process.env.ACCESS_KEY_ID,
         secretAccessKey: process.env.SECRET_ACCESS_KEY,
-        region: process.env.S3_REGION_TEXTRACT,
+        region: process.env.S3_REGION_TEXTRACT_SINGAPORE,
         correctClockSkew: true,
     })
 
@@ -61,7 +61,7 @@ export const deleteS3File = async ({
         const s3 = new AWS.S3({
             accessKeyId: process.env.ACCESS_KEY_ID,
             secretAccessKey: process.env.SECRET_ACCESS_KEY,
-            region: process.env.S3_REGION_TEXTRACT,
+            region: process.env.S3_REGION_TEXTRACT_SINGAPORE,
             correctClockSkew: true,
         })
         const params = {
