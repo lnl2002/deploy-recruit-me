@@ -67,6 +67,7 @@ const statusColorMap: {
   expired: "danger",
   pending: "default",
   approved: "success",
+  completed: "success",
 };
 
 type ListJobProps = {
