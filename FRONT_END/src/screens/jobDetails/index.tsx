@@ -92,9 +92,9 @@ const JobDetails = (): React.JSX.Element => {
                 {(job.location as TLocation)?.city}
               </span>
               <Dot />
-              {job.createdAt && (
+              {job.startDate && (
                 <span className="text-sm text-blurEffect">
-                  {new Date(job.createdAt).toISOString().split("T")[0]}
+                  {new Date(job.startDate).toISOString().split("T")[0]}
                 </span>
               )}
             </div>
