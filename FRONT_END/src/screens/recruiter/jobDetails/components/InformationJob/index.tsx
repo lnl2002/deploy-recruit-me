@@ -4,6 +4,8 @@ import { TUnit } from "@/api/unitApi";
 import JobAppicationCard from "@/components/JobApplicationCard";
 import JobSection from "@/components/JobSection";
 import { Modal, ModalContent, useDisclosure } from "@nextui-org/react";
+import JobState from "./components/JobState";
+import { getStatusJob } from "@/utils/getStatus";
 
 type InformationJobProps = {
   job: Partial<TJob>;
@@ -52,6 +54,18 @@ const InformationJob: React.FC<InformationJobProps> = ({
       </div>
 
       <div className="col-span-1 px-8">
+        <div className="p-6 bg-white rounded-2xl shadow-xl border mb-10">
+          {/* <JobState state={job.status || ''} /> */}
+          <JobState
+            state={
+              getStatusJob(
+                new Date(job?.startDate ?? ""),
+                new Date(job?.expiredDate ?? ""),
+                job?.status ?? ""
+              ) || ""
+            }
+          />
+        </div>
         <div className="mb-5 flex justify-center" onClick={disclosure.onOpen}>
           <img
             src="../job_process.png"

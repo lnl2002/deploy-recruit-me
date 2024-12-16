@@ -122,7 +122,7 @@ const JobState = ({ state }: JobStateProps) => {
           <JobStatus status={state || ""} />
         </div>
       </div>
-      <div className="text-[#86868E]">{description || ""}</div>
+      <div className="text-[#86868E]">{state !== 'rejected' ?  (description || "") : (`"${job?.rejectReason}"` || '')}</div>
       {job && job.status === "pending" && (
         <div className="mt-8 grid grid-cols-2 gap-4">
           <Button
