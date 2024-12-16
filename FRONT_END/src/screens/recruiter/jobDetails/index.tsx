@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import jobApi, { TJob, JobStatus } from "@/api/jobApi";
+import jobApi, { TJob } from "@/api/jobApi";
 import { Image, Tab, Tabs, useDisclosure } from "@nextui-org/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Dot } from "lucide-react";
@@ -18,6 +18,8 @@ import { toast } from "react-toastify";
 import { isEmpty } from "@/utils/isEmpty";
 import { IAccount } from "@/api/accountApi/accountApi";
 import JobCriteria from "./components/JobCriteria";
+import { getStatusJob } from "@/utils/getStatus";
+import JobStatus from "@/screens/interviewer/jobDetails/components/JobStatus";
 
 //example: /job-details?id=67055dd3e22b9a4790729550
 export const JobDetails = (): React.JSX.Element => {
@@ -98,7 +100,21 @@ export const JobDetails = (): React.JSX.Element => {
               radius="full"
               className="w-32 p-1 bg-themeWhite shadow-md"
             />
-            <h1 className="text-themeDark text-3xl font-bold">{job.title}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-themeDark text-3xl font-bold">{job.title}</h1>
+              <JobStatus
+                status={getStatusJob(
+                  new Date(job?.startDate ?? ""),
+                  new Date(job?.expiredDate ?? ""),
+                  job?.status ?? ""
+                )}
+                key={getStatusJob(
+                  new Date(job.startDate ?? ""),
+                  new Date(job.expiredDate ?? ""),
+                  job?.status ?? ""
+                )}
+              />
+            </div>
             <div className="flex gap-1 items-center">
               <span className="text-sm text-blurEffect">
                 {(job.location as Partial<TLocation>)?.city}

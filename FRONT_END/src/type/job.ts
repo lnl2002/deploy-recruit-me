@@ -73,6 +73,7 @@ interface Location {
     location: Location;
     status: string;
     interviewManager: InterviewManager;
+    rejectReason: string;
   }
   
   export default JobPosting;
